@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HollandLife 2.0 — 荷兰华人一站式生活平台</title>
+    <meta name="description" content="荷兰华人一站式生活平台：生活服务、亲子地图、实用指南、咨询服务。找房租房、看医生、办手续、中超购物、出行交通、金融保险全覆盖。">
+    <meta name="keywords" content="荷兰华人,荷兰生活,荷兰攻略,荷兰租房,荷兰医疗,荷兰签证,荷兰亲子,荷兰学校,荷兰交通,荷兰保险,BSN,DigiD,30 ruling,Funda,荷兰新人指南,Netherlands Chinese,Dutch life guide,expat Netherlands">
+    <meta property="og:title" content="HollandLife 2.0 — 荷兰华人一站式生活平台">
+    <meta property="og:description" content="在荷兰从此不迷路。生活服务、亲子地图、实用指南，已服务10,000+荷兰华人家庭。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://xinaliu2134.github.io/nana-hub/hollandlife-v2/">
+    <meta property="og:locale" content="zh_CN">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%231A5276'/></svg>">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:locale:alternate" content="nl_NL">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://xinaliu2134.github.io/nana-hub/hollandlife-v2/">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{
+            --blue:#1A5276;--blue-light:#2471A3;--blue-dark:#0E2F44;
+            --orange:#E67E22;--orange-light:#F39C12;--orange-dark:#D35400;
+            --white:#FFFFFF;--gray-50:#F8F9FA;--gray-100:#F0F2F5;
+            --gray-200:#E4E6EB;--gray-300:#CED0D4;--gray-400:#8A8D91;
+            --gray-600:#606770;--gray-800:#1C1E21;
+            --red:#E74C3C;--green:#27AE60;--teal:#0EA5A0;
+            --radius:16px;--radius-sm:8px;--radius-lg:24px;
+            --shadow:0 2px 12px rgba(0,0,0,0.08);
+            --shadow-lg:0 8px 32px rgba(0,0,0,0.12);
+            --transition:all 0.3s cubic-bezier(.4,0,.2,1);
+        }
+        body{
+            font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
+            background:var(--gray-50);color:var(--gray-800);line-height:1.6;
+            -webkit-font-smoothing:antialiased;overflow-x:hidden;
+            padding-bottom:70px;
+        }
+        a{color:var(--blue-light);text-decoration:none}
+        a:hover{text-decoration:underline}
+
+        /* ── HEADER ── */
+        .header{
+            background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 60%,var(--blue-light) 100%);
+            color:white;position:sticky;top:0;z-index:1000;
+            box-shadow:0 2px 20px rgba(0,0,0,0.15);
+        }
+        .header-inner{
+            max-width:1200px;margin:0 auto;padding:10px 20px;
+            display:flex;align-items:center;justify-content:space-between;gap:12px;
+        }
+        .logo{display:flex;align-items:center;gap:10px;cursor:pointer}
+        .logo-icon{
+            width:40px;height:40px;background:var(--orange);border-radius:10px;
+            display:flex;align-items:center;justify-content:center;
+            font-size:22px;font-weight:900;color:white;flex-shrink:0;
+        }
+        .logo-text{font-size:18px;font-weight:700;letter-spacing:-0.5px;line-height:1.2}
+        .logo-text small{display:block;font-size:11px;font-weight:400;opacity:0.8}
+        .header-right{display:flex;align-items:center;gap:12px}
+        .consult-btn{
+            background:var(--orange);color:white;border:none;padding:7px 16px;
+            border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;
+            transition:var(--transition);white-space:nowrap;
+        }
+        .consult-btn:hover{background:var(--orange-dark);transform:translateY(-1px)}
+        .lang-toggle{
+            display:flex;background:rgba(255,255,255,0.15);border-radius:20px;overflow:hidden;
+        }
+        .lang-btn{
+            padding:5px 11px;font-size:12px;border:none;background:none;
+            color:rgba(255,255,255,0.7);cursor:pointer;transition:var(--transition);font-weight:500;
+        }
+        .lang-btn.active{background:var(--orange);color:white}
+
+        /* ── ABOUT AUTHOR ── */
+        .author-section{
+            background:white;border-radius:var(--radius);padding:28px 24px;
+            box-shadow:var(--shadow);margin:24px 0;position:relative;overflow:hidden;
+        }
+        .author-section::before{
+            content:'';position:absolute;top:0;left:0;right:0;height:4px;
+            background:linear-gradient(90deg,var(--orange),var(--blue-light));
+        }
+        .author-header{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+        .author-avatar{
+            width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--teal));
+            display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;
+        }
+        .author-name{font-size:18px;font-weight:700;color:var(--blue)}
+        .author-title{font-size:13px;color:var(--gray-600);margin-top:2px}
+        .author-body{font-size:14px;color:var(--gray-600);line-height:1.8}
+        .author-body p{margin-bottom:10px}
+        .author-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+        .author-tag{
+            display:inline-block;padding:4px 12px;border-radius:16px;font-size:12px;
+            font-weight:600;background:var(--gray-100);color:var(--blue);
+        }
+        .author-cta{
+            display:inline-flex;align-items:center;gap:6px;margin-top:16px;
+            background:var(--orange);color:white;border:none;padding:10px 22px;
+            border-radius:24px;font-size:14px;font-weight:600;cursor:pointer;
+            transition:var(--transition);text-decoration:none;
+        }
+        .author-cta:hover{background:var(--orange-dark);transform:translateY(-1px);text-decoration:none;color:white}
+        .hero-credential{
+            font-size:13px;opacity:0.85;margin-top:4px;position:relative;
+            display:inline-block;padding:3px 14px;background:rgba(255,255,255,0.15);
+            border-radius:16px;
+        }
+        .experience-tip{
+            background:linear-gradient(135deg,#FFF8E1,#FFF3E0);border-left:4px solid var(--orange);
+            border-radius:0 8px 8px 0;padding:12px 16px;margin:12px 0;font-size:13px;
+            color:var(--gray-800);line-height:1.6;
+        }
+        .experience-tip strong{color:var(--orange-dark)}
+
+        /* ── BOTTOM NAV ── */
+        .bottom-nav{
+            position:fixed;bottom:0;left:0;right:0;z-index:1000;
+            background:white;border-top:1px solid var(--gray-200);
+            display:flex;justify-content:space-around;padding:6px 0 env(safe-area-inset-bottom,8px);
+            box-shadow:0 -2px 10px rgba(0,0,0,0.05);
+        }
+        .nav-item{
+            display:flex;flex-direction:column;align-items:center;gap:2px;
+            padding:4px 8px;cursor:pointer;transition:var(--transition);
+            background:none;border:none;color:var(--gray-400);font-size:10px;
+            font-weight:500;min-width:56px;
+        }
+        .nav-item.active{color:var(--orange)}
+        .nav-item .nav-icon{font-size:22px;line-height:1}
+
+        /* ── PAGE VIEWS ── */
+        .page-view{display:none;animation:fadeInPage 0.3s ease}
+        .page-view.active{display:block}
+        @keyframes fadeInPage{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        .page-container{max-width:1200px;margin:0 auto;padding:0 16px}
+
+        /* ── HOME PAGE ── */
+        .hero{
+            background:linear-gradient(135deg,var(--blue) 0%,var(--blue-light) 50%,var(--teal) 100%);
+            color:white;padding:40px 20px 48px;text-align:center;position:relative;overflow:hidden;
+        }
+        .hero::before{
+            content:'';position:absolute;top:-50%;right:-20%;width:400px;height:400px;
+            background:radial-gradient(circle,rgba(255,255,255,0.08) 0%,transparent 70%);
+            border-radius:50%;
+        }
+        .hero h1{font-size:28px;font-weight:800;margin-bottom:8px;position:relative}
+        .hero .subtitle{font-size:15px;opacity:0.9;margin-bottom:6px;position:relative}
+        .hero .tagline{font-size:13px;opacity:0.7;position:relative}
+        .search-box{
+            margin-top:20px;max-width:560px;margin-left:auto;margin-right:auto;position:relative;
+        }
+        .search-box input{
+            width:100%;padding:14px 20px 14px 44px;border:none;border-radius:28px;
+            font-size:15px;background:rgba(255,255,255,0.95);color:var(--gray-800);
+            outline:none;box-shadow:0 4px 20px rgba(0,0,0,0.15);
+        }
+        .search-box input::placeholder{color:var(--gray-400)}
+        .search-box .s-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:18px;opacity:0.4}
+
+        .quick-services{
+            display:grid;grid-template-columns:repeat(3,1fr);gap:12px;
+            padding:20px 16px;max-width:1200px;margin:0 auto;
+        }
+        @media(min-width:600px){.quick-services{grid-template-columns:repeat(6,1fr);gap:16px}}
+        .qs-card{
+            background:white;border-radius:var(--radius);padding:20px 10px;text-align:center;
+            cursor:pointer;transition:var(--transition);box-shadow:var(--shadow);border:2px solid transparent;
+        }
+        .qs-card:hover,.qs-card:active{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--orange)}
+        .qs-icon{font-size:36px;margin-bottom:6px;display:block}
+        .qs-name{font-size:14px;font-weight:600;color:var(--blue)}
+        .qs-name-en{font-size:11px;color:var(--gray-400)}
+
+        /* Featured cards */
+        .section-title{
+            font-size:18px;font-weight:700;color:var(--blue);margin:28px 0 14px;
+            padding-left:12px;border-left:4px solid var(--orange);
+        }
+        .featured-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        @media(min-width:768px){.featured-grid{grid-template-columns:repeat(4,1fr)}}
+        .feat-card{
+            background:white;border-radius:var(--radius);padding:20px 16px;
+            box-shadow:var(--shadow);cursor:pointer;transition:var(--transition);
+        }
+        .feat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+        .feat-card h4{font-size:14px;font-weight:600;color:var(--gray-800);margin-bottom:4px}
+        .feat-card p{font-size:12px;color:var(--gray-600);line-height:1.5}
+        .feat-card .feat-icon{font-size:28px;margin-bottom:8px;display:block}
+
+        /* Email signup */
+        .email-signup{
+            background:linear-gradient(135deg,var(--blue) 0%,var(--blue-light) 100%);
+            border-radius:var(--radius);padding:28px 24px;color:white;margin:24px 0;text-align:center;
+        }
+        .email-signup h3{font-size:18px;margin-bottom:8px}
+        .email-signup p{font-size:13px;opacity:0.85;margin-bottom:16px}
+        .email-form{display:flex;gap:8px;max-width:400px;margin:0 auto}
+        .email-form input{
+            flex:1;padding:10px 16px;border:none;border-radius:24px;font-size:14px;outline:none;
+        }
+        .email-form button{
+            background:var(--orange);color:white;border:none;padding:10px 20px;
+            border-radius:24px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;
+        }
+
+        /* ── SERVICES PAGE ── */
+        .svc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
+        @media(min-width:600px){.svc-grid{grid-template-columns:repeat(3,1fr)}}
+        .svc-card{
+            background:white;border-radius:var(--radius);padding:24px 16px;text-align:center;
+            cursor:pointer;transition:var(--transition);box-shadow:var(--shadow);border:2px solid transparent;
+        }
+        .svc-card:hover{border-color:var(--orange);box-shadow:var(--shadow-lg)}
+        .svc-card .svc-icon{font-size:40px;display:block;margin-bottom:8px}
+        .svc-card h3{font-size:16px;color:var(--blue);margin-bottom:2px}
+        .svc-card p{font-size:12px;color:var(--gray-400)}
+
+        /* Service detail panel */
+        .svc-panel-overlay{
+            display:none;position:fixed;top:0;left:0;right:0;bottom:0;
+            background:rgba(0,0,0,0.5);z-index:2000;animation:fadeIn 0.2s;
+        }
+        .svc-panel-overlay.active{display:block}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+        .svc-panel{
+            position:fixed;bottom:0;left:0;right:0;background:white;
+            border-radius:24px 24px 0 0;max-height:85vh;overflow-y:auto;
+            z-index:2001;animation:slideUp 0.3s ease;padding:0 0 40px;
+        }
+        .svc-panel-handle{width:40px;height:4px;background:var(--gray-200);border-radius:2px;margin:12px auto}
+        .svc-panel-header{padding:8px 24px 16px;border-bottom:1px solid var(--gray-100)}
+        .svc-panel-header h2{font-size:22px;color:var(--blue)}
+        .svc-panel-header p{font-size:13px;color:var(--gray-600);margin-top:4px}
+        .svc-panel-body{padding:20px 24px}
+
+        .link-card{
+            display:flex;align-items:center;gap:14px;padding:14px 16px;
+            background:var(--gray-50);border-radius:12px;margin-bottom:10px;
+            text-decoration:none;color:var(--gray-800);transition:background 0.2s;cursor:pointer;
+        }
+        .link-card:hover{background:var(--gray-100);text-decoration:none;color:var(--gray-800)}
+        .link-card .lc-icon{
+            width:44px;height:44px;border-radius:12px;display:flex;align-items:center;
+            justify-content:center;font-size:20px;flex-shrink:0;
+        }
+        .link-card .lc-info h4{font-size:15px;font-weight:600;margin-bottom:2px}
+        .link-card .lc-info p{font-size:12px;color:var(--gray-600);line-height:1.4}
+        .link-card .lc-arrow{margin-left:auto;color:var(--gray-400);font-size:18px}
+
+        .info-block{background:var(--gray-50);border-radius:12px;padding:16px;margin-bottom:12px}
+        .info-block h4{font-size:14px;font-weight:600;color:var(--blue);margin-bottom:8px}
+        .info-block p,.info-block li{font-size:14px;color:var(--gray-600);line-height:1.7}
+        .info-block ul{padding-left:18px}
+        .info-block li{margin-bottom:4px}
+        .phone-number{
+            display:inline-flex;align-items:center;gap:6px;background:var(--blue);
+            color:white;padding:6px 14px;border-radius:20px;font-size:14px;
+            font-weight:600;margin:4px 4px 4px 0;text-decoration:none;
+        }
+
+        /* Emergency */
+        .emergency-card{
+            background:linear-gradient(135deg,#E74C3C,#C0392B);color:white;
+            border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);margin-bottom:20px;
+        }
+        .emergency-card h3{font-size:18px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+        .emergency-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+        @media(min-width:600px){.emergency-grid{grid-template-columns:repeat(4,1fr)}}
+        .em-item{
+            background:rgba(255,255,255,0.15);border-radius:12px;padding:14px;
+            text-align:center;cursor:pointer;transition:background 0.2s;
+        }
+        .em-item:hover{background:rgba(255,255,255,0.25)}
+        .em-item a{color:white;text-decoration:none}
+        .em-item .em-number{font-size:22px;font-weight:800;display:block}
+        .em-item .em-label{font-size:11px;opacity:0.9;margin-top:2px;display:block}
+
+        /* ── MAP PAGE ── */
+        .map-page{display:none;height:calc(100vh - 56px - 62px);position:relative}
+        .map-page.active{display:flex;flex-direction:column}
+        .map-header{
+            background:linear-gradient(135deg,var(--blue) 0%,var(--teal) 100%);
+            color:white;padding:16px 16px 12px;flex-shrink:0;text-align:center;
+        }
+        .map-header h2{font-size:20px;font-weight:800;margin-bottom:4px}
+        .map-header p{font-size:13px;opacity:0.9}
+        .map-filters{
+            background:white;border-bottom:1px solid var(--gray-200);padding:8px 12px;
+            display:flex;gap:6px;overflow-x:auto;flex-shrink:0;
+            scrollbar-width:none;-webkit-overflow-scrolling:touch;
+        }
+        .map-filters::-webkit-scrollbar{display:none}
+        .filter-chip{
+            display:flex;align-items:center;gap:4px;padding:6px 14px;
+            border-radius:20px;font-size:12px;font-weight:600;
+            border:2px solid var(--gray-200);background:white;color:var(--gray-600);
+            cursor:pointer;white-space:nowrap;transition:var(--transition);flex-shrink:0;
+        }
+        .filter-chip.active{border-color:var(--orange);background:var(--orange);color:white}
+        .filter-chip:hover{border-color:var(--orange)}
+        .filter-chip[data-color]{border-color:var(--chip-border)}
+        .filter-chip[data-color].active{background:var(--chip-bg);border-color:var(--chip-bg);color:white}
+        .filter-chip-location{
+            background:linear-gradient(135deg,#E3F2FD,#BBDEFB);color:var(--blue);
+            border-color:#90CAF9;font-weight:700;
+        }
+        .filter-chip-location.active{background:var(--blue);color:white;border-color:var(--blue)}
+        .vp-age{
+            display:flex;gap:4px;margin:6px 0;flex-wrap:wrap;
+        }
+        .vp-age-tag{
+            display:inline-block;padding:2px 7px;border-radius:8px;font-size:10px;
+            font-weight:600;background:#E3F2FD;color:#1565C0;
+        }
+        .map-city-search{
+            position:absolute;top:58px;left:12px;z-index:800;
+            background:white;border-radius:24px;box-shadow:var(--shadow-lg);
+            display:flex;align-items:center;padding:0 14px;
+        }
+        .map-city-search input{
+            border:none;padding:10px 8px;font-size:14px;outline:none;width:180px;background:transparent;
+        }
+        .map-city-search .mcs-icon{font-size:16px;opacity:0.4}
+        #mapContainer{flex:1;z-index:1}
+
+        /* Venue popup */
+        .venue-popup{min-width:220px;max-width:280px}
+        .venue-popup h3{font-size:15px;font-weight:700;color:var(--blue);margin-bottom:4px}
+        .venue-popup .vp-cat{
+            display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;
+            font-weight:600;margin-bottom:6px;
+        }
+        .venue-popup .vp-addr{font-size:12px;color:var(--gray-600);margin-bottom:4px}
+        .venue-popup .vp-hours{font-size:12px;color:var(--gray-400);margin-bottom:8px}
+        .venue-popup .vp-links{display:flex;gap:6px;flex-wrap:wrap}
+        .venue-popup .vp-link{
+            display:inline-flex;align-items:center;gap:4px;padding:4px 10px;
+            border-radius:14px;font-size:11px;font-weight:600;text-decoration:none;
+        }
+        .vp-link-map{background:#E8F5E9;color:#27AE60}
+        .vp-link-web{background:#E3F2FD;color:var(--blue-light)}
+        .promoted-badge{
+            display:inline-block;background:var(--orange);color:white;font-size:9px;
+            padding:1px 6px;border-radius:6px;font-weight:700;vertical-align:middle;margin-left:4px;
+        }
+
+        /* Venue count badge */
+        .venue-count{
+            position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:800;
+            background:white;padding:6px 16px;border-radius:20px;box-shadow:var(--shadow-lg);
+            font-size:13px;font-weight:600;color:var(--blue);
+        }
+
+        /* ── GUIDES PAGE ── */
+        .guide-item{
+            background:white;border-radius:var(--radius);margin-bottom:10px;
+            box-shadow:var(--shadow);overflow:hidden;
+        }
+        .guide-header{
+            padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
+            cursor:pointer;transition:background 0.2s;gap:12px;
+        }
+        .guide-header:hover{background:var(--gray-50)}
+        .guide-header h3{font-size:15px;font-weight:600;color:var(--gray-800);flex:1}
+        .guide-tag{
+            font-size:11px;padding:3px 10px;border-radius:12px;
+            background:var(--orange);color:white;white-space:nowrap;
+        }
+        .guide-toggle{font-size:20px;color:var(--gray-400);transition:transform 0.3s;flex-shrink:0}
+        .guide-item.open .guide-toggle{transform:rotate(180deg)}
+        .guide-content{max-height:0;overflow:hidden;transition:max-height 0.4s ease}
+        .guide-item.open .guide-content{max-height:8000px}
+        .guide-body{padding:0 20px 20px;font-size:14px;color:var(--gray-600);line-height:1.8}
+        .guide-body h4{font-size:14px;font-weight:700;color:var(--blue);margin:14px 0 6px}
+        .guide-body ul{padding-left:18px;margin-bottom:10px}
+        .guide-body li{margin-bottom:4px}
+        .step{display:flex;gap:12px;margin-bottom:10px}
+        .step-num{
+            width:28px;height:28px;background:var(--orange);color:white;border-radius:50%;
+            display:flex;align-items:center;justify-content:center;
+            font-size:13px;font-weight:700;flex-shrink:0;margin-top:2px;
+        }
+        .step-text{flex:1}
+        .tip-box{
+            background:#FFF8E1;border-left:4px solid var(--orange);
+            border-radius:0 8px 8px 0;padding:12px 16px;margin:12px 0;font-size:13px;
+        }
+
+        /* ── CONSULTING PAGE ── */
+        /* ── EBOOK STORE ── */
+        .ebook-store-hero{
+            background:linear-gradient(135deg,#1A5276 0%,#E67E22 100%);
+            color:white;padding:32px 20px;text-align:center;border-radius:var(--radius-lg);margin-bottom:24px;
+        }
+        .ebook-store-hero h2{font-size:26px;font-weight:800;margin-bottom:8px}
+        .ebook-store-hero p{font-size:14px;opacity:0.9;max-width:500px;margin:0 auto}
+        .ebook-section-title{
+            font-size:20px;font-weight:700;color:var(--blue);margin:28px 0 16px;
+            padding-left:12px;border-left:4px solid var(--orange);display:flex;align-items:center;gap:8px;
+        }
+        .ebook-grid{display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:24px}
+        @media(min-width:600px){.ebook-grid{grid-template-columns:repeat(2,1fr)}}
+        @media(min-width:900px){.ebook-grid{grid-template-columns:repeat(3,1fr)}}
+        .ebook-card{
+            background:white;border-radius:var(--radius);padding:0;overflow:hidden;
+            box-shadow:var(--shadow);transition:var(--transition);border:2px solid transparent;
+            display:flex;flex-direction:column;
+        }
+        .ebook-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--orange)}
+        .ebook-card-accent{height:6px;width:100%}
+        .ebook-card-body{padding:20px;flex:1;display:flex;flex-direction:column}
+        .ebook-card-emoji{font-size:40px;margin-bottom:10px;display:block}
+        .ebook-card-body h4{font-size:16px;font-weight:700;color:var(--gray-800);margin-bottom:6px;line-height:1.4}
+        .ebook-card-body p{font-size:13px;color:var(--gray-600);line-height:1.6;margin-bottom:14px;flex:1}
+        .ebook-price-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto}
+        .ebook-price{
+            background:var(--orange);color:white;font-size:16px;font-weight:800;
+            padding:4px 14px;border-radius:20px;white-space:nowrap;
+        }
+        .ebook-buy-btn{
+            display:inline-flex;align-items:center;gap:6px;
+            background:var(--blue);color:white;border:none;padding:10px 20px;
+            border-radius:24px;font-size:14px;font-weight:600;cursor:pointer;
+            transition:var(--transition);text-decoration:none;white-space:nowrap;
+        }
+        .ebook-buy-btn:hover{background:var(--blue-light);transform:translateY(-1px);text-decoration:none;color:white}
+        .ebook-bundle{
+            background:linear-gradient(135deg,#FFF3E0,#FFE0B2);border:2px dashed var(--orange);
+            border-radius:var(--radius);padding:20px;text-align:center;margin:24px 0;
+        }
+        .ebook-bundle h3{font-size:18px;color:var(--orange-dark);font-weight:800;margin-bottom:6px}
+        .ebook-bundle p{font-size:14px;color:var(--gray-600);margin-bottom:12px}
+        .ebook-bundle .bundle-price{font-size:28px;font-weight:900;color:var(--orange)}
+        .ebook-bundle .bundle-original{text-decoration:line-through;color:var(--gray-400);font-size:16px;margin-right:8px}
+        .ebook-wechat-section{
+            background:white;border-radius:var(--radius);padding:24px;text-align:center;
+            box-shadow:var(--shadow);margin-top:24px;
+        }
+        .ebook-wechat-section h3{font-size:18px;color:var(--blue);margin-bottom:8px}
+        .ebook-banner{
+            display:block;background:linear-gradient(90deg,#E67E22,#F39C12);color:white;
+            text-align:center;padding:10px 16px;font-size:14px;font-weight:600;
+            cursor:pointer;transition:var(--transition);border-radius:var(--radius);
+            margin:16px 16px 0;text-decoration:none;
+        }
+        .ebook-banner:hover{opacity:0.9;transform:translateY(-1px);text-decoration:none;color:white}
+
+        .consult-hero{
+            background:linear-gradient(135deg,var(--blue) 0%,var(--blue-light) 100%);
+            color:white;border-radius:var(--radius);padding:32px 24px;text-align:center;margin-bottom:24px;
+        }
+        .consult-hero h2{font-size:24px;font-weight:800;margin-bottom:8px}
+        .consult-hero p{font-size:14px;opacity:0.85;max-width:500px;margin:0 auto}
+        .consult-card{
+            background:white;border-radius:var(--radius);box-shadow:var(--shadow);
+            padding:28px 24px;margin-bottom:16px;border:2px solid transparent;
+            transition:var(--transition);position:relative;overflow:hidden;
+        }
+        .consult-card:hover{border-color:var(--orange);box-shadow:var(--shadow-lg)}
+        .consult-card .cc-badge{
+            position:absolute;top:16px;right:16px;background:var(--orange);color:white;
+            font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;
+        }
+        .consult-card h3{font-size:18px;font-weight:700;color:var(--blue);margin-bottom:6px}
+        .consult-card .cc-price{font-size:28px;font-weight:800;color:var(--orange);margin-bottom:8px}
+        .consult-card .cc-desc{font-size:14px;color:var(--gray-600);line-height:1.7;margin-bottom:16px}
+        .consult-card ul{padding-left:18px;margin-bottom:16px}
+        .consult-card li{font-size:14px;color:var(--gray-600);margin-bottom:4px}
+        .cta-btn{
+            display:inline-block;background:var(--orange);color:white;border:none;
+            padding:12px 28px;border-radius:24px;font-size:15px;font-weight:700;
+            cursor:pointer;transition:var(--transition);text-decoration:none;
+        }
+        .cta-btn:hover{background:var(--orange-dark);transform:translateY(-1px);color:white;text-decoration:none}
+        .cta-btn-outline{
+            background:transparent;border:2px solid var(--orange);color:var(--orange);
+        }
+        .cta-btn-outline:hover{background:var(--orange);color:white}
+        .wechat-placeholder{
+            background:var(--gray-50);border-radius:var(--radius);padding:32px;
+            text-align:center;border:2px dashed var(--gray-300);
+        }
+        .wechat-placeholder .wp-icon{font-size:48px;margin-bottom:8px;display:block}
+        .wechat-placeholder p{font-size:14px;color:var(--gray-600)}
+
+        /* ── FOOTER ── */
+        .footer{
+            text-align:center;padding:40px 20px;color:var(--gray-400);font-size:12px;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media(max-width:480px){
+            .header-inner{padding:8px 12px}
+            .logo-text{font-size:16px}
+            .consult-btn{display:none}
+            .hero h1{font-size:24px}
+            .hero{padding:28px 16px 36px}
+        }
+        @media(min-width:769px){
+            .bottom-nav{display:none}
+            body{padding-bottom:0}
+        }
+
+        /* Desktop nav */
+        .desktop-nav{display:none}
+        @media(min-width:769px){
+            .desktop-nav{
+                display:flex;gap:4px;background:var(--blue-dark);
+                justify-content:center;padding:0;
+            }
+            .desktop-nav button{
+                background:none;border:none;color:rgba(255,255,255,0.7);
+                padding:12px 24px;font-size:14px;font-weight:600;cursor:pointer;
+                transition:var(--transition);border-bottom:3px solid transparent;
+            }
+            .desktop-nav button.active{color:white;border-bottom-color:var(--orange)}
+            .desktop-nav button:hover{color:white;background:rgba(255,255,255,0.05)}
+        }
+
+        /* Leaflet custom */
+        .leaflet-popup-content-wrapper{border-radius:12px;box-shadow:var(--shadow-lg)}
+        .leaflet-popup-content{margin:14px 16px}
+        .marker-cluster-small{background-color:rgba(230,126,34,0.3)}
+        .marker-cluster-small div{background-color:var(--orange)}
+        .marker-cluster-medium{background-color:rgba(230,126,34,0.3)}
+        .marker-cluster-medium div{background-color:var(--orange-dark)}
+        .marker-cluster-large{background-color:rgba(26,82,118,0.3)}
+        .marker-cluster-large div{background-color:var(--blue)}
+        .marker-cluster div{color:white;font-weight:700}
+
+        /* Custom marker icons */
+        .custom-marker{
+            width:32px;height:32px;border-radius:50%;display:flex;align-items:center;
+            justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,0.2);
+            border:2px solid white;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════ HEADER ═══════════ -->
+<header class="header">
+    <div class="header-inner">
+        <div class="logo" onclick="switchPage('home')">
+            <div class="logo-icon">荷</div>
+            <div class="logo-text">
+                <span data-i18n="brand">荷生活 2.0</span>
+                <small>HollandLife</small>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="consult-btn" onclick="switchPage('consulting')" data-i18n="nav_consult">&#128218; &#30005;&#23376;&#20070;</button>
+            <div class="lang-toggle">
+                <button class="lang-btn active" onclick="setLang('zh')">中文</button>
+                <button class="lang-btn" onclick="setLang('en')">EN</button>
+                <button class="lang-btn" onclick="setLang('nl')">NL</button>
+            </div>
+        </div>
+    </div>
+    <nav class="desktop-nav">
+        <button class="active" onclick="switchPage('home')" data-nav="home" data-i18n="nav_home">首页</button>
+        <button onclick="switchPage('services')" data-nav="services" data-i18n="nav_services">生活服务</button>
+        <button onclick="switchPage('map')" data-nav="map" data-i18n="nav_map">亲子地图</button>
+        <button onclick="switchPage('guides')" data-nav="guides" data-i18n="nav_guides">实用指南</button>
+        <button onclick="switchPage('consulting')" data-nav="consulting" data-i18n="nav_consult">&#128218; &#30005;&#23376;&#20070;</button>
+    </nav>
+</header>
+
+<!-- ═══════════ HOME PAGE ═══════════ -->
+<div class="page-view active" id="page-home">
+    <section class="hero">
+        <h1 data-i18n="hero_title">在荷兰，从此不迷路</h1>
+        <p class="subtitle" data-i18n="hero_sub">华人一站式生活平台 · 生活服务 + 亲子探索 + 实用指南</p>
+        <p class="tagline" data-i18n="hero_tag">已服务 10,000+ 荷兰华人家庭</p>
+        <span class="hero-credential" data-i18n="hero_credential">由在荷兰生活15年的北大医学博士整理</span>
+        <div class="search-box">
+            <span class="s-icon">&#128269;</span>
+            <input type="text" id="globalSearch" data-i18n-ph="search_ph" placeholder="搜索服务、场地、指南..." onkeyup="handleGlobalSearch(event)">
+        </div>
+    </section>
+
+    <a class="ebook-banner" onclick="switchPage('consulting');return false;" href="#">&#128218; &#26032;&#19978;&#26550;&#65306;10&#26412;&#33655;&#20848;&#29983;&#27963;&#30005;&#23376;&#20070;&#65292;&#27599;&#26412;&#20165;&euro;2 &#8212; &#31435;&#21363;&#36873;&#36141; New: 10 Ebooks, only &euro;2 each &rarr;</a>
+
+    <div class="page-container">
+        <div class="quick-services">
+            <div class="qs-card" onclick="openServicePanel('housing')">
+                <span class="qs-icon">&#127968;</span>
+                <div class="qs-name" data-i18n="svc_housing">找房子</div>
+                <div class="qs-name-en">Housing</div>
+            </div>
+            <div class="qs-card" onclick="openServicePanel('health')">
+                <span class="qs-icon">&#127973;</span>
+                <div class="qs-name" data-i18n="svc_health">看医生</div>
+                <div class="qs-name-en">Healthcare</div>
+            </div>
+            <div class="qs-card" onclick="openServicePanel('gov')">
+                <span class="qs-icon">&#128203;</span>
+                <div class="qs-name" data-i18n="svc_gov">办手续</div>
+                <div class="qs-name-en">Government</div>
+            </div>
+            <div class="qs-card" onclick="openServicePanel('grocery')">
+                <span class="qs-icon">&#128722;</span>
+                <div class="qs-name" data-i18n="svc_grocery">中超购物</div>
+                <div class="qs-name-en">Asian Grocery</div>
+            </div>
+            <div class="qs-card" onclick="openServicePanel('transport')">
+                <span class="qs-icon">&#128646;</span>
+                <div class="qs-name" data-i18n="svc_transport">出行交通</div>
+                <div class="qs-name-en">Transport</div>
+            </div>
+            <div class="qs-card" onclick="openServicePanel('finance')">
+                <span class="qs-icon">&#128176;</span>
+                <div class="qs-name" data-i18n="svc_finance">金融保险</div>
+                <div class="qs-name-en">Banking</div>
+            </div>
+        </div>
+
+        <h2 class="section-title" data-i18n="feat_title">精选推荐</h2>
+        <div class="featured-grid">
+            <div class="feat-card" onclick="switchPage('map')">
+                <span class="feat-icon">&#128506;</span>
+                <h4 data-i18n="feat_map">亲子地图</h4>
+                <p data-i18n="feat_map_desc">250+ 荷兰亲子场地，动物园、博物馆、游乐场一网打尽</p>
+            </div>
+            <div class="feat-card" onclick="switchPage('guides');openGuideByIdx(0)">
+                <span class="feat-icon">&#128205;</span>
+                <h4 data-i18n="feat_first">新人指南</h4>
+                <p data-i18n="feat_first_desc">刚到荷兰第一周必做清单</p>
+            </div>
+            <div class="feat-card" onclick="switchPage('consulting')">
+                <span class="feat-icon">&#128218;</span>
+                <h4 data-i18n="feat_ebook">电子书商店</h4>
+                <p data-i18n="feat_ebook_desc">10本荷兰生活指南，中英文，每本仅€2</p>
+            </div>
+            <a class="feat-card" href="https://wise.com/invite/" target="_blank" rel="sponsored" style="text-decoration:none;color:inherit">
+                <span class="feat-icon">&#128184;</span>
+                <h4 data-i18n="feat_wise">省钱汇款 Wise</h4>
+                <p data-i18n="feat_wise_desc">国际转账比银行便宜5-8倍，华人必备</p>
+            </a>
+        </div>
+
+        <div class="email-signup" id="newsletter-section">
+            <h3 data-i18n="email_title">订阅荷兰生活周刊</h3>
+            <p data-i18n="email_desc">每周精选实用资讯、优惠信息、亲子活动推荐，直送邮箱</p>
+            <form class="email-form" id="newsletter-form" action="https://formspree.io/f/xinaliu@gmail.com" method="POST">
+                <input type="email" name="email" placeholder="your@email.com" required>
+                <button type="submit" data-i18n="email_btn">订阅</button>
+            </form>
+            <p id="newsletter-success" style="display:none;margin-top:12px;padding:10px 18px;background:rgba(255,255,255,0.2);border-radius:12px;font-size:14px;font-weight:600;">&#10003; 感谢订阅！</p>
+        </div>
+
+        <!-- About the Author -->
+        <div class="author-section">
+            <div class="author-header">
+                <div class="author-avatar">&#128105;&#8205;&#9877;&#65039;</div>
+                <div>
+                    <div class="author-name" data-i18n="author_name">Nana / 娜娜</div>
+                    <div class="author-title" data-i18n="author_title">北大医学 &#8594; Erasmus MC PhD &#8594; 荷兰15年</div>
+                </div>
+            </div>
+            <div class="author-body">
+                <p data-i18n="author_bio">我是Nana，北京大学医学部毕业后来到荷兰Erasmus大学攻读博士，在荷兰已经生活了15年。从初来乍到时的迷茫，到买房、生娃、孩子上学，荷兰生活的方方面面我都亲身经历过。所有指南都来自真实经验，不是网上复制粘贴。</p>
+                <p data-i18n="author_bio2">创建HollandLife，是因为我深知在荷兰落地安家有多不容易——希望这些我花了15年积累的经验，能帮你少走弯路。</p>
+            </div>
+            <div class="author-tags">
+                <span class="author-tag" data-i18n="author_tag1">&#127891; 北大医学博士</span>
+                <span class="author-tag" data-i18n="author_tag2">&#127758; 旅荷15年</span>
+                <span class="author-tag" data-i18n="author_tag3">&#128118; 荷兰妈妈</span>
+                <span class="author-tag" data-i18n="author_tag4">&#127968; 在荷置业</span>
+            </div>
+            <a class="author-cta" href="https://xinaliu.gumroad.com" target="_blank" rel="sponsored" data-i18n="author_cta">&#128218; 查看我的电子书 &#8594;</a>
+        </div>
+
+        <h2 class="section-title" data-i18n="emergency_title">紧急电话</h2>
+        <div class="emergency-card">
+            <h3>&#128680; <span data-i18n="emergency_call">紧急情况？请拨打：</span></h3>
+            <div class="emergency-grid">
+                <div class="em-item"><a href="tel:112"><span class="em-number">112</span><span class="em-label" data-i18n="em_112">报警/急救/火警</span></a></div>
+                <div class="em-item"><a href="tel:0900-8844"><span class="em-number">0900-8844</span><span class="em-label" data-i18n="em_police">非紧急报警</span></a></div>
+                <div class="em-item"><a href="tel:0800-0113"><span class="em-number">0800-0113</span><span class="em-label" data-i18n="em_crisis">心理危机</span></a></div>
+                <div class="em-item"><a href="tel:030-2748888"><span class="em-number">030-274 8888</span><span class="em-label" data-i18n="em_poison">中毒中心</span></a></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════ SERVICES PAGE ═══════════ -->
+<div class="page-view" id="page-services">
+    <div class="page-container" style="padding-top:20px;padding-bottom:40px">
+        <h2 class="section-title" data-i18n="svc_page_title">生活服务</h2>
+        <p style="color:var(--gray-600);font-size:14px;margin-bottom:20px" data-i18n="svc_page_desc">
+            荷兰华人生活必备资源，找房、看病、办事、购物、出行一站搞定
+        </p>
+        <div class="svc-grid">
+            <div class="svc-card" onclick="openServicePanel('housing')">
+                <span class="svc-icon">&#127968;</span>
+                <h3 data-i18n="svc_housing">找房子</h3>
+                <p>Funda, Pararius, Kamernet</p>
+            </div>
+            <div class="svc-card" onclick="openServicePanel('health')">
+                <span class="svc-icon">&#127973;</span>
+                <h3 data-i18n="svc_health">看医生</h3>
+                <p>GP, Huisartsenpost, Apotheek</p>
+            </div>
+            <div class="svc-card" onclick="openServicePanel('gov')">
+                <span class="svc-icon">&#128203;</span>
+                <h3 data-i18n="svc_gov">办手续</h3>
+                <p>BSN, DigiD, IND</p>
+            </div>
+            <div class="svc-card" onclick="openServicePanel('grocery')">
+                <span class="svc-icon">&#128722;</span>
+                <h3 data-i18n="svc_grocery">中超购物</h3>
+                <p>Amazing Oriental, Dun Yong</p>
+            </div>
+            <div class="svc-card" onclick="openServicePanel('transport')">
+                <span class="svc-icon">&#128646;</span>
+                <h3 data-i18n="svc_transport">出行交通</h3>
+                <p>NS, 9292, OV-chipkaart</p>
+            </div>
+            <div class="svc-card" onclick="openServicePanel('finance')">
+                <span class="svc-icon">&#128176;</span>
+                <h3 data-i18n="svc_finance">金融保险</h3>
+                <p>ING, ABN AMRO, Independer</p>
+            </div>
+        </div>
+        <h2 class="section-title" data-i18n="emergency_title">紧急电话</h2>
+        <div class="emergency-card">
+            <h3>&#128680; <span data-i18n="emergency_call">紧急情况？请拨打：</span></h3>
+            <div class="emergency-grid">
+                <div class="em-item"><a href="tel:112"><span class="em-number">112</span><span class="em-label" data-i18n="em_112">报警/急救/火警</span></a></div>
+                <div class="em-item"><a href="tel:0900-8844"><span class="em-number">0900-8844</span><span class="em-label" data-i18n="em_police">非紧急报警</span></a></div>
+                <div class="em-item"><a href="tel:0800-0113"><span class="em-number">0800-0113</span><span class="em-label" data-i18n="em_crisis">心理危机</span></a></div>
+                <div class="em-item"><a href="tel:030-2748888"><span class="em-number">030-274 8888</span><span class="em-label" data-i18n="em_poison">中毒中心</span></a></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════ MAP PAGE ═══════════ -->
+<div class="map-page" id="page-map">
+    <div class="map-header">
+        <h2 data-i18n="map_title">&#128118; &#20146;&#23376;&#22320;&#22270; / Kids &amp; Family Map</h2>
+        <p data-i18n="map_intro">&#21457;&#29616;&#33655;&#20848;250+&#20010;&#36866;&#21512;&#20840;&#23478;&#30340;&#22909;&#21435;&#22788; / Discover 250+ family-friendly places across the Netherlands</p>
+    </div>
+    <div class="map-filters" id="mapFilters"></div>
+    <div class="map-city-search">
+        <span class="mcs-icon">&#128269;</span>
+        <input type="text" id="mapCitySearch" data-i18n-ph="map_search_ph" placeholder="搜索城市或场地..." onkeyup="handleMapSearch(this.value)">
+    </div>
+    <div id="mapContainer"></div>
+    <div class="venue-count" id="venueCount"></div>
+</div>
+
+<!-- ═══════════ GUIDES PAGE ═══════════ -->
+<div class="page-view" id="page-guides">
+    <div class="page-container" style="padding-top:20px;padding-bottom:40px">
+        <h2 class="section-title" data-i18n="guide_page_title">实用指南</h2>
+        <p style="color:var(--gray-600);font-size:14px;margin-bottom:20px" data-i18n="guide_page_desc">
+            从新人落地到长期生活，最全面的荷兰华人生活攻略
+        </p>
+        <div id="guidesContainer"></div>
+    </div>
+</div>
+
+<!-- ═══════════ CONSULTING PAGE ═══════════ -->
+<div class="page-view" id="page-consulting">
+    <div class="page-container" style="padding-top:20px;padding-bottom:40px">
+        <div class="ebook-store-hero">
+            <h2>&#128218; &#30005;&#23376;&#20070;&#21830;&#24215; / Ebook Store</h2>
+            <p>&#22522;&#20110;15&#24180;&#33655;&#20848;&#29983;&#27963;&#30495;&#23454;&#32463;&#39564; &#8212; &#30001;&#21271;&#22823;&#21307;&#23398;&#21338;&#22763;&#20146;&#33258;&#25776;&#20889; &#8212; &#27599;&#26412;&#20165;&euro;2</p>
+        </div>
+
+        <!-- Chinese Ebooks -->
+        <div class="ebook-section-title">&#127464;&#127475; &#20013;&#25991;&#30005;&#23376;&#20070; Chinese Ebooks</div>
+        <div class="ebook-grid">
+            <!-- 1. Dutch Life Guide -->
+            <div class="ebook-card">
+                <div class="ebook-card-accent" style="background:linear-gradient(90deg,#E67E22,#F39C12)"></div>
+                <div class="ebook-card-body">
+                    <span class="ebook-card-emoji">&#127758;</span>
+                    <h4>&#33655;&#20848;&#26032;&#29983;&#27963;&#23436;&#20840;&#25351;&#21335;</h4>
+                    <p>&#22522;&#20110;15&#24180;&#20146;&#36523;&#32463;&#21382;&#65292;&#28085;&#30422;BSN&#12289;DigiD&#12289;&#20445;&#38505;&#12289;&#31199;&#25151;&#12289;&#21150;&#20107;&#20840;&#27969;&#31243;&#12290;&#26032;&#20154;&#24517;&#22791;&#31532;&#19968;&#26412;&#20070;&#12290;</p>
+                    <div class="ebook-price-row">
+                        <span class="ebook-price">&euro;2</span>
+                        <a href="https://xinaliu.gumroad.com/l/DutchLifeGuide" class="ebook-buy-btn" target="_blank" rel="sponsored">&#36141;&#20080; Buy &rarr;</a>
+                    </div>
+                </div>
+            </div>
+            <!-- 2. Healthcare -->
+            <div class="ebook-card">
+                <div class="ebook-card-accent" style="background:linear-gradient(90deg,#2471A3,#3498DB)"></div>
+                <div class="ebook-card-body">
+                    <span class="ebook-card-emoji">&#127973;</span>
+                    <h4>&#33655;&#20848;&#21307;&#30103;&#29983;&#23384;&#25163;&#20876;</h4>
+                    <p>&#23478;&#24237;&#21307;&#29983;&#12289;&#24613;&#35786;&#12289;&#29273;&#21307;&#12289;&#33647;&#25151;&#12289;&#20445;&#38505;&#29702;&#36180;&#8230;&#30475;&#25026;&#33655;&#20848;&#21307;&#30103;&#20307;&#31995;&#65292;&#30475;&#30149;&#19981;&#20877;&#24908;&#12290;</p>
+                    <div class="ebook-price-row">
+                        <span class="ebook-price">&euro;2</span>
+                        <a href="https://xinaliu.gumroad.com/l/paohxj" class="ebook-buy-btn" target="_blank" rel="sponsored">&#36141;&#20080; Buy &rarr;</a>
+                    </div>
+                </div>
+            </div>
+            <!-- 3. Housing -->
+            <div class="ebook-card">
+                <div class="ebook-card-accent" style="background:linear-gradient(90deg,#27AE60,#2ECC71)"></div>
+                <div class="ebook-card-body">
+                    <span class="ebook-card-emoji">&#127968;</span>
+                    <h4>&#33655;&#20848;&#31199;&#25151;&#36991;&#22353;&#25351;&#21335;</h4>
+                    <p>Funda&#12289;Pararius&#20840;&#35299;&#26512;&#65292;&#38450;&#39575;&#31192;&#31821;&#12289;&#21512;&#21516;&#35201;&#28857;&#12289;&#31199;&#25151;&#34917;&#36148;&#30003;&#35831;&#19968;&#32593;&#25171;&#23613;&#12290;</p>
+                    <div class="ebook-price-row">
+                        <span class="ebook-price">&euro;2</span>
+                        <a href="https://xinaliu.gumroad.com/l/xzjkej" class="ebook-buy-btn" target="_blank" rel="sponsored">&#36141;&#20080; Buy &rarr;</a>
+                    </div>
+                </div>
+            </div>
+            <!-- 4. Kids -->
+            <div class="ebook-card">
+                <div class="ebook-card-accent" style="background:linear-gradient(90deg,#E91E8C,#FF6FB5)"></div>
+                <div class="ebook-card-body">
+                    <span class="ebook-card-emoji">&#128118;</span>
+                    <h4>&#33655;&#20848;&#24102;&#23043;&#20840;&#25915;&#30053;</h4>
+                    <p>&#32946;&#20799;&#34917;&#36148;&#12289;&#25176;&#20799;&#25152;&#12289;&#23398;&#26657;&#36873;&#25321;&#12289;&#20146;&#23376;&#27963;&#21160;&#8230;&#22312;&#33655;&#20848;&#24102;&#23043;&#30340;&#36148;&#24515;&#25351;&#21335;&#12290;</p>
+                    <div class="ebook-price-row">
+                        <span class="ebook-price">&euro;2</span>
+                        <a href="https://xinaliu.gumroad.com/l/vuaxf" class="ebook-buy-btn" target="_blank" rel="sponsored">&#36141;&#20080; Buy &rarr;</a>
+                    </div>
+                </div>
+            </div>
+            <!-- 5. Save Money -->
+            <div class="ebook-card">
+                <div class="ebook-card-accent" style="background:linear-gradient(90deg,#D4AC0D,#F1C40F)"></div>
+                <div class="ebook-card-body">
+                    <span class="ebook-card-emoji">&#128176;</span>
+                    <h4>&#33655;&#20848;&#30465;&#38065;&#25163;&#20876;</h4>
+                    <p>&#31246;&#21153;&#20248;&#21270;&#12289;&#34917;&#36148;&#30003;&#35831;&#12289;&#25240;&#25187;&#31192;&#31821;&#12289;&#20108;&#25163;&#28120;&#23453;&#8230;&#22312;&#33655;&#20848;&#32874;&#26126;&#29983;&#27963;&#30465;&#26356;&#22810;&#12290;</p>
+                    <div class="ebook-price-row">
+                        <span class="ebook-price">&euro;2</span>
+                        <a href="https://xinaliu.gumroad.com/l/docirr" class="ebook-buy-btn" target="_blank" rel="sponsored">&#36141;&#20080; Buy &rarr;</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bundle -->
+        <div class="ebook-bundle">
+            <h3>&#127873; &#22871;&#39184;&#20248;&#24800; Bundle Deal</h3>
+            <p>&#20840;&#37096;5&#26412;&#20013;&#25991;&#30005;&#23376;&#20070;&#25171;&#21253;&#36141;&#20080;</p>
+            <div><span class="bundle-original">&euro;10</span><span class="bundle-price">&euro;8</span></div>
+            <div style="margin-top:12px">
+                <a href="https://xinaliu.gumroad.com/l/DutchLifeGuide" class="ebook-buy-btn" target="_blank" rel="sponsored" style="background:var(--orange)">&#128293; &#25235;&#21253;&#36141;&#20080; Bundle Buy &rarr;</a>
+            </div>
+            <div style="margin-top:8px;font-size:12px;color:var(--gray-600)">&#32852;&#31995;&#24494;&#20449;&#33719;&#21462;&#22871;&#39184;&#20248;&#24800;&#38142;&#25509;</div>
+        </div>
+
+        <!-- English Ebooks -->
+        <div class="ebook-section-title">&#127468;&#127463; English Ebooks</div>
+        <div class="ebook-grid">
+            <!-- 6. Complete Guide -->
+            <div class="ebook-card">
+                <div class="ebook-card-accent" style="background:linear-gradient(90deg,#E67E22,#F39C12)"></div>
+                <div class="ebook-card-body">
+                    <span class="ebook-card-emoji">&#127758;</span>
+                    <h4>Complete Guide to Living in NL</h4>
+                    <p>Based on 15 years of real experience. BSN, DigiD, insurance, housing, and all essential procedures. Written by a PKU graduate who went through it all.</p>
+                    <div class="ebook-price-row">
+                        <span class="ebook-price">&euro;2</span>
+                        <a href="https://xinaliu.gumroad.com/l/rjlljr" class="ebook-buy-btn" target="_blank" rel="sponsored">Buy Now &rarr;</a>
+                    </div>
+                </div>
+            </div>
+            <!-- 7. Healthcare -->
+            <div class="ebook-card">
+                <div class="ebook-card-accent" style="background:linear-gradient(90deg,#2471A3,#3498DB)"></div>
+                <div class="ebook-card-body">
+                    <span class="ebook-card-emoji">&#127973;</span>
+                    <h4>NL Healthcare Survival Guide</h4>
+                    <p>Navigate Dutch healthcare with confidence: GP system, emergency care, dental, pharmacy, and insurance claims.</p>
+                    <div class="ebook-price-row">
+                        <span class="ebook-price">&euro;2</span>
+                        <a href="https://xinaliu.gumroad.com/l/bqfap" class="ebook-buy-btn" target="_blank" rel="sponsored">Buy Now &rarr;</a>
+                    </div>
+                </div>
+            </div>
+            <!-- 8. Housing -->
+            <div class="ebook-card">
+                <div class="ebook-card-accent" style="background:linear-gradient(90deg,#27AE60,#2ECC71)"></div>
+                <div class="ebook-card-body">
+                    <span class="ebook-card-emoji">&#127968;</span>
+                    <h4>NL Housing and Rental Guide</h4>
+                    <p>Master Funda &amp; Pararius, avoid scams, understand contracts, and apply for rental subsidies like a local.</p>
+                    <div class="ebook-price-row">
+                        <span class="ebook-price">&euro;2</span>
+                        <a href="https://xinaliu.gumroad.com/l/inleh" class="ebook-buy-btn" target="_blank" rel="sponsored">Buy Now &rarr;</a>
+                    </div>
+                </div>
+            </div>
+            <!-- 9. Kids -->
+            <div class="ebook-card">
+                <div class="ebook-card-accent" style="background:linear-gradient(90deg,#E91E8C,#FF6FB5)"></div>
+                <div class="ebook-card-body">
+                    <span class="ebook-card-emoji">&#128118;</span>
+                    <h4>Raising Kids in NL</h4>
+                    <p>Child benefits, daycare, school selection, family activities &mdash; your caring guide to parenting in the Netherlands.</p>
+                    <div class="ebook-price-row">
+                        <span class="ebook-price">&euro;2</span>
+                        <a href="https://xinaliu.gumroad.com/l/qilddn" class="ebook-buy-btn" target="_blank" rel="sponsored">Buy Now &rarr;</a>
+                    </div>
+                </div>
+            </div>
+            <!-- 10. Save Money -->
+            <div class="ebook-card">
+                <div class="ebook-card-accent" style="background:linear-gradient(90deg,#D4AC0D,#F1C40F)"></div>
+                <div class="ebook-card-body">
+                    <span class="ebook-card-emoji">&#128176;</span>
+                    <h4>Save Money in NL</h4>
+                    <p>Tax optimization, subsidies, discount secrets, second-hand tips &mdash; live smart and save more in the Netherlands.</p>
+                    <div class="ebook-price-row">
+                        <span class="ebook-price">&euro;2</span>
+                        <a href="https://xinaliu.gumroad.com/l/elejsk" class="ebook-buy-btn" target="_blank" rel="sponsored">Buy Now &rarr;</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment info -->
+        <div style="text-align:center;margin:20px 0 8px;font-size:13px;color:var(--gray-600)">
+            &#128179; Gumroad &#25903;&#25345; Visa / MasterCard / PayPal
+        </div>
+
+        <!-- WeChat payment -->
+        <div class="ebook-wechat-section">
+            <h3>&#128242; &#24494;&#20449;&#25903;&#20184; / WeChat Pay</h3>
+            <p style="font-size:13px;color:var(--gray-600);margin-bottom:14px">&#20013;&#22269;&#29992;&#25143;&#21487;&#25195;&#30721;&#24494;&#20449;&#25903;&#20184;&#65292;&#20184;&#27454;&#21518;&#28155;&#21152;&#24494;&#20449;&#33719;&#21462;&#30005;&#23376;&#20070;</p>
+            <div style="text-align:center;padding:8px 0">
+                <img src="wechat-pay.jpg" alt="&#24494;&#20449;&#25903;&#20184;" style="width:200px;height:200px;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.1)">
+            </div>
+            <div style="text-align:center;font-size:12px;color:var(--gray-400);margin-top:8px">&#25195;&#30721;&#25903;&#20184; &#8594; &#28155;&#21152;&#24494;&#20449; &#8594; &#33719;&#21462;&#30005;&#23376;&#20070;</div>
+        </div>
+
+        <!-- WeChat group -->
+        <div class="consult-card" style="margin-top:20px">
+            <h3>&#128587; &#21152;&#20837;&#33655;&#20848;&#21326;&#20154;&#23478;&#38271;&#32676;</h3>
+            <div class="cc-desc">&#19982;&#25968;&#21315;&#21517;&#22312;&#33655;&#21326;&#20154;&#23478;&#38271;&#20114;&#21161;&#20132;&#27969;&#65292;&#20998;&#20139;&#32946;&#20799;&#32463;&#39564;&#12289;&#23398;&#26657;&#36873;&#25321;&#12289;&#20146;&#23376;&#27963;&#21160;&#20449;&#24687;&#12290;</div>
+            <div style="text-align:center;padding:16px 0">
+                <img src="wechat-pay.jpg" alt="&#24494;&#20449;&#20108;&#32500;&#30721;" style="width:180px;height:180px;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.1)">
+            </div>
+            <div style="text-align:center;font-size:13px;color:var(--gray-500)">&#25195;&#30721;&#28155;&#21152;&#24494;&#20449;&#65292;&#36992;&#35831;&#20837;&#32676;</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════ SERVICE PANELS ═══════════ -->
+<div class="svc-panel-overlay" id="svcOverlay" onclick="closeServicePanel()"></div>
+
+<div class="svc-panel" id="panel-housing" style="display:none">
+    <div class="svc-panel-handle"></div>
+    <div class="svc-panel-header"><h2>&#127968; 找房子 Housing</h2><p data-i18n="p_housing_desc">荷兰主流租房/买房平台和实用建议</p></div>
+    <div class="svc-panel-body">
+        <a class="link-card" href="https://www.funda.nl" target="_blank" rel="sponsored"><div class="lc-icon" style="background:#E8F5E9">&#127969;</div><div class="lc-info"><h4>Funda.nl</h4><p data-i18n="p_funda">荷兰最大的房产网站，买房租房首选</p></div><span class="lc-arrow">&rarr;</span></a>
+        <a class="link-card" href="https://www.pararius.nl" target="_blank" rel="sponsored"><div class="lc-icon" style="background:#E3F2FD">&#128273;</div><div class="lc-info"><h4>Pararius.nl</h4><p data-i18n="p_pararius">专业租房平台，房源多为中高端，适合Expat</p></div><span class="lc-arrow">&rarr;</span></a>
+        <a class="link-card" href="https://www.kamernet.nl" target="_blank"><div class="lc-icon" style="background:#FFF3E0">&#128716;</div><div class="lc-info"><h4>Kamernet.nl</h4><p data-i18n="p_kamernet">找合租房间的平台，适合学生和预算有限的朋友</p></div><span class="lc-arrow">&rarr;</span></a>
+        <a class="link-card" href="https://www.huurwoningen.nl" target="_blank"><div class="lc-icon" style="background:#F3E5F5">&#127970;</div><div class="lc-info"><h4>HuurWoningen.nl</h4><p data-i18n="p_huur">荷兰租房聚合平台</p></div><span class="lc-arrow">&rarr;</span></a>
+        <div class="info-block"><h4>&#128270; 租房注意事项</h4><ul><li>警惕租房骗局！不要在看房前汇款</li><li>租金包含(All-in)和不包含(Kale huur)水电费差别很大</li><li>社会住房(Sociale huurwoning)需排队，等待时间很长</li><li>租房合同注意看是定期(Tijdelijk)还是不定期(Onbepaalde tijd)</li><li>通过合法中介租房，确认中介有NVM或VBO认证</li></ul></div>
+    </div>
+</div>
+
+<div class="svc-panel" id="panel-health" style="display:none">
+    <div class="svc-panel-handle"></div>
+    <div class="svc-panel-header"><h2>&#127973; 看医生 Healthcare</h2><p>荷兰医疗系统指南和常用资源</p></div>
+    <div class="svc-panel-body">
+        <div class="info-block"><h4>&#127973; 荷兰看病流程</h4><p>荷兰实行<strong>家庭医生转诊制</strong>：所有非急诊医疗问题，必须先看家庭医生(Huisarts)，由家庭医生决定是否转诊专科。不能直接去医院挂号！</p></div>
+        <a class="link-card" href="https://www.zorgkaartnederland.nl" target="_blank"><div class="lc-icon" style="background:#E8F5E9">&#129658;</div><div class="lc-info"><h4>Zorgkaart Nederland</h4><p>查找家庭医生、专科医生、医院，带评分</p></div><span class="lc-arrow">&rarr;</span></a>
+        <a class="link-card" href="https://www.thuisarts.nl" target="_blank"><div class="lc-icon" style="background:#E3F2FD">&#128214;</div><div class="lc-info"><h4>Thuisarts.nl</h4><p>家庭医生协会官方健康信息网站</p></div><span class="lc-arrow">&rarr;</span></a>
+        <a class="link-card" href="https://www.apotheek.nl" target="_blank"><div class="lc-icon" style="background:#FFF3E0">&#128138;</div><div class="lc-info"><h4>Apotheek.nl</h4><p>查找附近药房，了解药品信息</p></div><span class="lc-arrow">&rarr;</span></a>
+        <div class="info-block"><h4>&#128222; 常用医疗电话</h4><p><a class="phone-number" href="tel:112">&#128680; 112 — 生命危险</a><a class="phone-number" href="tel:0800-0113">&#128154; 0800-0113 — 心理危机热线</a></p><p style="margin-top:8px;font-size:14px;color:var(--gray-600)">夜间、周末和节假日如需非紧急急诊，拨打你家庭医生的电话，按语音提示转Huisartsenpost（HAP）。各地HAP号码不同，不是统一号码。</p></div>
+        <div class="info-block"><h4>&#128161; 实用提示</h4><ul><li>荷兰医生对感冒常见病通常建议"等等看"(Paracetamol en afwachten)</li><li>看牙医(Tandarts)需要单独注册和额外保险</li><li>心理健康可以通过家庭医生转诊心理咨询师</li><li>急诊(Spoedeisende hulp)只有真正紧急时才去</li></ul></div>
+    </div>
+</div>
+
+<div class="svc-panel" id="panel-gov" style="display:none">
+    <div class="svc-panel-handle"></div>
+    <div class="svc-panel-header"><h2>&#128203; 办手续 Government</h2><p>到荷兰后必须办理的各种行政手续</p></div>
+    <div class="svc-panel-body">
+        <div class="info-block"><h4>&#128205; 市政厅登记 (Gemeente Registratie)</h4><p>到达荷兰5天内必须到市政厅登记。各城市预约网址：</p><ul><li><a href="https://www.amsterdam.nl/en/civil-affairs/" target="_blank">Amsterdam</a></li><li><a href="https://www.rotterdam.nl/english/" target="_blank">Rotterdam</a></li><li><a href="https://www.denhaag.nl/en/" target="_blank">Den Haag</a></li><li><a href="https://www.utrecht.nl/city-of-utrecht/" target="_blank">Utrecht</a></li><li><a href="https://www.eindhoven.nl/en" target="_blank">Eindhoven</a></li></ul></div>
+        <a class="link-card" href="https://www.digid.nl" target="_blank"><div class="lc-icon" style="background:#E8F5E9">&#128274;</div><div class="lc-info"><h4>DigiD — 电子身份</h4><p>荷兰电子身份认证系统，报税、医疗记录、补贴都需要</p></div><span class="lc-arrow">&rarr;</span></a>
+        <a class="link-card" href="https://www.belastingdienst.nl" target="_blank"><div class="lc-icon" style="background:#FFF3E0">&#128176;</div><div class="lc-info"><h4>Belastingdienst — 税务局</h4><p>报税、30% ruling、税务信息</p></div><span class="lc-arrow">&rarr;</span></a>
+        <a class="link-card" href="https://www.toeslagen.nl" target="_blank"><div class="lc-icon" style="background:#E3F2FD">&#127873;</div><div class="lc-info"><h4>Toeslagen — 补贴申请</h4><p>医疗补贴、房租补贴、育儿补贴</p></div><span class="lc-arrow">&rarr;</span></a>
+        <a class="link-card" href="https://ind.nl/en" target="_blank"><div class="lc-icon" style="background:#F3E5F5">&#128706;</div><div class="lc-info"><h4>IND — 移民局</h4><p>签证、居留许可、永居、入籍</p></div><span class="lc-arrow">&rarr;</span></a>
+        <a class="link-card" href="https://mijn.overheid.nl" target="_blank"><div class="lc-icon" style="background:#E8F5E9">&#128231;</div><div class="lc-info"><h4>MijnOverheid — 政府个人门户</h4><p>查看政府信件、个人信息、税务通知（需DigiD登录）</p></div><span class="lc-arrow">&rarr;</span></a>
+        <a class="link-card" href="https://www.svb.nl/en" target="_blank"><div class="lc-icon" style="background:#FFF3E0">&#128118;</div><div class="lc-info"><h4>SVB — 社会保险银行</h4><p>儿童津贴(Kinderbijslag)、养老金(AOW)</p></div><span class="lc-arrow">&rarr;</span></a>
+        <a class="link-card" href="https://www.duo.nl/particulier/" target="_blank"><div class="lc-icon" style="background:#E3F2FD">&#127891;</div><div class="lc-info"><h4>DUO — 教育执行署</h4><p>学费贷款、学生资助、学历认证</p></div><span class="lc-arrow">&rarr;</span></a>
+        <div class="info-block"><h4>&#128203; 办事提醒</h4><ul><li>到达荷兰<strong>5天内</strong>必须到市政厅登记（获取BSN号码）</li><li>有了BSN后立即申请DigiD（<a href="https://www.digid.nl" target="_blank">digid.nl</a>），处理时间约1周</li><li>到达后<strong>4个月内</strong>必须购买基本医疗保险</li><li>在<a href="https://mijn.overheid.nl" target="_blank">MijnOverheid</a>激活账户，接收政府信件</li><li>补贴申请在<a href="https://www.toeslagen.nl" target="_blank">Toeslagen.nl</a>，包括医疗补贴、房补、育儿补贴</li></ul></div>
+    </div>
+</div>
+
+<div class="svc-panel" id="panel-grocery" style="display:none">
+    <div class="svc-panel-handle"></div>
+    <div class="svc-panel-header"><h2>&#128722; 中超购物 Asian Grocery</h2><p>荷兰亚洲超市和中国食材购买指南</p></div>
+    <div class="svc-panel-body">
+        <a class="link-card" href="https://www.amazingoriental.com" target="_blank" rel="sponsored"><div class="lc-icon" style="background:#E8F5E9">&#127978;</div><div class="lc-info"><h4>Amazing Oriental（东方行）</h4><p>荷兰最大的亚洲超市连锁，多城市有分店</p></div><span class="lc-arrow">&rarr;</span></a>
+        <a class="link-card" href="https://www.orientalwebshop.nl" target="_blank"><div class="lc-icon" style="background:#FFF3E0">&#128230;</div><div class="lc-info"><h4>Oriental Webshop</h4><p>亚洲食品在线商城，全荷兰配送</p></div><span class="lc-arrow">&rarr;</span></a>
+        <a class="link-card" href="https://www.crisp.nl" target="_blank"><div class="lc-icon" style="background:#E3F2FD">&#129388;</div><div class="lc-info"><h4>Crisp.nl</h4><p>优质食材配送平台，有部分亚洲食材</p></div><span class="lc-arrow">&rarr;</span></a>
+        <div class="info-block"><h4>&#128717; 各城市推荐中超</h4><ul><li><strong>Amsterdam</strong>：Dun Yong、Amazing Oriental Sloterdijk</li><li><strong>Rotterdam</strong>：Amazing Oriental Alexandrium</li><li><strong>Den Haag</strong>：Amazing Oriental、Chinatown小店</li><li><strong>Utrecht</strong>：Amazing Oriental Leidsche Rijn</li><li><strong>Eindhoven</strong>：Toko Mie Oen、Amazing Oriental</li></ul></div>
+        <div class="info-block"><h4>&#128161; 购物提示</h4><ul><li>Albert Heijn也有基本亚洲食品区(Conimex系列)</li><li>每周有折扣(Bonus)，可用Too Good To Go买打折食品</li><li>火锅底料、老干妈、螺蛳粉中超都有</li></ul></div>
+    </div>
+</div>
+
+<div class="svc-panel" id="panel-transport" style="display:none">
+    <div class="svc-panel-handle"></div>
+    <div class="svc-panel-header"><h2>&#128646; 出行交通 Transport</h2><p>荷兰公共交通使用指南</p></div>
+    <div class="svc-panel-body">
+        <a class="link-card" href="https://www.ns.nl" target="_blank"><div class="lc-icon" style="background:#FFF3E0">&#128642;</div><div class="lc-info"><h4>NS — 荷兰铁路</h4><p>火车时刻表和购票，推荐NS Flex订阅</p></div><span class="lc-arrow">&rarr;</span></a>
+        <a class="link-card" href="https://www.9292.nl" target="_blank"><div class="lc-icon" style="background:#E8F5E9">&#128506;</div><div class="lc-info"><h4>9292.nl — 路线规划</h4><p>涵盖所有火车、巴士、地铁、电车</p></div><span class="lc-arrow">&rarr;</span></a>
+        <a class="link-card" href="https://www.ov-chipkaart.nl" target="_blank"><div class="lc-icon" style="background:#E3F2FD">&#128179;</div><div class="lc-info"><h4>OV-pas / OVpay</h4><p>OV-chipkaart正在被OV-pas取代（2027年底前），也可直接刷银行卡(OVpay)</p></div><span class="lc-arrow">&rarr;</span></a>
+        <div class="info-block"><h4>&#128690; 交通小知识</h4><ul><li><strong>自行车</strong>：荷兰是自行车王国！Marktplaats.nl买二手车</li><li><strong>省钱</strong>：NS Dal Voordeel订阅&euro;6.35/月，非高峰时段火车40%折扣</li><li><strong>OV-fiets</strong>：火车站共享自行车，&euro;4.80/24h（2026年价格）</li><li><strong>OVpay</strong>：2026年起可直接用银行卡刷卡乘坐所有公共交通</li><li><strong>机场</strong>：Schiphol火车站就在航站楼下面</li></ul></div>
+    </div>
+</div>
+
+<div class="svc-panel" id="panel-finance" style="display:none">
+    <div class="svc-panel-handle"></div>
+    <div class="svc-panel-header"><h2>&#128176; 金融保险 Banking &amp; Insurance</h2><p>荷兰银行开户和保险购买指南</p></div>
+    <div class="svc-panel-body">
+        <a class="link-card" href="https://wise.com/invite/" target="_blank" rel="sponsored" style="background:linear-gradient(135deg,#E8F5E9,#E3F2FD);border:2px solid #27AE60"><div class="lc-icon" style="background:#C8E6C9">&#128184;</div><div class="lc-info"><h4 data-i18n="wise_title">&#11088; 国际转账推荐：Wise — 比银行便宜5-8倍</h4><p data-i18n="wise_desc">真实汇率、低手续费，华人汇款首选。首笔转账最高免手续费！</p></div><span class="lc-arrow">&rarr;</span></a>
+        <a class="link-card" href="https://www.ing.nl" target="_blank"><div class="lc-icon" style="background:#FFF3E0">&#127975;</div><div class="lc-info"><h4>ING Bank</h4><p>荷兰三大银行之一，网点多，App好用</p></div><span class="lc-arrow">&rarr;</span></a>
+        <a class="link-card" href="https://www.abnamro.nl" target="_blank"><div class="lc-icon" style="background:#E8F5E9">&#127975;</div><div class="lc-info"><h4>ABN AMRO</h4><p>荷兰三大银行，国际化程度高</p></div><span class="lc-arrow">&rarr;</span></a>
+        <a class="link-card" href="https://www.rabobank.nl" target="_blank"><div class="lc-icon" style="background:#E3F2FD">&#127975;</div><div class="lc-info"><h4>Rabobank</h4><p>荷兰合作银行，社区服务好</p></div><span class="lc-arrow">&rarr;</span></a>
+        <a class="link-card" href="https://www.independer.nl" target="_blank" rel="sponsored"><div class="lc-icon" style="background:#F3E5F5">&#128737;</div><div class="lc-info"><h4>Independer.nl — 保险比价</h4><p>医疗保险、车险、房屋保险比价平台</p></div><span class="lc-arrow">&rarr;</span></a>
+        <div class="info-block"><h4>&#128176; 金融小贴士</h4><ul><li>开户需要BSN号码和有效证件</li><li>荷兰日常消费以借记卡和iDEAL支付为主</li><li>基本医疗保险(Basisverzekering)法律强制，2026年均价约&euro;159/月，最低约&euro;142/月</li><li>2026年自付额(Eigen risico)为&euro;385/年</li><li>30% ruling可以大幅省税，记得让HR帮你申请</li><li>推荐Wise(TransferWise)进行国际汇款</li><li>低收入者可申请医疗补贴(Zorgtoeslag)减轻保险负担</li></ul></div>
+    </div>
+</div>
+
+<!-- ═══════════ BOTTOM NAV ═══════════ -->
+<nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchPage('home')" data-nav="home">
+        <span class="nav-icon">&#127968;</span>
+        <span data-i18n="nav_home">首页</span>
+    </button>
+    <button class="nav-item" onclick="switchPage('services')" data-nav="services">
+        <span class="nav-icon">&#128736;</span>
+        <span data-i18n="nav_services">服务</span>
+    </button>
+    <button class="nav-item" onclick="switchPage('map')" data-nav="map">
+        <span class="nav-icon">&#128506;</span>
+        <span data-i18n="nav_map">亲子地图</span>
+    </button>
+    <button class="nav-item" onclick="switchPage('guides')" data-nav="guides">
+        <span class="nav-icon">&#128214;</span>
+        <span data-i18n="nav_guides">指南</span>
+    </button>
+    <button class="nav-item" onclick="switchPage('consulting')" data-nav="consulting">
+        <span class="nav-icon">&#128218;</span>
+        <span data-i18n="nav_consult_short">&#30005;&#23376;&#20070;</span>
+    </button>
+</nav>
+
+<!-- ═══════════ FOOTER (in each page) ═══════════ -->
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+// ══════════════════════════════════════════════════════
+// i18n SYSTEM
+// ══════════════════════════════════════════════════════
+var I18N = {
+  zh: {
+    brand:'荷生活 2.0', nav_home:'首页', nav_services:'服务', nav_map:'亲子地图',
+    nav_guides:'指南', nav_consult:'\u{1F4DA} 电子书', nav_consult_short:'电子书',
+    hero_title:'在荷兰，从此不迷路', hero_sub:'华人一站式生活平台 \u00b7 生活服务 + 亲子探索 + 实用指南',
+    hero_tag:'已服务 10,000+ 荷兰华人家庭',
+    hero_credential:'由在荷兰生活15年的北大医学博士整理',
+    author_name:'Nana / 娜娜', author_title:'北大医学 \u2192 Erasmus MC PhD \u2192 荷兰15年',
+    author_bio:'我是Nana，北京大学医学部毕业后来到荷兰Erasmus大学攻读博士，在荷兰已经生活了15年。从初来乍到时的迷茫，到买房、生娃、孩子上学，荷兰生活的方方面面我都亲身经历过。所有指南都来自真实经验，不是网上复制粘贴。',
+    author_bio2:'创建HollandLife，是因为我深知在荷兰落地安家有多不容易\u2014\u2014希望这些我花了15年积累的经验，能帮你少走弯路。',
+    author_tag1:'\u{1F393} 北大医学博士', author_tag2:'\u{1F30D} 旅荷15年', author_tag3:'\u{1F476} 荷兰妈妈', author_tag4:'\u{1F3E0} 在荷置业',
+    author_cta:'\u{1F4DA} 查看我的电子书 \u2192',
+    search_ph:'搜索服务、场地、指南...',
+    svc_housing:'找房子', svc_health:'看医生', svc_gov:'办手续',
+    svc_grocery:'中超购物', svc_transport:'出行交通', svc_finance:'金融保险',
+    feat_title:'精选推荐', feat_map:'亲子地图', feat_map_desc:'250+ 荷兰亲子场地，动物园、博物馆、游乐场一网打尽',
+    feat_first:'新人指南', feat_first_desc:'刚到荷兰第一周必做清单',
+    feat_consult:'电子书商店', feat_consult_desc:'10本荷兰生活指南，中英文，每本仅€2',
+    feat_ebook:'电子书商店', feat_ebook_desc:'10本荷兰生活指南，中英文，每本仅€2',
+    feat_festival:'节日日历', feat_festival_desc:'2026荷兰重要节日与学校假期',
+    feat_wise:'省钱汇款 Wise', feat_wise_desc:'国际转账比银行便宜5-8倍，华人必备',
+    wise_title:'\u2B50 国际转账推荐：Wise — 比银行便宜5-8倍', wise_desc:'真实汇率、低手续费，华人汇款首选。首笔转账最高免手续费！',
+    newsletter_success:'\u2713 感谢订阅！我们会尽快联系您。',
+    email_title:'订阅荷兰生活周刊', email_desc:'每周精选实用资讯、优惠信息、亲子活动推荐，直送邮箱', email_btn:'订阅',
+    emergency_title:'紧急电话', emergency_call:'紧急情况？请拨打：',
+    em_112:'报警/急救/火警', em_police:'非紧急报警', em_crisis:'心理危机热线', em_poison:'中毒中心',
+    svc_page_title:'生活服务', svc_page_desc:'荷兰华人生活必备资源，找房、看病、办事、购物、出行一站搞定',
+    guide_page_title:'实用指南', guide_page_desc:'从新人落地到长期生活，最全面的荷兰华人生活攻略',
+    map_search_ph:'搜索城市或场地...',
+    map_title:'\u{1F476} 亲子地图 / Kids & Family Map',
+    map_intro:'发现荷兰250+个适合全家的好去处 / Discover 250+ family-friendly places',
+    con_hero_title:'让你的荷兰新生活，少走弯路', con_hero_desc:'我们是扎根荷兰多年的华人生活顾问团队，提供专业、贴心的一站式咨询服务',
+    con_popular:'最受欢迎', con_1on1_title:'\u{1F4AC} 新人到荷兰 1对1 咨询',
+    con_per_hour:'/ 小时', con_1on1_desc:'视频通话，一对一解答您关于荷兰生活的所有问题。涵盖：住房、医疗、教育、签证、税务、保险等。',
+    con_1on1_f1:'60分钟视频咨询', con_1on1_f2:'个性化落地清单', con_1on1_f3:'7天内免费跟进问题', con_1on1_f4:'中文/英文均可',
+    con_book:'立即预约', con_ebook_title:'\u{1F4D6} 《2026荷兰新生活指南》电子书',
+    con_ebook_desc:'100+ 页全面指南，涵盖从落地到安家的方方面面。定期更新，一次购买终身有效。',
+    con_ebook_f1:'详细的办事流程图解', con_ebook_f2:'各城市生活成本对比', con_ebook_f3:'200+ 实用链接合集', con_ebook_f4:'免费获取未来更新',
+    con_buy:'购买电子书', con_wechat_title:'\u{1F64B} 加入荷兰华人家长群',
+    con_wechat_desc:'与数千名在荷华人家长互助交流，分享育儿经验、学校选择、亲子活动信息。',
+    con_wechat_qr:'微信扫码入群（QR码位置）',
+    venue_count:'个场地',
+    p_housing_desc:'荷兰主流租房/买房平台和实用建议',
+    p_funda:'荷兰最大的房产网站，买房租房首选',
+    p_pararius:'专业租房平台，房源多为中高端，适合Expat',
+    p_kamernet:'找合租房间的平台，适合学生和预算有限的朋友',
+    p_huur:'荷兰租房聚合平台'
+  },
+  en: {
+    brand:'HollandLife 2.0', nav_home:'Home', nav_services:'Services', nav_map:'Kids Map',
+    nav_guides:'Guides', nav_consult:'\u{1F4DA} Ebooks', nav_consult_short:'Ebooks',
+    hero_title:'Never Lost in the Netherlands', hero_sub:'All-in-one platform for Chinese in NL \u00b7 Services + Kids Map + Guides',
+    hero_tag:'Serving 10,000+ Chinese families in NL',
+    hero_credential:'Curated by a PKU Medical PhD with 15 years in the Netherlands',
+    author_name:'Nana', author_title:'PKU Medicine \u2192 Erasmus MC PhD \u2192 15 years in NL',
+    author_bio:'I\'m Nana. After graduating from Peking University School of Medicine, I came to the Netherlands for my PhD at Erasmus University. I\'ve been living here for 15 years. From the confusion of first arrival to buying property, having a baby, and navigating schools \u2014 I\'ve been through it all. Every guide is based on real experience, not internet copy-paste.',
+    author_bio2:'I created HollandLife because I know how hard it is to settle in the Netherlands \u2014 I hope my 15 years of experience can help you avoid the detours.',
+    author_tag1:'\u{1F393} PKU Medical PhD', author_tag2:'\u{1F30D} 15 years in NL', author_tag3:'\u{1F476} Mom in NL', author_tag4:'\u{1F3E0} Property owner in NL',
+    author_cta:'\u{1F4DA} Browse my ebooks \u2192',
+    search_ph:'Search services, venues, guides...',
+    svc_housing:'Housing', svc_health:'Healthcare', svc_gov:'Government',
+    svc_grocery:'Asian Grocery', svc_transport:'Transport', svc_finance:'Banking',
+    feat_title:'Featured', feat_map:'Kids Map', feat_map_desc:'250+ family venues: zoos, museums, playgrounds & more',
+    feat_first:'Newcomer Guide', feat_first_desc:'First week checklist for new arrivals',
+    feat_consult:'Ebook Store', feat_consult_desc:'10 Dutch life guides in Chinese & English, only \u20AC2 each',
+    feat_ebook:'Ebook Store', feat_ebook_desc:'10 Dutch life guides in Chinese & English, only \u20AC2 each',
+    feat_festival:'Festival Calendar', feat_festival_desc:'2026 Dutch holidays & school breaks',
+    feat_wise:'Save on Transfers: Wise', feat_wise_desc:'International transfers 5-8x cheaper than banks',
+    wise_title:'\u2B50 Recommended: Wise \u2014 5-8x cheaper than banks', wise_desc:'Real exchange rate, low fees. First transfer fee-free!',
+    newsletter_success:'\u2713 Thank you for subscribing!',
+    email_title:'Subscribe to Weekly Newsletter', email_desc:'Curated tips, deals, and family activities delivered to your inbox', email_btn:'Subscribe',
+    emergency_title:'Emergency Numbers', emergency_call:'Emergency? Call:',
+    em_112:'Police/Ambulance/Fire', em_police:'Non-emergency police', em_crisis:'Crisis helpline', em_poison:'Poison Control',
+    svc_page_title:'Life Services', svc_page_desc:'Essential resources for Chinese expats: housing, healthcare, government, shopping, transport',
+    guide_page_title:'Practical Guides', guide_page_desc:'From arrival to settled life, the most comprehensive guide for Chinese in the Netherlands',
+    map_search_ph:'Search city or venue...',
+    map_title:'\u{1F476} Kids & Family Map',
+    map_intro:'Discover 250+ family-friendly places across the Netherlands',
+    con_hero_title:'Start Your Dutch Life on the Right Foot', con_hero_desc:'We are an experienced team of Chinese-Dutch life consultants offering professional, caring services',
+    con_popular:'Most Popular', con_1on1_title:'\u{1F4AC} 1-on-1 Newcomer Consultation',
+    con_per_hour:'/ hour', con_1on1_desc:'Video call consultation covering housing, healthcare, education, visas, tax, insurance and more.',
+    con_1on1_f1:'60-min video consultation', con_1on1_f2:'Personalized arrival checklist', con_1on1_f3:'7-day free follow-up', con_1on1_f4:'Chinese/English available',
+    con_book:'Book Now', con_ebook_title:'\u{1F4D6} "2026 Dutch Life Guide" eBook',
+    con_ebook_desc:'100+ page comprehensive guide from arrival to settling in. Regular updates, lifetime access.',
+    con_ebook_f1:'Step-by-step process diagrams', con_ebook_f2:'City-by-city cost comparison', con_ebook_f3:'200+ useful links', con_ebook_f4:'Free future updates',
+    con_buy:'Buy eBook', con_wechat_title:'\u{1F64B} Join the Dutch Chinese Parents Group',
+    con_wechat_desc:'Connect with thousands of Chinese parents in NL. Share parenting tips, school choices, activities.',
+    con_wechat_qr:'Scan WeChat QR to join (placeholder)',
+    venue_count:'venues',
+    p_housing_desc:'Major housing platforms and tips for renting/buying in NL',
+    p_funda:'Largest property site in NL, #1 for buying & renting',
+    p_pararius:'Professional rental platform, mid-to-high range, expat-friendly',
+    p_kamernet:'Room rental platform, ideal for students & budget-conscious',
+    p_huur:'Dutch rental aggregation platform'
+  },
+  nl: {
+    brand:'HollandLife 2.0', nav_home:'Home', nav_services:'Diensten', nav_map:'Kinderkaart',
+    nav_guides:'Gidsen', nav_consult:'\u{1F4DA} eBooks', nav_consult_short:'eBooks',
+    hero_title:'Nooit meer verdwaald in Nederland', hero_sub:'Alles-in-\u00e9\u00e9n platform \u00b7 Diensten + Kinderkaart + Gidsen',
+    hero_tag:'Al 10.000+ Chinese gezinnen geholpen',
+    hero_credential:'Samengesteld door een PKU Medical PhD met 15 jaar in Nederland',
+    author_name:'Nana', author_title:'PKU Geneeskunde \u2192 Erasmus MC PhD \u2192 15 jaar in NL',
+    author_bio:'Ik ben Nana. Na mijn studie aan Peking University ben ik naar Nederland gekomen voor mijn PhD aan de Erasmus Universiteit. Ik woon hier al 15 jaar. Alle gidsen zijn gebaseerd op echte ervaring.',
+    author_bio2:'Ik heb HollandLife gemaakt om anderen te helpen met mijn 15 jaar ervaring in Nederland.',
+    author_tag1:'\u{1F393} PKU Medical PhD', author_tag2:'\u{1F30D} 15 jaar in NL', author_tag3:'\u{1F476} Moeder in NL', author_tag4:'\u{1F3E0} Huiseigenaar in NL',
+    author_cta:'\u{1F4DA} Bekijk mijn ebooks \u2192',
+    search_ph:'Zoek diensten, locaties, gidsen...',
+    svc_housing:'Woning', svc_health:'Zorg', svc_gov:'Overheid',
+    svc_grocery:'Aziatische Winkel', svc_transport:'Vervoer', svc_finance:'Bank & Verzekering',
+    feat_title:'Uitgelicht', feat_map:'Kinderkaart', feat_map_desc:'250+ gezinslocaties: dierentuinen, musea, speeltuinen',
+    feat_first:'Nieuwkomersgids', feat_first_desc:'Eerste week checklist',
+    feat_consult:'eBook Winkel', feat_consult_desc:'10 gidsen in Chinees & Engels, slechts \u20AC2 per stuk',
+    feat_ebook:'eBook Winkel', feat_ebook_desc:'10 gidsen in Chinees & Engels, slechts \u20AC2 per stuk',
+    feat_festival:'Feestkalender', feat_festival_desc:'2026 Nederlandse feestdagen & schoolvakanties',
+    feat_wise:'Bespaar met Wise', feat_wise_desc:'Internationale overschrijvingen 5-8x goedkoper dan banken',
+    wise_title:'\u2B50 Aanbevolen: Wise \u2014 5-8x goedkoper dan banken', wise_desc:'Echte wisselkoers, lage kosten. Eerste overboeking gratis!',
+    newsletter_success:'\u2713 Bedankt voor uw abonnement!',
+    email_title:'Abonneer op de Weekbrief', email_desc:'Tips, aanbiedingen en gezinsactiviteiten in uw inbox', email_btn:'Abonneer',
+    emergency_title:'Alarmnummers', emergency_call:'Noodgeval? Bel:',
+    em_112:'Politie/Ambulance/Brand', em_police:'Politie niet-spoed', em_crisis:'Crisislijn 113', em_poison:'Vergiftigingen (NVIC)',
+    svc_page_title:'Diensten', svc_page_desc:'Essenti\u00eble bronnen: wonen, zorg, overheid, winkelen, vervoer',
+    guide_page_title:'Praktische Gidsen', guide_page_desc:'Van aankomst tot gevestigd leven, de meest complete gids',
+    map_search_ph:'Zoek stad of locatie...',
+    map_title:'\u{1F476} Kinderkaart / Kids & Family Map',
+    map_intro:'Ontdek 250+ gezinsvriendelijke plekken in heel Nederland',
+    con_hero_title:'Begin goed in Nederland', con_hero_desc:'Ons ervaren team biedt professionele, persoonlijke dienstverlening',
+    con_popular:'Populairst', con_1on1_title:'\u{1F4AC} 1-op-1 Adviesgesprek',
+    con_per_hour:'/ uur', con_1on1_desc:'Videogesprek over wonen, zorg, onderwijs, visa, belasting en meer.',
+    con_1on1_f1:'60 min videogesprek', con_1on1_f2:'Persoonlijke checklist', con_1on1_f3:'7 dagen gratis opvolging', con_1on1_f4:'Chinees/Engels beschikbaar',
+    con_book:'Boek Nu', con_ebook_title:'\u{1F4D6} "2026 Nederland Gids" eBook',
+    con_ebook_desc:'100+ pagina gids. Regelmatige updates, levenslange toegang.',
+    con_ebook_f1:'Stap-voor-stap uitleg', con_ebook_f2:'Kosten per stad', con_ebook_f3:'200+ handige links', con_ebook_f4:'Gratis toekomstige updates',
+    con_buy:'Koop eBook', con_wechat_title:'\u{1F64B} Word lid van de Chinese Oudergroep',
+    con_wechat_desc:'Verbind met duizenden Chinese ouders in NL.',
+    con_wechat_qr:'Scan WeChat QR (placeholder)',
+    venue_count:'locaties',
+    p_housing_desc:'Grote woningplatforms en tips voor huren/kopen',
+    p_funda:'Grootste woningsite van NL',
+    p_pararius:'Professioneel huurplatform, expat-vriendelijk',
+    p_kamernet:'Kamerplatform, ideaal voor studenten',
+    p_huur:'Nederlands huur-aggregatieplatform'
+  }
+};
+
+var currentLang = 'zh';
+try { var saved = localStorage.getItem('hollandlife_lang'); if (saved && I18N[saved]) currentLang = saved; } catch(e){}
+
+function getLang() { return currentLang; }
+
+function setLang(lang) {
+    currentLang = lang;
+    try { localStorage.setItem('hollandlife_lang', lang); } catch(e){}
+    document.querySelectorAll('.lang-btn').forEach(function(btn) {
+        var btnText = btn.textContent.trim().toLowerCase();
+        btn.classList.toggle('active', btnText === (lang === 'zh' ? '\u4e2d\u6587' : lang.toUpperCase()).toLowerCase());
+    });
+    // Properly match lang buttons
+    document.querySelectorAll('.lang-btn').forEach(function(btn) {
+        var match = btn.getAttribute('onclick') || '';
+        var m = match.match(/'(\w+)'/);
+        if (m) btn.classList.toggle('active', m[1] === lang);
+    });
+    // Update text content
+    var dict = I18N[lang] || I18N.zh;
+    document.querySelectorAll('[data-i18n]').forEach(function(el) {
+        var key = el.getAttribute('data-i18n');
+        if (dict[key]) el.textContent = dict[key];
+    });
+    // Update placeholders
+    document.querySelectorAll('[data-i18n-ph]').forEach(function(el) {
+        var key = el.getAttribute('data-i18n-ph');
+        if (dict[key]) el.placeholder = dict[key];
+    });
+    // Update venue count and rebuild filter bar on lang change
+    updateVenueCount();
+    if (mapInitialized) buildFilterBar();
+    // Rebuild guides for language
+    buildGuides();
+}
+
+// ══════════════════════════════════════════════════════
+// PAGE NAVIGATION
+// ══════════════════════════════════════════════════════
+var currentPage = 'home';
+function switchPage(page) {
+    currentPage = page;
+    // Hide all page views
+    document.querySelectorAll('.page-view').forEach(function(p){p.classList.remove('active')});
+    document.querySelector('.map-page').classList.remove('active');
+    // Show target
+    if (page === 'map') {
+        document.querySelector('.map-page').classList.add('active');
+        if (!mapInitialized) initMap();
+        setTimeout(function(){ if(map) map.invalidateSize(); }, 100);
+    } else {
+        var el = document.getElementById('page-' + page);
+        if (el) el.classList.add('active');
+    }
+    // Update nav
+    document.querySelectorAll('[data-nav]').forEach(function(btn) {
+        btn.classList.toggle('active', btn.getAttribute('data-nav') === page);
+    });
+    // Scroll to top
+    window.scrollTo(0, 0);
+}
+
+// ══════════════════════════════════════════════════════
+// SERVICE PANELS
+// ══════════════════════════════════════════════════════
+function openServicePanel(type) {
+    document.querySelectorAll('.svc-panel').forEach(function(p){p.style.display='none'});
+    var panel = document.getElementById('panel-' + type);
+    if (panel) {
+        panel.style.display = 'block';
+        document.getElementById('svcOverlay').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+function closeServicePanel() {
+    document.querySelectorAll('.svc-panel').forEach(function(p){p.style.display='none'});
+    document.getElementById('svcOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+// ══════════════════════════════════════════════════════
+// GUIDES
+// ══════════════════════════════════════════════════════
+var GUIDES = [
+    {icon:'\u{1F4CC}',zh:'\u521a\u5230\u8377\u5170\u7b2c\u4e00\u5468\u8981\u505a\u4ec0\u4e48\uff1f',en:'First week in the Netherlands?',nl:'Eerste week in Nederland?',tag_zh:'\u5fc5\u8bfb',tag_en:'Must Read',tag_nl:'Verplicht',
+     body:'<h4>到达后的关键步骤：</h4><div class="step"><span class="step-num">1</span><div class="step-text"><strong>市政厅登记 (Gemeente)</strong><br>到达5天内必须到居住地所在城市的市政厅登记（Inschrijving BRP）。需要携带：护照、签证/居留许可、租房合同、出生证明公证件。登记后会收到BSN号码。<br><em>各城市预约：<a href="https://www.amsterdam.nl/en/civil-affairs/" target="_blank">Amsterdam</a> | <a href="https://www.rotterdam.nl/english/" target="_blank">Rotterdam</a> | <a href="https://www.denhaag.nl/en/" target="_blank">Den Haag</a> | <a href="https://www.utrecht.nl/city-of-utrecht/" target="_blank">Utrecht</a> | <a href="https://www.eindhoven.nl/en" target="_blank">Eindhoven</a></em></div></div><div class="step"><span class="step-num">2</span><div class="step-text"><strong>开银行账户</strong><br>推荐 ING、ABN AMRO 或 Rabobank。需要BSN号码和有效证件。荷兰日常消费以借记卡和iDEAL支付为主，信用卡使用率很低。</div></div><div class="step"><span class="step-num">3</span><div class="step-text"><strong>购买医疗保险</strong><br>荷兰法律规定所有居民必须购买基本医疗保险（Basisverzekering），到达后4个月内必须办好。2026年均价约&euro;159/月，最低约&euro;142/月。自付额(Eigen risico)&euro;385/年。可在 <a href="https://www.independer.nl" target="_blank">Independer.nl</a> 比价。低收入可申请医疗补贴(Zorgtoeslag)。</div></div><div class="step"><span class="step-num">4</span><div class="step-text"><strong>注册家庭医生 (Huisarts)</strong><br>荷兰实行家庭医生制度，建议到达后尽快注册。在 <a href="https://www.zorgkaartnederland.nl" target="_blank">Zorgkaart Nederland</a> 搜索附近家庭医生。</div></div><div class="step"><span class="step-num">5</span><div class="step-text"><strong>办理DigiD</strong><br>DigiD是荷兰电子身份认证系统。有了BSN后即可在 <a href="https://www.digid.nl" target="_blank">digid.nl</a> 申请。激活码会邮寄到你的注册地址，约需1周。之后在 <a href="https://mijn.overheid.nl" target="_blank">MijnOverheid</a> 激活账户接收政府信件。</div></div><div class="step"><span class="step-num">6</span><div class="step-text"><strong>办理公交卡</strong><br>OV-chipkaart正在被OV-pas取代（2027年底前完成）。现在也可以直接用银行卡刷卡乘车(OVpay)。建议办实名卡以使用折扣订阅。</div></div><div class="step"><span class="step-num">7</span><div class="step-text"><strong>申请补贴</strong><br>在 <a href="https://www.toeslagen.nl" target="_blank">Toeslagen.nl</a> 申请各类补贴：医疗补贴(Zorgtoeslag)、房租补贴(Huurtoeslag)、育儿补贴(Kinderopvangtoeslag)。需要DigiD登录。</div></div><div class="tip-box">\u{1F4A1} 小贴士：以上所有步骤都需要BSN号码，所以市政厅登记是第一优先级！建议到达前就预约好市政厅时间。</div>'},
+    {icon:'\u{1FA7A}',zh:'\u600e\u4e48\u6ce8\u518c\u5bb6\u5ead\u533b\u751f\uff1f',en:'How to register with a GP?',nl:'Hoe schrijf ik me in bij een huisarts?',tag_zh:'\u533b\u7597',tag_en:'Healthcare',tag_nl:'Zorg',
+     body:'<div class="step"><span class="step-num">1</span><div class="step-text"><strong>查找附近的家庭医生</strong><br>在 <a href="https://www.zorgkaartnederland.nl" target="_blank">Zorgkaart Nederland</a> 搜索你所在区域的家庭医生，查看评分和是否接受新患者。</div></div><div class="step"><span class="step-num">2</span><div class="step-text"><strong>致电或在线注册</strong><br>需要提供：BSN号码、保险信息、护照/ID号码、住址。很多诊所有在线注册表。</div></div><div class="step"><span class="step-num">3</span><div class="step-text"><strong>如果被拒怎么办？</strong><br>大城市家庭医生经常满员。多尝试几家，或联系你的医疗保险公司帮忙（他们有义务帮你找到家庭医生）。</div></div><h4>看病费用说明</h4><ul><li>看家庭医生<strong>不需要额外付费</strong>（保险覆盖）</li><li>专科转诊也由保险覆盖，但会计入自付额(Eigen risico &euro;385/年)</li><li>看牙医(Tandarts)需要额外的附加保险(Aanvullende verzekering)</li><li>药品费用大部分由保险覆盖，在药房(Apotheek)凭处方取药</li></ul><h4>夜间/周末急诊</h4><p>非工作时间需要医疗帮助？拨打你家庭医生的电话号码，按语音提示转接到当地Huisartsenpost（HAP）。注意：各地HAP号码不同。</p><div class="tip-box">\u{1F4A1} 看病流程：先打电话给家庭医生预约 \u2192 看家庭医生 \u2192 如需要转诊专科。荷兰不能直接去医院挂号！</div><div class="experience-tip"><strong>\u{1F4A1} 来自我的亲身经历：</strong>我在Rotterdam-Zuid注册家庭医生，整个过程大约花了2周。第一家满员被拒，第二家很顺利。建议同时申请2-3家，提高成功率。</div><div class="tip-box">\u{1F4A1} 语言不通怎么办？你有权要求翻译服务。也可以使用 <a href="https://www.thuisarts.nl" target="_blank">Thuisarts.nl</a> 查看症状信息（有英文版）。</div><div class="tip-box">\u{1F4A1} 心理健康：可通过家庭医生转诊心理咨询师。紧急心理危机拨打 <strong>0800-0113</strong>（免费，24小时）。</div>'},
+    {icon:'\u{1F3EB}',zh:'\u8377\u5170\u5b66\u6821\u600e\u4e48\u9009\uff1f',en:'How to choose a school in NL?',nl:'Hoe kies ik een school?',tag_zh:'\u6559\u80b2',tag_en:'Education',tag_nl:'Onderwijs',
+     body:'<h4>荷兰学校体系概览</h4><ul><li><strong>Basisschool（小学）</strong>：4-12岁，共8个年级（Groep 1-8）。孩子满4岁当天即可入学！5岁起为义务教育。</li><li><strong>Middelbare school（中学）</strong>：分为VMBO（4年，职业方向）、HAVO（5年，应用型高等教育预备）、VWO（6年，大学预备）三个层次</li><li><strong>国际学校</strong>：英语授课，学费较高（&euro;5,000-25,000/年），适合短期驻荷或希望走国际路线的家庭</li></ul><h4>选校建议</h4><ul><li>在 <a href="https://www.scholenopdekaart.nl" target="_blank">Scholen op de Kaart</a> 查看学校评分、教育质量报告</li><li>荷兰公立学校免费（仅需少量材料费），教育质量整体很高</li><li>如果孩子不会荷兰语，很多学校提供过渡班（Schakelklas/Nieuwkomersklas）</li><li>学校类型有：公立(Openbaar)、新教(Protestants)、天主教(Katholiek)、蒙特梭利(Montessori)、自由学校(Vrije school)等，教学质量差异不大</li></ul><h4>实用链接</h4><ul><li><a href="https://www.scholenopdekaart.nl" target="_blank">Scholen op de Kaart</a> \u2014 学校评分和信息</li><li><a href="https://www.duo.nl" target="_blank">DUO.nl</a> \u2014 教育执行署，学生资助</li><li><a href="https://www.onderwijsinspectie.nl" target="_blank">Onderwijsinspectie.nl</a> \u2014 教育督察署，查看学校评级</li></ul><div class="tip-box">\u{1F4A1} 荷兰学校通常需要提前几个月注册。热门学校甚至在孩子出生后就需要登记！建议一到荷兰就开始看学校。开放日(Open dag)通常在1-3月。</div><div class="experience-tip"><strong>\u{1F4A1} 来自我的亲身经历：</strong>James上的是本地荷兰语学校，从中文环境过渡到荷兰语教学很顺利。孩子的适应能力比大人想象的强很多，不必太担心语言问题。</div>'},
+    {icon:'\u{1F930}',zh:'\u5728\u8377\u5170\u751f\u5b69\u5b50\u653b\u7565',en:'Having a baby in the Netherlands',nl:'Baby krijgen in Nederland',tag_zh:'\u4eb2\u5b50',tag_en:'Family',tag_nl:'Gezin',
+     body:'<h4>孕期关键步骤</h4><div class="step"><span class="step-num">1</span><div class="step-text"><strong>确认怀孕后</strong>：联系助产士（Verloskundige）。在 <a href="https://www.knov.nl" target="_blank">KNOV.nl</a> 查找附近的助产士。荷兰的孕期检查主要由助产士负责，不是妇科医生。</div></div><div class="step"><span class="step-num">2</span><div class="step-text"><strong>预约Kraamzorg</strong>：产后护理服务，持续约8天，护理员会到家里帮忙照顾产妇和婴儿。<strong>建议怀孕初期就预约</strong>，热门服务商很快满员。费用大部分由医疗保险覆盖！</div></div><div class="step"><span class="step-num">3</span><div class="step-text"><strong>选择分娩方式</strong>：可以选择在家生（thuisbevalling，荷兰特色！）、医院或生育中心。如无医学风险，助产士会指导选择。</div></div><div class="step"><span class="step-num">4</span><div class="step-text"><strong>产前检查</strong>：常规超声检查在第20周，额外检查（如13周NT检查）需单独选择，费用约&euro;200。</div></div><h4>产后必办手续</h4><ul><li><strong>出生后3个工作日内</strong>到市政厅登记出生（Aangifte geboorte）</li><li>申请儿童津贴（Kinderbijslag）：在 <a href="https://www.svb.nl" target="_blank">SVB.nl</a> 申请，每季度发放</li><li>申请托儿所补贴（Kinderopvangtoeslag）：在 <a href="https://www.toeslagen.nl" target="_blank">Toeslagen.nl</a> 申请</li><li>到Consultatiebureau（儿童保健中心）登记，定期检查和疫苗接种</li><li>如需中国护照/旅行证：联系中国驻荷使馆</li></ul><div class="tip-box">\u{1F4A1} 产假至少16周，带薪100%。配偶有5天带薪假 + 5周额外假期（薪资70%，由UWV支付）。</div><div class="tip-box">\u{1F4A1} 荷兰有Consultatiebureau免费为0-4岁儿童提供健康检查和疫苗接种服务。</div>'},
+    {icon:'\u{1F697}',zh:'\u8377\u5170\u9a7e\u7167\u600e\u4e48\u8003\uff1f',en:'Getting a Dutch driver\'s license',nl:'Rijbewijs halen in Nederland',tag_zh:'\u4ea4\u901a',tag_en:'Transport',tag_nl:'Vervoer',
+     body:'<h4>中国驾照在荷兰能用吗？</h4><p>中国驾照<strong>不能直接换荷兰驾照</strong>。到达后可使用185天（需配合国际驾照IDP）。之后必须考荷兰驾照。</p><div class="step"><span class="step-num">1</span><div class="step-text"><strong>健康声明</strong>（约&euro;44.50），在 <a href="https://www.cbr.nl" target="_blank">CBR.nl</a> 购买并填写</div></div><div class="step"><span class="step-num">2</span><div class="step-text"><strong>理论考试</strong>（&euro;50.50），可选英语考试(&euro;55)或带中文翻译(&euro;111.50)。2026年起考试难度有所增加。</div></div><div class="step"><span class="step-num">3</span><div class="step-text"><strong>驾驶课程</strong>，平均30-45节课，总费用约&euro;2,500-3,500。荷兰是全球第二贵的考驾照国家！</div></div><div class="step"><span class="step-num">4</span><div class="step-text"><strong>路考</strong>（&euro;138.50），通过率约50%。通过驾校预约通常需额外费用。</div></div><div class="tip-box">\u{1F4A1} 省钱技巧：很多驾校提供套餐价（lespakket）。如有中国驾照基础，通常20-30节课就够。推荐在 <a href="https://www.cbr.nl" target="_blank">CBR.nl</a> 查看最新价格和考试安排。</div>'},
+    {icon:'\u{1F469}\u200d\u{1F467}\u200d\u{1F466}',zh:'\u4eb2\u5b50\u6d3b\u52a8\u63a8\u8350',en:'Family activity recommendations',nl:'Gezinsactiviteiten aanbevolen',tag_zh:'\u4eb2\u5b50',tag_en:'Family',tag_nl:'Gezin',
+     body:'<h4>\u8377\u5170\u5fc5\u53bb\u4eb2\u5b50\u573a\u6240 TOP 10</h4><ul><li><strong>Efteling</strong> \u2014 \u8377\u5170\u7248"\u8fea\u58eb\u5c3c"\uff0c\u5f3a\u70c8\u63a8\u8350\uff01</li><li><strong>NEMO Science Museum</strong> \u2014 \u963f\u59c6\u65af\u7279\u4e39\u8d85\u68d2\u79d1\u5b66\u535a\u7269\u9986</li><li><strong>Madurodam</strong> \u2014 \u6d77\u7259\u5fae\u7f29\u666f\u89c2\u516c\u56ed</li><li><strong>Artis</strong> \u2014 \u963f\u59c6\u65af\u7279\u4e39\u52a8\u7269\u56ed</li><li><strong>Naturalis</strong> \u2014 \u83b1\u987f\u81ea\u7136\u535a\u7269\u9986\uff0c\u6050\u9f99\u5c55\u8d85\u68d2</li><li><strong>Kinderdijk</strong> \u2014 \u4e16\u754c\u9057\u4ea7\u98ce\u8f66\u7fa4</li><li><strong>Linnaeushof</strong> \u2014 \u6b27\u6d32\u6700\u5927\u5ba4\u5916\u6e38\u4e50\u573a</li><li><strong>Monkey Town / Ballorig</strong> \u2014 \u96e8\u5929\u9057\u5a03\u9996\u9009</li><li><strong>Burgers\' Zoo</strong> \u2014 \u963f\u7eb3\u59c6\u4e16\u754c\u7ea7\u52a8\u7269\u56ed</li><li><strong>Scheveningen</strong> \u2014 \u6d77\u7259\u6d77\u6ee9\uff0c\u590f\u5929\u5fc5\u53bb</li></ul><div class="tip-box">\u{1F4A1} \u6253\u5f00\u201c\u4eb2\u5b50\u5730\u56fe\u201d\u9875\u9762\uff0c\u63a2\u7d22\u5168\u8377\u5170 250+ \u4eb2\u5b50\u573a\u6240\uff01</div>'},
+    {icon:'\u{1F389}',zh:'\u8377\u5170\u8282\u65e5\u65e5\u5386 2026',en:'Dutch holiday calendar 2026',nl:'Nederlandse feestdagenkalender 2026',tag_zh:'\u751f\u6d3b',tag_en:'Lifestyle',tag_nl:'Leven',
+     body:'<h4>2026 荷兰公共假日</h4><ul><li><strong>1月1日</strong> \u2014 Nieuwjaarsdag 新年</li><li><strong>4月3日</strong> \u2014 Goede Vrijdag 耶稣受难日</li><li><strong>4月5-6日</strong> \u2014 Pasen 复活节</li><li><strong>4月27日（周一）</strong> \u2014 Koningsdag 国王节（全民摆摊、橙色海洋！）</li><li><strong>5月5日</strong> \u2014 Bevrijdingsdag 解放日</li><li><strong>5月14日（周四）</strong> \u2014 Hemelvaartsdag 耶稣升天日（很多人周五也请假凑长周末）</li><li><strong>5月24-25日</strong> \u2014 Pinksteren 圣灵降临节</li><li><strong>12月5日</strong> \u2014 Sinterklaas 圣尼古拉斯节（孩子最爱！非公共假日但全民庆祝）</li><li><strong>12月25-26日</strong> \u2014 Kerstmis 圣诞节</li></ul><h4>学校假期 (2025-2026学年)</h4><p><em>注意：荷兰分北(Noord)、中(Midden)、南(Zuid)三个区域，假期时间略有不同。</em></p><ul><li><strong>Voorjaarsvakantie 春假</strong> \u2014 北部：2月21日-3月1日 | 中/南部：2月14-22日</li><li><strong>Meivakantie 五月假</strong> \u2014 全国统一：4月25日-5月3日</li><li><strong>Zomervakantie 暑假</strong> \u2014 北部：7月4日-8月16日 | 中部：7月18日-8月30日 | 南部：7月11日-8月23日</li><li><strong>Herfstvakantie 秋假</strong> \u2014 10月中（1周）</li><li><strong>Kerstvakantie 圣诞假</strong> \u2014 12月底（2周）</li></ul><p style="margin-top:8px;font-size:12px;color:var(--gray-400)">详细日期请查看 <a href="https://www.government.nl/topics/school-holidays" target="_blank">government.nl 学校假期页面</a></p><div class="tip-box">\u{1F4A1} Koningsdag是荷兰最大的户外派对！全城变橙色，人人可以在街上摆摊卖东西，带孩子必体验！提前买好橙色衣服。</div>'},
+    {icon:'\u{1F4B0}',zh:'\u8377\u5170\u7701\u94b1\u653b\u7565',en:'Money-saving tips in NL',nl:'Geld besparen in NL',tag_zh:'\u7701\u94b1',tag_en:'Savings',tag_nl:'Besparen',
+     body:'<h4>日常生活省钱技巧</h4><ul><li><strong>Too Good To Go</strong> \u2014 APP抢购超市打折食品包，通常"魔法袋"只要&euro;3-5</li><li><strong>Scoupy / Eurosparen</strong> \u2014 超市优惠券和返现APP</li><li><strong>NS Dal Voordeel</strong> \u2014 &euro;6.35/月，火车非高峰时段40%折扣（同行最多3人也享受折扣）</li><li><strong>Museum Kaart</strong> \u2014 &euro;75/年（成人），&euro;39/年（18岁以下），免费进入全荷兰500+博物馆！在 <a href="https://www.museum.nl/en/museumpass" target="_blank">museum.nl</a> 购买</li><li><strong>CJP</strong> \u2014 文化青年卡，各种文化活动折扣</li><li><strong>Koopzondag</strong> \u2014 周日开门商店常有折扣</li><li><strong>超市比价</strong> \u2014 Lidl和Aldi最便宜，AH每周Bonus折扣很大，Jumbo有最低价保证</li><li><strong>OV-fiets</strong> \u2014 火车站共享自行车&euro;4.80/天，300+取车点</li></ul><h4>补贴与省税</h4><ul><li><strong>30% Ruling</strong> \u2014 Expat最大的省税福利，前5年30%工资免税，记得让HR帮你在到达后4个月内申请！</li><li><strong>Zorgtoeslag</strong> \u2014 低收入可申请医疗补贴，在 <a href="https://www.toeslagen.nl" target="_blank">Toeslagen.nl</a> 申请</li><li><strong>Huurtoeslag</strong> \u2014 租房补贴，根据收入和租金计算</li><li><strong>Kinderbijslag</strong> \u2014 儿童津贴，每个孩子每季度都有，在 <a href="https://www.svb.nl" target="_blank">SVB.nl</a> 申请</li><li><strong>Kinderopvangtoeslag</strong> \u2014 托儿所补贴，双职工家庭可申请</li></ul><div class="tip-box">\u{1F4A1} Museum Kaart是带娃神卡！全家办卡，周末随便去博物馆，年省数百欧。续费只要&euro;69/年。</div><div class="experience-tip"><strong>\u{1F4A1} 来自我的亲身经历：</strong>我们2014年在Rotterdam附近的小城买了第一套投资房产。荷兰房产长期来看是很好的保值手段，但一定要提前了解税务和贷款规则。</div>'},
+    {icon:'\u{1F193}',zh:'\u8377\u5170\u514d\u8d39\u4eb2\u5b50\u6d3b\u52a8 Top 20',en:'Top 20 Free Family Activities in NL',nl:'Top 20 Gratis Gezinsactiviteiten',tag_zh:'\u4eb2\u5b50',tag_en:'Family',tag_nl:'Gezin',
+     body:'<h4>荷兰20个最棒的免费亲子活动</h4><p>谁说带娃一定要花大钱？荷兰有大量免费或几乎免费的亲子去处：</p><ul><li><strong>1. Kinderboerderij（儿童农场）</strong> \u2014 全荷兰有600+个儿童农场，绝大部分免费入场。小朋友可以近距离接触山羊、兔子、鸡等动物。每个城市几乎都有！</li><li><strong>2. Scheveningen海滩</strong> \u2014 Den Haag最受欢迎的海滩，夏天免费玩沙、踏浪、挖贝壳。有免费儿童游乐区。</li><li><strong>3. Vondelpark（阿姆斯特丹）</strong> \u2014 荷兰最知名的城市公园，有大型免费儿童游乐场，夏天有免费露天音乐会。</li><li><strong>4. Kralingse Bos（鹿特丹）</strong> \u2014 Rotterdam最大的城市森林公园，可散步、骑车、湖边野餐。免费进入。</li><li><strong>5. Bibliotheek（图书馆）</strong> \u2014 荷兰图书馆活动丰富！免费讲故事、手工课、LEGO角，18岁以下免费办卡。推荐Rotterdam中央图书馆。</li><li><strong>6. Zuiderpark（鹿特丹）</strong> \u2014 超大免费公园，有多个游乐场、动物区和BBQ区域。</li><li><strong>7. Koningsdag国王节（4月27日）</strong> \u2014 全国最大的户外派对！孩子可在Vrijmarkt摆摊赚零花钱，全城免费橙色狂欢。</li><li><strong>8. Museumnacht / Museum weekends</strong> \u2014 每年有全国博物馆周末（Museumweekend），很多博物馆免费或大幅折扣开放。</li><li><strong>9. Natuurmonumenten自然保护区</strong> \u2014 散布全国的自然保护区，免费徒步、观鸟。<a href="https://www.natuurmonumenten.nl" target="_blank">natuurmonumenten.nl</a></li><li><strong>10. Speeltuin（社区游乐场）</strong> \u2014 荷兰每个社区都有免费或&euro;1-2入场的游乐场。很多有滑梯、秋千、沙坑、水上乐园。</li><li><strong>11. Kinderdijk风车群</strong> \u2014 世界遗产，外围区域免费散步和骑行，可以近距离看到19座风车。</li><li><strong>12. Markthal（鹿特丹）</strong> \u2014 全球最美的室内市场之一，免费参观壮观的天花板壁画和建筑。</li><li><strong>13. Plaswijckpark免费日</strong> \u2014 Rotterdam本地的亲子乐园，持Rotterdampas有免费入场日。</li><li><strong>14. Zaanse Schans风车村</strong> \u2014 村庄免费进入，可看风车、传统荷兰房屋（部分博物馆需门票）。</li><li><strong>15. Katwijk / Noordwijk海滩</strong> \u2014 相对安静的海滩，免费停车区域多，适合带小宝宝。</li><li><strong>16. Stadsboerderij（城市农场）</strong> \u2014 各大城市的城市农场，免费。Den Haag的Stadsboerderij Pluk特别推荐。</li><li><strong>17. Biesbosch国家公园</strong> \u2014 荷兰最大的淡水湿地，免费徒步和独木舟。<a href="https://www.np-debiesbosch.nl" target="_blank">np-debiesbosch.nl</a></li><li><strong>18. Sinterklaas Intocht（11月中旬）</strong> \u2014 圣尼古拉斯到达游行，各城市免费观看，孩子们的最爱！</li><li><strong>19. 4/5 mei herdenkingsdag</strong> \u2014 每年5月4日纪念日和5月5日解放日，全国各地有免费音乐节和活动。</li><li><strong>20. Oevers van de Maas（鹿特丹）</strong> \u2014 马斯河边散步，看Erasmusbrug，有免费的Watertaxi体验日。</li></ul><div class="tip-box">\u{1F4A1} 省钱利器：下载Too Good To Go APP，出游途中&euro;3-5就能买到咖啡店/面包房的"魔法袋"当午餐！</div>'},
+    {icon:'\u{1F327}',zh:'\u4e0b\u96e8\u5929\u5e26\u5a03\u53bb\u54ea\uff1f',en:'Rainy Day Activities with Kids',nl:'Regendag Activiteiten met Kinderen',tag_zh:'\u4eb2\u5b50',tag_en:'Family',tag_nl:'Gezin',
+     body:'<h4>荷兰下雨天室内亲子活动指南</h4><p>荷兰一年下雨130+天，雨天带娃是每个家长必须面对的课题！以下是经过验证的室内好去处：</p><h4>\u{1F3A0} 室内游乐场</h4><ul><li><strong>Monkey Town</strong> \u2014 全荷兰连锁室内游乐场，约20个分店。适合1-12岁，有滑梯、蹦床、球池。门票约&euro;10-13/人。<a href="https://www.monkeytown.eu" target="_blank">monkeytown.eu</a></li><li><strong>Ballorig</strong> \u2014 另一大连锁，全国30+分店，特别适合2-8岁。门票约&euro;9-11/人。<a href="https://www.ballorig.nl" target="_blank">ballorig.nl</a></li><li><strong>Jimmy\'s Speelparadijs</strong> \u2014 Amsterdam大型室内乐园，设施丰富。</li><li><strong>Fun Valley Dordrecht</strong> \u2014 Rotterdam附近，适合周末去。</li></ul><h4>\u{1F3DB} 博物馆</h4><ul><li><strong>NEMO Science Museum（Amsterdam）</strong> \u2014 5层楼的互动科学馆，孩子可以做实验、玩水、搭建。适合4-12岁。门票&euro;17.50，Museumkaart免费。<a href="https://www.nemosciencemuseum.nl" target="_blank">nemosciencemuseum.nl</a></li><li><strong>Naturalis（Leiden）</strong> \u2014 自然博物馆，有恐龙化石、活体动物。孩子超爱！Museumkaart免费。</li><li><strong>Spoorwegmuseum（Utrecht）</strong> \u2014 铁路博物馆，火车迷必去！有互动展和小火车。Museumkaart免费。</li><li><strong>Het Scheepvaartmuseum（Amsterdam）</strong> \u2014 航海博物馆，可以登上真的帆船。Museumkaart免费。</li><li><strong>Miniworld Rotterdam</strong> \u2014 世界最大的微缩景观之一，在Rotterdam！门票约&euro;16。</li></ul><h4>\u{1F3CA} 室内游泳</h4><ul><li><strong>Tikibad（Duinrell）</strong> \u2014 荷兰最受欢迎的热带室内水上乐园之一，滑梯超多！</li><li><strong>De Houtzagerij Rotterdam</strong> \u2014 Rotterdam的室内游泳池，有儿童区和家庭时段。</li><li><strong>各城市Zwembad</strong> \u2014 几乎每个城市都有室内游泳池，带娃票约&euro;5-8。Google搜"zwembad + 你的城市"。</li></ul><h4>\u{1F4DA} 图书馆</h4><ul><li><strong>Centrale Bibliotheek Rotterdam</strong> \u2014 超级棒的儿童区！有积木、绘本、电脑游戏区，全免费。</li><li><strong>OBA Amsterdam</strong> \u2014 阿姆斯特丹中央图书馆，6楼有免费儿童活动区。</li><li>全荷兰图书馆18岁以下免费办卡，经常有免费儿童活动（Voorleesuurtje讲故事时间）。</li></ul><div class="tip-box">\u{1F4A1} 雨天必备APP：下载Google Maps提前搜好附近的"binnenspeeltuin"（室内游乐场），说走就走！</div>'},
+    {icon:'\u{1F3AB}',zh:'\u8377\u5170\u4eb2\u5b50\u5e74\u7968\u653b\u7565',en:'Best Annual Passes for Families',nl:'Beste Jaarkaarten voor Gezinnen',tag_zh:'\u7701\u94b1',tag_en:'Savings',tag_nl:'Besparen',
+     body:'<h4>荷兰最值得买的亲子年票/年卡</h4><p>在荷兰带娃，年票绝对是最省钱的方式。以下是2026年最推荐的年票：</p><h4>1. Museumkaart 博物馆卡 \u2014 \u2B50 强烈推荐！</h4><ul><li>价格：成人&euro;75/年，18岁以下&euro;39/年（续费&euro;69）</li><li>权益：免费进入全荷兰500+博物馆！包括Rijksmuseum、Van Gogh Museum、NEMO、Naturalis等</li><li>划算程度：一个月去2-3次就回本。带娃周末去博物馆成了免费活动！</li><li>购买：<a href="https://www.museum.nl/en/museumpass" target="_blank">museum.nl</a>，也可在参与博物馆前台购买临时卡</li></ul><h4>2. Plaswijckpark 年卡 \u2014 Rotterdam家长必备</h4><ul><li>价格：&euro;65/人/年</li><li>权益：全年无限次进入Rotterdam最受欢迎的亲子公园。有动物区、游乐场、水上乐园、迷你高尔夫</li><li>划算程度：去4次回本（单次票约&euro;17）。住Rotterdam的话几乎每周都能去</li><li>购买：<a href="https://www.plaswijckpark.nl/tickets/" target="_blank">plaswijckpark.nl</a></li></ul><h4>3. Efteling 年卡</h4><ul><li>价格：Classic约&euro;23/月（约&euro;276/年），Plus/Premium更贵</li><li>权益：全年无限次进入荷兰最大主题乐园！不同等级有不同的可用日和折扣</li><li>划算程度：去3次以上就值了（单次票&euro;44-55）。Classic卡有黑日限制，注意学校假期可能不能用</li><li>购买：<a href="https://www.efteling.com/en/park/annual-pass" target="_blank">efteling.com</a></li></ul><h4>4. CJP Cultuurkaart 文化青年卡</h4><ul><li>价格：&euro;17.50/年</li><li>适用：30岁以下年轻人</li><li>权益：1000+文化场所折扣 \u2014 博物馆、电影院、剧院、音乐节、甚至部分商店</li><li>购买：<a href="https://expat.cjp.nl/" target="_blank">expat.cjp.nl</a></li></ul><h4>5. Holland Pass</h4><ul><li>价格：Small &euro;42 / Medium &euro;62 / Large &euro;82</li><li>适用：短期内想密集游览的家庭或游客</li><li>权益：包含多个景点门票+公共交通折扣。适合亲友来荷兰探亲时使用</li></ul><h4>6. NS Dal Voordeel 火车折扣卡</h4><ul><li>价格：&euro;6.35/月</li><li>权益：非高峰时段（工作日9:00后+周末全天）火车票40%折扣，同行3人也享受折扣！全家出行神器</li></ul><div class="tip-box">\u{1F4A1} 最佳组合：Museumkaart + NS Dal Voordeel，全家周末坐火车去各地博物馆，交通和门票都打折，年省&euro;500+！</div><div class="experience-tip"><strong>\u{1F4A1} 来自我的亲身经历：</strong>我家的Museumkaart是用得最多的卡，几乎每个周末都带James去博物馆。NEMO去了不下20次！Plaswijckpark年卡也超值，夏天几乎每周去，孩子在那里认识了好几个小伙伴。</div>'},
+    {icon:'\u{1F9AA}',zh:'\u8377\u5170\u751f\u86a3\u5b63\uff1aOosterdam\u8d76\u6d77\u653b\u7565',en:'Oyster Picking at Oosterdam',nl:'Oesters rapen bij de Oesterdam',tag_zh:'\u751f\u6d3b',tag_en:'Lifestyle',tag_nl:'Leven',
+     body:'<h4>荷兰赶海：在Zeeland免费捡生蚝！</h4><p>没错，在荷兰可以免费捡野生生蚝！Zeeland省的Oosterschelde海域是荷兰最佳的赶海地点，其中<strong>Oesterdam（生蚝坝）</strong>是最受华人欢迎的捡生蚝地点。</p><h4>\u{1F4CD} 地点</h4><p><strong>Oesterdam</strong>，位于Zeeland省Tholen和Zuid-Beveland之间的大坝。从Rotterdam开车约1小时。停车免费，坝上有停车场。Google Maps搜索"Oesterdam"即可导航。</p><h4>\u{1F4C5} 最佳时间</h4><ul><li><strong>生蚝季：9月\u20134月</strong>（带R的月份）。5-8月是生蚝繁殖期，肉质不佳，不建议采集</li><li><strong>最佳月份：9月、10月、11月</strong> \u2014 天气还不太冷，生蚝肥美</li><li><strong>必须在退潮时去！</strong>退潮前后2小时是最佳采集时间</li><li>潮汐查询：<a href="https://waterinfo.rws.nl" target="_blank">waterinfo.rws.nl</a>（Rijkswaterstaat官方潮汐网站），选择Oosterschelde区域查看潮汐时间</li></ul><h4>\u{1F4CB} 规则</h4><ul><li>每人每天最多采集<strong>10公斤</strong>贝类（生蚝、贻贝、蛤蜊合计）</li><li>只能手工采集，不能使用机械工具</li><li>只能自用，不能售卖</li><li>注意保护环境，不要在禁区采集</li></ul><h4>\u{1F392} 必带物品</h4><ul><li><strong>雨靴或涉水鞋</strong> \u2014 岩石湿滑，必须穿！拖鞋绝对不行</li><li><strong>手套</strong> \u2014 生蚝壳非常锋利，建议厚手套</li><li><strong>桶/袋子</strong> \u2014 装生蚝用，带个结实的购物袋或桶</li><li><strong>生蚝刀</strong> \u2014 现场开壳吃用（Action或Blokker约&euro;3就能买到）</li><li><strong>柠檬+Tabasco</strong> \u2014 现场开壳配柠檬汁吃，绝了！</li><li><strong>矿泉水</strong> \u2014 清洗生蚝用</li><li><strong>防风外套</strong> \u2014 海边风大</li></ul><h4>\u{1F37D} 怎么吃</h4><ul><li><strong>现场生吃</strong>：用生蚝刀撬开，加柠檬汁，鲜甜无比！</li><li><strong>带回家</strong>：蒜蓉粉丝蒸、芝士焗、炭烤都好吃</li><li>生蚝可在冰箱保存3-5天（壳朝下，盖湿布）</li></ul><div class="tip-box">\u{1F4A1} 安全提示：退潮时岩石非常滑！带小朋友一定注意安全。建议穿防滑雨靴，不要去太深的水域。涨潮时立即撤离！</div><div class="experience-tip"><strong>\u{1F4A1} 来自我的亲身经历：</strong>每年秋天我们都会去Oesterdam赶海，James超喜欢在岩石上找螃蟹和贝壳。一次能捡满满一桶生蚝，回家蒜蓉粉丝蒸，全家吃到爽！记得一定要查好潮汐时间再出发，提前到才能赶上最佳退潮。周末去的人很多，建议早点出发抢好位置。</div>'}
+];
+
+function buildGuides() {
+    var container = document.getElementById('guidesContainer');
+    var html = '';
+    for (var i = 0; i < GUIDES.length; i++) {
+        var g = GUIDES[i];
+        html += '<div class="guide-item" id="guide-' + i + '">' +
+            '<div class="guide-header" onclick="toggleGuide(this)">' +
+            '<h3>' + g.icon + ' <span data-guide-zh="' + i + '">' + g.zh + '</span></h3>' +
+            '<span class="guide-tag">' + g['tag_' + currentLang] + '</span>' +
+            '<span class="guide-toggle">&#9660;</span>' +
+            '</div>' +
+            '<div class="guide-content"><div class="guide-body">' + g.body + '</div></div></div>';
+    }
+    container.innerHTML = html;
+}
+
+function toggleGuide(header) {
+    var item = header.parentElement;
+    item.classList.toggle('open');
+}
+
+function openGuideByIdx(idx) {
+    setTimeout(function() {
+        var el = document.getElementById('guide-' + idx);
+        if (el) { el.classList.add('open'); el.scrollIntoView({behavior:'smooth',block:'start'}); }
+    }, 100);
+}
+
+// ══════════════════════════════════════════════════════
+// MAP
+// ══════════════════════════════════════════════════════
+var map, markers, mapInitialized = false;
+var activeFilters = [];
+
+var CATEGORIES = [
+    {id:'all',emoji:'\u{1F30D}',zh:'\u5168\u90e8',en:'All',nl:'Alle',color:'#1A5276'},
+    {id:'theme_park',emoji:'\u{1F3A2}',zh:'\u4e3b\u9898\u4e50\u56ed',en:'Theme Park',nl:'Pretpark',color:'#E67E22'},
+    {id:'zoo',emoji:'\u{1F981}',zh:'\u52a8\u7269\u56ed',en:'Zoo',nl:'Dierentuin',color:'#27AE60'},
+    {id:'aquarium',emoji:'\u{1F42C}',zh:'\u6c34\u65cf\u9986',en:'Aquarium',nl:'Aquarium',color:'#3498DB'},
+    {id:'museum',emoji:'\u{1F3DB}',zh:'\u535a\u7269\u9986',en:'Museum',nl:'Museum',color:'#0EA5A0'},
+    {id:'attraction',emoji:'\u2B50',zh:'\u666f\u70b9',en:'Attraction',nl:'Attractie',color:'#9B59B6'},
+    {id:'nature',emoji:'\u{1F333}',zh:'\u81ea\u7136\u516c\u56ed',en:'Nature',nl:'Natuur',color:'#1B7A1B'},
+    {id:'beach',emoji:'\u{1F3D6}',zh:'\u6d77\u6ee9',en:'Beach',nl:'Strand',color:'#2196F3'},
+    {id:'historic',emoji:'\u{1F3F0}',zh:'\u57ce\u5821\u53e4\u8ff9',en:'Castle',nl:'Kasteel',color:'#D4AC0D'},
+    {id:'indoor_playground',emoji:'\u{1F3E0}',zh:'\u5ba4\u5185\u6e38\u4e50\u573a',en:'Indoor Play',nl:'Binnenspeeltuin',color:'#E74C3C'},
+    {id:'playground',emoji:'\u{1F6DD}',zh:'\u5ba4\u5916\u6e38\u4e50',en:'Playground',nl:'Speeltuin',color:'#FF5722'},
+    {id:'children_farm',emoji:'\u{1F411}',zh:'\u513f\u7ae5\u519c\u573a',en:'Kids Farm',nl:'Kinderboerderij',color:'#795548'},
+    {id:'sports',emoji:'\u26F7',zh:'\u8fd0\u52a8',en:'Sports',nl:'Sport',color:'#607D8B'},
+    {id:'theatre',emoji:'\u{1F3AD}',zh:'\u5267\u9662/\u5f71\u9662',en:'Theatre',nl:'Theater',color:'#673AB7'},
+    {id:'windmill',emoji:'\u{1F3E1}',zh:'\u98ce\u8f66',en:'Windmill',nl:'Molen',color:'#FF9800'},
+    {id:'miniature_golf',emoji:'\u26F3',zh:'\u8ff7\u4f60\u9ad8\u5c14\u592b',en:'Mini Golf',nl:'Midgetgolf',color:'#4CAF50'}
+];
+
+// ── ALL 250+ VENUES ──
+var VENUES=[
+  {type:'node',id:1,lat:51.6508,lon:5.0474,tags:{name:'Efteling',tourism:'theme_park',website:'https://www.efteling.com','addr:city':'Kaatsheuvel','addr:street':'Europalaan','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-19:00'}},
+  {type:'node',id:2,lat:52.4416,lon:5.5836,tags:{name:'Walibi Holland',tourism:'theme_park',website:'https://www.walibi.nl','addr:city':'Biddinghuizen','addr:street':'Spijkweg','addr:housenumber':'30',opening_hours:'Mo-Su 10:00-18:00 (seasonal)'}},
+  {type:'node',id:3,lat:52.1469,lon:4.3714,tags:{name:'Duinrell',tourism:'theme_park',website:'https://www.duinrell.nl','addr:city':'Wassenaar','addr:street':'Duinrell','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  {type:'node',id:4,lat:52.6289,lon:6.5689,tags:{name:'Attractiepark Slagharen',tourism:'theme_park',website:'https://www.slagharen.com','addr:city':'Slagharen','addr:street':'Zwarte Dijk','addr:housenumber':'37',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  {type:'node',id:5,lat:51.4272,lon:6.0058,tags:{name:'Toverland',tourism:'theme_park',website:'https://www.toverland.com','addr:city':'Sevenum','addr:street':'Toverland','addr:housenumber':'2',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  {type:'node',id:6,lat:52.0644,lon:4.2972,tags:{name:'Drievliet',tourism:'theme_park',website:'https://www.drievliet.nl','addr:city':'Den Haag','addr:street':"Laan van 's-Gravenmade",'addr:housenumber':'81',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  {type:'node',id:7,lat:52.3935,lon:6.4558,tags:{name:'Avonturenpark Hellendoorn',tourism:'theme_park',website:'https://www.avonturenpark.nl','addr:city':'Hellendoorn','addr:street':'Luttenbergerweg','addr:housenumber':'22',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  {type:'node',id:8,lat:52.2044,lon:5.3886,tags:{name:'Julianatoren',tourism:'theme_park',website:'https://www.julianatoren.nl','addr:city':'Apeldoorn','addr:street':'Amersfoortseweg','addr:housenumber':'35',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  {type:'node',id:9,lat:51.9130,lon:4.4620,tags:{name:'Plaswijckpark',tourism:'theme_park',website:'https://www.plaswijckpark.nl','addr:city':'Rotterdam','addr:street':'Ringdijk','addr:housenumber':'20',opening_hours:'Mo-Su 09:00-18:00'}},
+  {type:'node',id:130,lat:52.2900,lon:5.1500,tags:{name:'Speelpark Oud Valkeveen',tourism:'theme_park',website:'https://www.oudvalkeveen.nl','addr:city':'Naarden',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  {type:'node',id:131,lat:52.7100,lon:5.3000,tags:{name:'Sprookjeswonderland',tourism:'theme_park',website:'https://www.sprookjeswonderland.nl','addr:city':'Enkhuizen',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  {type:'node',id:132,lat:52.2700,lon:6.7900,tags:{name:'De Waarbeek',tourism:'theme_park',website:'https://www.dewaarbeek.nl','addr:city':'Hengelo',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  {type:'node',id:133,lat:51.8200,lon:5.8900,tags:{name:'Attractiepark Tivoli',tourism:'theme_park',website:'https://www.attractieparktivoli.nl','addr:city':'Berg en Dal',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  {type:'node',id:10,lat:52.3663,lon:4.9158,tags:{name:'Artis',tourism:'zoo',website:'https://www.artis.nl','addr:city':'Amsterdam','addr:street':'Plantage Kerklaan','addr:housenumber':'38-40',opening_hours:'Mar-Oct: Mo-Su 09:00-18:00; Nov-Feb: 09:00-17:00'}},
+  {type:'node',id:11,lat:51.9751,lon:5.9003,tags:{name:"Burgers' Zoo",tourism:'zoo',website:'https://www.burgerszoo.nl','addr:city':'Arnhem','addr:street':'Antoon van Hooffplein','addr:housenumber':'1',opening_hours:'Mo-Su 09:00-18:00'}},
+  {type:'node',id:12,lat:51.5349,lon:5.1162,tags:{name:'Beekse Bergen',tourism:'zoo',website:'https://www.beeksebergen.nl','addr:city':'Hilvarenbeek','addr:street':'Beekse Bergen','addr:housenumber':'1',opening_hours:'Mo-Fr 10:00-17:30; Sa-Su 09:30-19:00'}},
+  {type:'node',id:13,lat:52.7797,lon:6.9009,tags:{name:'Wildlands Adventure Zoo',tourism:'zoo',website:'https://www.wildlands.nl','addr:city':'Emmen','addr:street':'Raatakkers','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:14,lat:52.1584,lon:5.3841,tags:{name:'Dierenpark Amersfoort',tourism:'zoo',website:'https://www.dierenparkamersfoort.nl','addr:city':'Amersfoort','addr:street':'Barchman Wuytierslaan','addr:housenumber':'224',opening_hours:'Mo-Su 09:00-18:00'}},
+  {type:'node',id:15,lat:50.8613,lon:6.0403,tags:{name:'GaiaZOO',tourism:'zoo',website:'https://www.gaiazoo.nl','addr:city':'Kerkrade','addr:street':'Gaiaboulevard','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:16,lat:52.3484,lon:5.6249,tags:{name:'Dolfinarium',tourism:'zoo',website:'https://www.dolfinarium.nl','addr:city':'Harderwijk','addr:street':'Zuiderzeeboulevard','addr:housenumber':'22',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:17,lat:52.0174,lon:5.8804,tags:{name:'Apenheul',tourism:'zoo',website:'https://www.apenheul.nl','addr:city':'Apeldoorn','addr:street':'J.C. Wilslaan','addr:housenumber':'21',opening_hours:'Mo-Su 09:30-17:00 (Apr-Oct)'}},
+  {type:'node',id:18,lat:52.7778,lon:6.9003,tags:{name:'Dierenpark Emmen',tourism:'zoo',website:'https://www.dierenparkemmen.nl','addr:city':'Emmen',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:134,lat:51.9270,lon:4.4490,tags:{name:'Diergaarde Blijdorp',tourism:'zoo',website:'https://www.diergaardeblijdorp.nl','addr:city':'Rotterdam','addr:street':'Blijdorplaan','addr:housenumber':'8',opening_hours:'Mo-Su 09:00-18:00'}},
+  {type:'node',id:135,lat:51.9600,lon:5.5700,tags:{name:'Ouwehands Dierenpark',tourism:'zoo',website:'https://www.ouwehand.nl','addr:city':'Rhenen','addr:street':'Grebbeweg','addr:housenumber':'111',opening_hours:'Mo-Su 09:00-18:00'}},
+  {type:'node',id:136,lat:52.1200,lon:4.6500,tags:{name:'Avifauna Bird Park',tourism:'zoo',website:'https://www.avifauna.nl','addr:city':'Alphen aan den Rijn','addr:street':'Hoorn','addr:housenumber':'65',opening_hours:'Mo-Su 09:00-18:00'}},
+  {type:'node',id:137,lat:51.6900,lon:5.9700,tags:{name:'Stadsboerderij Gennep',tourism:'children_farm','addr:city':'Gennep',opening_hours:'Mo-Su 09:00-17:00'}},
+  {type:'node',id:20,lat:52.1043,lon:4.2753,tags:{name:'Sea Life Scheveningen',tourism:'aquarium',website:'https://www.visitsealife.com/scheveningen','addr:city':'Den Haag','addr:street':'Strandweg','addr:housenumber':'13',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:21,lat:52.3698,lon:4.9033,tags:{name:'Sea Life Amsterdam',tourism:'aquarium',website:'https://www.visitsealife.com/amsterdam','addr:city':'Amsterdam',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:22,lat:51.9103,lon:4.4697,tags:{name:'Oceanium Rotterdam',tourism:'aquarium',website:'https://www.rotterdamzoo.nl','addr:city':'Rotterdam',opening_hours:'Mo-Su 09:00-18:00'}},
+  {type:'node',id:23,lat:52.3500,lon:5.6200,tags:{name:'Dolfinarium Harderwijk',tourism:'aquarium',website:'https://www.dolfinarium.nl','addr:city':'Harderwijk',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:24,lat:53.0900,lon:4.7500,tags:{name:'Ecomare',tourism:'aquarium',website:'https://www.ecomare.nl','addr:city':'De Koog, Texel',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:25,lat:52.0000,lon:5.9200,tags:{name:"Burgers' Ocean",tourism:'aquarium',website:'https://www.burgerszoo.nl','addr:city':'Arnhem',opening_hours:'Mo-Su 09:00-18:00'}},
+  {type:'node',id:26,lat:53.1700,lon:5.8500,tags:{name:'AquaZoo Friesland',tourism:'aquarium',website:'https://www.aquazoo.nl','addr:city':'Leeuwarden',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:27,lat:53.3900,lon:6.4600,tags:{name:'Zeehondencentrum Pieterburen',tourism:'aquarium',website:'https://www.zeehondencentrum.nl','addr:city':'Pieterburen',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:28,lat:51.8200,lon:3.8600,tags:{name:'A Seal Stellendam',tourism:'aquarium',website:'https://www.aseal.nl','addr:city':'Stellendam',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:30,lat:52.3744,lon:4.9122,tags:{name:'NEMO Science Museum',tourism:'museum',website:'https://www.nemosciencemuseum.nl','addr:city':'Amsterdam','addr:street':'Oosterdok','addr:housenumber':'2',opening_hours:'Tu-Su 10:00-17:30'}},
+  {type:'node',id:31,lat:52.3600,lon:4.8852,tags:{name:'Rijksmuseum',tourism:'museum',website:'https://www.rijksmuseum.nl','addr:city':'Amsterdam',opening_hours:'Mo-Su 09:00-17:00'}},
+  {type:'node',id:32,lat:52.3584,lon:4.8811,tags:{name:'Van Gogh Museum',tourism:'museum',website:'https://www.vangoghmuseum.nl','addr:city':'Amsterdam',opening_hours:'Mo-Su 09:00-17:00'}},
+  {type:'node',id:33,lat:52.3752,lon:4.8840,tags:{name:'Anne Frank House',tourism:'museum',website:'https://www.annefrank.org','addr:city':'Amsterdam',opening_hours:'Mo-Su 09:00-22:00'}},
+  {type:'node',id:34,lat:52.1584,lon:4.4819,tags:{name:'Naturalis Biodiversity Center',tourism:'museum',website:'https://www.naturalis.nl','addr:city':'Leiden',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:35,lat:52.0813,lon:4.3148,tags:{name:'Mauritshuis',tourism:'museum',website:'https://www.mauritshuis.nl','addr:city':'Den Haag',opening_hours:'Mo 13:00-18:00; Tu-Su 10:00-18:00'}},
+  {type:'node',id:36,lat:53.2107,lon:6.5617,tags:{name:'Groninger Museum',tourism:'museum',website:'https://www.groningermuseum.nl','addr:city':'Groningen',opening_hours:'Tu-Su 10:00-17:00'}},
+  {type:'node',id:37,lat:52.7018,lon:5.2887,tags:{name:'Zuiderzeemuseum',tourism:'museum',website:'https://www.zuiderzeemuseum.nl','addr:city':'Enkhuizen',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:38,lat:51.9892,lon:5.8904,tags:{name:'Nederlands Openluchtmuseum',tourism:'museum',website:'https://www.openluchtmuseum.nl','addr:city':'Arnhem',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:39,lat:52.3752,lon:4.9165,tags:{name:'Scheepvaartmuseum',tourism:'museum',website:'https://www.hetscheepvaartmuseum.nl','addr:city':'Amsterdam',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:40,lat:52.2571,lon:6.1607,tags:{name:'Speelgoedmuseum Deventer',tourism:'museum',website:'https://www.speelgoedmuseum.nl','addr:city':'Deventer',opening_hours:'Tu-Su 10:00-17:00'}},
+  {type:'node',id:41,lat:50.8484,lon:5.7049,tags:{name:'Bonnefantenmuseum',tourism:'museum',website:'https://www.bonnefanten.nl','addr:city':'Maastricht',opening_hours:'Tu-Su 11:00-17:00'}},
+  {type:'node',id:42,lat:52.3580,lon:4.9188,tags:{name:'Tropenmuseum',tourism:'museum',website:'https://www.tropenmuseum.nl','addr:city':'Amsterdam',opening_hours:'Tu-Su 10:00-17:00'}},
+  {type:'node',id:43,lat:52.0749,lon:4.3148,tags:{name:'Gemeentemuseum Den Haag',tourism:'museum',website:'https://www.gemeentemuseum.nl','addr:city':'Den Haag',opening_hours:'Tu-Su 10:00-17:00'}},
+  {type:'node',id:138,lat:52.1700,lon:4.4600,tags:{name:'Corpus Journey through the Human Body',tourism:'museum',website:'https://www.corpusexperience.nl','addr:city':'Oegstgeest',opening_hours:'Tu-Su 10:00-17:00'}},
+  {type:'node',id:139,lat:52.0850,lon:5.1150,tags:{name:'Spoorwegmuseum',tourism:'museum',website:'https://www.spoorwegmuseum.nl','addr:city':'Utrecht',opening_hours:'Tu-Su 10:00-17:00'}},
+  {type:'node',id:140,lat:52.3660,lon:4.9160,tags:{name:'Micropia',tourism:'museum',website:'https://www.micropia.nl','addr:city':'Amsterdam',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:141,lat:52.3800,lon:4.6300,tags:{name:'Het Dolhuys',tourism:'museum','addr:city':'Haarlem',opening_hours:'Tu-Su 11:00-17:00'}},
+  {type:'node',id:142,lat:52.2200,lon:4.4200,tags:{name:'Space Expo',tourism:'museum',website:'https://www.space-expo.nl','addr:city':'Noordwijk',opening_hours:'Tu-Su 10:00-17:00'}},
+  {type:'node',id:143,lat:52.3700,lon:4.9000,tags:{name:'Ontdekhoek',tourism:'museum','addr:city':'Amsterdam'}},
+  {type:'node',id:144,lat:51.6200,lon:3.9300,tags:{name:'Watersnoodmuseum',tourism:'museum',website:'https://www.watersnoodmuseum.nl','addr:city':'Ouwerkerk',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:145,lat:51.9100,lon:4.4900,tags:{name:'Mariniersmuseum',tourism:'museum',website:'https://www.mariniersmuseum.nl','addr:city':'Rotterdam',opening_hours:'Tu-Su 10:00-17:00'}},
+  {type:'node',id:50,lat:52.0978,lon:4.3003,tags:{name:'Madurodam',tourism:'attraction',website:'https://www.madurodam.nl','addr:city':'Den Haag',opening_hours:'Mo-Su 11:00-17:00'}},
+  {type:'node',id:51,lat:52.2705,lon:4.5466,tags:{name:'Keukenhof',tourism:'attraction',website:'https://www.keukenhof.nl','addr:city':'Lisse',opening_hours:'Mar-May: Mo-Su 08:00-19:30'}},
+  {type:'node',id:52,lat:52.4745,lon:4.8122,tags:{name:'Zaanse Schans',tourism:'attraction',website:'https://www.zaanseschans.nl','addr:city':'Zaandam',opening_hours:'Mo-Su 09:00-17:00'}},
+  {type:'node',id:53,lat:52.7335,lon:6.0819,tags:{name:'Giethoorn',tourism:'attraction','addr:city':'Giethoorn'}},
+  {type:'node',id:54,lat:52.3664,lon:4.9085,tags:{name:'Hortus Botanicus Amsterdam',tourism:'attraction',website:'https://www.dehortus.nl','addr:city':'Amsterdam',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:55,lat:52.1612,lon:4.4678,tags:{name:'Hortus Botanicus Leiden',tourism:'attraction',website:'https://www.hortusleiden.nl','addr:city':'Leiden',opening_hours:'Tu-Su 10:00-17:00'}},
+  {type:'node',id:60,lat:52.0848,lon:5.8319,tags:{name:'Nationaal Park De Hoge Veluwe',leisure:'nature_reserve',website:'https://www.hogeveluwe.nl','addr:city':'Otterlo',opening_hours:'Mo-Su 08:00-20:00 (seasonal)'}},
+  {type:'node',id:61,lat:51.4557,lon:5.8647,tags:{name:'Nationaal Park De Groote Peel',leisure:'nature_reserve','addr:city':'Ospel'}},
+  {type:'node',id:62,lat:52.4966,lon:4.7043,tags:{name:'Amsterdamse Waterleidingduinen',leisure:'nature_reserve','addr:city':'Vogelenzang'}},
+  {type:'node',id:146,lat:52.7900,lon:6.4200,tags:{name:'Nationaal Park Dwingelderveld',leisure:'nature_reserve','addr:city':'Dwingeloo'}},
+  {type:'node',id:147,lat:52.0800,lon:5.3000,tags:{name:'Nationaal Park Utrechtse Heuvelrug',leisure:'nature_reserve','addr:city':'Utrechtse Heuvelrug'}},
+  {type:'node',id:148,lat:53.4900,lon:6.2000,tags:{name:'Nationaal Park Schiermonnikoog',leisure:'nature_reserve','addr:city':'Schiermonnikoog'}},
+  {type:'node',id:149,lat:53.3600,lon:6.2100,tags:{name:'Nationaal Park Lauwersmeer',leisure:'nature_reserve','addr:city':'Lauwersoog'}},
+  {type:'node',id:150,lat:51.7400,lon:4.8200,tags:{name:'Nationaal Park De Biesbosch',leisure:'nature_reserve',website:'https://www.np-debiesbosch.nl','addr:city':'Werkendam'}},
+  {type:'node',id:151,lat:51.9400,lon:4.5200,tags:{name:'Kralingse Bos',leisure:'nature_reserve','addr:city':'Rotterdam'}},
+  {type:'node',id:70,lat:52.1055,lon:4.2731,tags:{name:'Scheveningen Strand',natural:'beach','addr:city':'Den Haag'}},
+  {type:'node',id:71,lat:52.3699,lon:4.5331,tags:{name:'Zandvoort aan Zee',natural:'beach','addr:city':'Zandvoort'}},
+  {type:'node',id:72,lat:52.4029,lon:4.5490,tags:{name:'Bloemendaal aan Zee',natural:'beach','addr:city':'Bloemendaal'}},
+  {type:'node',id:73,lat:51.3756,lon:3.4034,tags:{name:'Cadzand-Bad Strand',natural:'beach','addr:city':'Cadzand-Bad'}},
+  {type:'node',id:74,lat:51.5639,lon:3.4972,tags:{name:'Domburg Strand',natural:'beach','addr:city':'Domburg'}},
+  {type:'node',id:75,lat:52.6657,lon:4.6543,tags:{name:'Bergen aan Zee',natural:'beach','addr:city':'Bergen aan Zee'}},
+  {type:'node',id:76,lat:52.6215,lon:4.6229,tags:{name:'Egmond aan Zee',natural:'beach','addr:city':'Egmond aan Zee'}},
+  {type:'node',id:77,lat:52.2049,lon:4.4082,tags:{name:'Katwijk aan Zee',natural:'beach','addr:city':'Katwijk'}},
+  {type:'node',id:152,lat:53.0600,lon:4.7800,tags:{name:'Texel Strand',natural:'beach','addr:city':'Texel'}},
+  {type:'node',id:153,lat:53.4500,lon:5.7600,tags:{name:'Ameland Strand',natural:'beach','addr:city':'Ameland'}},
+  {type:'node',id:154,lat:51.7300,lon:3.7700,tags:{name:'Renesse Strand',natural:'beach','addr:city':'Renesse'}},
+  {type:'node',id:155,lat:52.2400,lon:4.4300,tags:{name:'Noordwijk aan Zee',natural:'beach','addr:city':'Noordwijk'}},
+  {type:'node',id:156,lat:52.0700,lon:4.2200,tags:{name:'Kijkduin',natural:'beach','addr:city':'Den Haag'}},
+  {type:'node',id:157,lat:51.9800,lon:4.1200,tags:{name:'Hoek van Holland',natural:'beach','addr:city':'Hoek van Holland'}},
+  {type:'node',id:80,lat:52.3337,lon:5.0739,tags:{name:'Muiderslot',historic:'castle',website:'https://www.muiderslot.nl','addr:city':'Muiden',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:81,lat:52.1022,lon:5.0069,tags:{name:'Kasteel De Haar',historic:'castle',website:'https://www.kasteeldehaar.nl','addr:city':'Haarzuilens',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:82,lat:50.9214,lon:5.9283,tags:{name:'Kasteel Hoensbroek',historic:'castle',website:'https://www.kasteelhoensbroek.nl','addr:city':'Hoensbroek',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:83,lat:51.7894,lon:5.0168,tags:{name:'Slot Loevestein',historic:'castle',website:'https://www.loevestein.nl','addr:city':'Poederoijen',opening_hours:'Tu-Su 11:00-17:00 (seasonal)'}},
+  {type:'node',id:84,lat:52.8380,lon:6.8656,tags:{name:'Hunebedcentrum',historic:'monument',website:'https://www.hunebedcentrum.eu','addr:city':'Borger',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:158,lat:52.1300,lon:4.6200,tags:{name:'Archeon',historic:'archaeological_site',website:'https://www.archeon.nl','addr:city':'Alphen aan den Rijn',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  {type:'node',id:159,lat:51.9700,lon:5.7900,tags:{name:'Kasteel Doorwerth',historic:'castle',website:'https://www.glk.nl','addr:city':'Doorwerth'}},
+  {type:'node',id:160,lat:53.0100,lon:7.1900,tags:{name:'Fort Bourtange',historic:'fort',website:'https://www.vestingbourtange.nl','addr:city':'Bourtange'}},
+  {type:'node',id:161,lat:51.7600,lon:5.2200,tags:{name:'Kasteel Ammersoyen',historic:'castle',website:'https://www.glk.nl','addr:city':'Ammerzoden'}},
+  {type:'node',id:90,lat:51.8834,lon:4.6333,tags:{name:'Kinderdijk Molens',man_made:'windmill',website:'https://www.kinderdijk.nl','addr:city':'Kinderdijk',opening_hours:'Mo-Su 09:00-17:30'}},
+  {type:'node',id:91,lat:52.1612,lon:4.4891,tags:{name:'Molen de Valk',man_made:'windmill',website:'https://www.molendevalk.nl','addr:city':'Leiden',opening_hours:'Tu-Sa 10:00-17:00; Su 13:00-17:00'}},
+  {type:'node',id:100,lat:50.8936,lon:6.0314,tags:{name:'SnowWorld Landgraaf',leisure:'ice_rink',website:'https://www.snowworld.com','addr:city':'Landgraaf',opening_hours:'Mo-Su 09:00-23:00'}},
+  {type:'node',id:101,lat:52.3906,lon:4.8374,tags:{name:'Jaap Eden IJsbaan',leisure:'ice_rink',website:'https://www.jaapeden.nl','addr:city':'Amsterdam',opening_hours:'Mo-Su 09:00-22:00 (seasonal)'}},
+  {type:'node',id:162,lat:52.0600,lon:4.3700,tags:{name:'De Uithof',leisure:'sports_centre',website:'https://www.deuithof.nl','addr:city':'Den Haag'}},
+  {type:'node',id:163,lat:51.4300,lon:5.4700,tags:{name:'Zwembad De Tongelreep',leisure:'swimming_pool','addr:city':'Eindhoven'}},
+  {type:'node',id:164,lat:52.0100,lon:4.7100,tags:{name:'GZC Donk',leisure:'swimming_pool','addr:city':'Gouda'}},
+  {type:'node',id:165,lat:53.2100,lon:6.5800,tags:{name:'Bjoeks Klimmuur',leisure:'sports_centre','addr:city':'Groningen'}},
+  {type:'node',id:166,lat:52.0500,lon:4.4800,tags:{name:'SnowWorld Zoetermeer',leisure:'ice_rink',website:'https://www.snowworld.com','addr:city':'Zoetermeer',opening_hours:'Mo-Su 09:00-23:00'}},
+  {type:'node',id:110,lat:52.2705,lon:4.5479,tags:{name:'Keukenhof Visitor Centre',tourism:'visitor_centre','addr:city':'Lisse'}},
+  {type:'node',id:111,lat:53.1923,lon:5.4020,tags:{name:'Friesland Bezoekerscentrum',tourism:'visitor_centre','addr:city':'Leeuwarden'}},
+  {type:'node',id:120,lat:52.3657,lon:4.8824,tags:{name:'Stadsschouwburg Amsterdam',amenity:'theatre',website:'https://www.internationaaltheater.nl','addr:city':'Amsterdam'}},
+  {type:'node',id:121,lat:51.9244,lon:4.4777,tags:{name:'Theater Rotterdam',amenity:'theatre',website:'https://www.theaterrotterdam.nl','addr:city':'Rotterdam'}},
+  {type:'node',id:122,lat:52.0813,lon:4.3148,tags:{name:'Theater aan het Spui',amenity:'theatre','addr:city':'Den Haag'}},
+  {type:'node',id:167,lat:51.6508,lon:5.0474,tags:{name:'Efteling Theater',amenity:'theatre',website:'https://www.efteling.com','addr:city':'Kaatsheuvel'}},
+  {type:'node',id:168,lat:52.0900,lon:5.1100,tags:{name:'TivoliVredenburg',amenity:'theatre',website:'https://www.tivolivredenburg.nl','addr:city':'Utrecht'}},
+  {type:'node',id:169,lat:52.3100,lon:4.9400,tags:{name:'Path\u00e9 Arena',amenity:'cinema',website:'https://www.pathe.nl','addr:city':'Amsterdam'}},
+  {type:'node',id:170,lat:52.0900,lon:4.2900,tags:{name:'Omniversum IMAX',amenity:'cinema',website:'https://www.omniversum.nl','addr:city':'Den Haag'}},
+  {type:'node',id:171,lat:52.3840,lon:4.9010,tags:{name:'Filmmuseum Eye',amenity:'cinema',website:'https://www.eyefilm.nl','addr:city':'Amsterdam',opening_hours:'Mo-Su 10:00-21:00'}},
+  {type:'node',id:300,lat:52.3700,lon:4.8100,tags:{name:'Monkey Town Amsterdam West',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Amsterdam'}},
+  {type:'node',id:301,lat:52.4000,lon:4.9400,tags:{name:'Monkey Town Amsterdam Noord',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Amsterdam'}},
+  {type:'node',id:302,lat:51.9244,lon:4.4777,tags:{name:'Monkey Town Rotterdam',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Rotterdam'}},
+  {type:'node',id:303,lat:52.0700,lon:4.3000,tags:{name:'Monkey Town Den Haag',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Den Haag'}},
+  {type:'node',id:304,lat:52.0900,lon:5.1100,tags:{name:'Monkey Town Amersfoort',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Amersfoort'}},
+  {type:'node',id:305,lat:52.2100,lon:5.9700,tags:{name:'Monkey Town Apeldoorn',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Apeldoorn'}},
+  {type:'node',id:306,lat:51.9850,lon:5.9000,tags:{name:'Monkey Town Arnhem',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Arnhem'}},
+  {type:'node',id:307,lat:51.5900,lon:4.7800,tags:{name:'Monkey Town Breda',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Breda'}},
+  {type:'node',id:308,lat:51.4400,lon:5.4800,tags:{name:'Monkey Town Eindhoven',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Eindhoven'}},
+  {type:'node',id:309,lat:52.2200,lon:6.8900,tags:{name:'Monkey Town Enschede',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Enschede'}},
+  {type:'node',id:310,lat:52.0100,lon:4.7100,tags:{name:'Monkey Town Gouda',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Gouda'}},
+  {type:'node',id:311,lat:53.2000,lon:5.8000,tags:{name:'Monkey Town Leeuwarden',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Leeuwarden'}},
+  {type:'node',id:312,lat:51.4500,lon:5.4600,tags:{name:'Monkey Town Valkenswaard',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Valkenswaard'}},
+  {type:'node',id:313,lat:51.6900,lon:5.3000,tags:{name:'Monkey Town Tilburg',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Tilburg'}},
+  {type:'node',id:314,lat:52.5100,lon:6.0900,tags:{name:'Monkey Town Zwolle',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Zwolle'}},
+  {type:'node',id:315,lat:52.0100,lon:4.3600,tags:{name:'Monkey Town Rijswijk',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Rijswijk'}},
+  {type:'node',id:316,lat:52.0800,lon:4.3300,tags:{name:'Monkey Town Delft',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Delft'}},
+  {type:'node',id:317,lat:52.3400,lon:5.6200,tags:{name:'Monkey Town Harderwijk',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Harderwijk'}},
+  {type:'node',id:318,lat:51.8500,lon:5.8600,tags:{name:'Monkey Town Wijchen',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Wijchen'}},
+  {type:'node',id:319,lat:51.4400,lon:4.2800,tags:{name:'Monkey Town Bergen op Zoom',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Bergen op Zoom'}},
+  {type:'node',id:320,lat:52.4800,lon:4.6500,tags:{name:'Monkey Town Uitgeest',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Uitgeest'}},
+  {type:'node',id:321,lat:52.3300,lon:4.8600,tags:{name:'Monkey Town Diemen',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Diemen'}},
+  {type:'node',id:322,lat:51.8100,lon:5.9600,tags:{name:'Monkey Town Doetinchem',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Doetinchem'}},
+  {type:'node',id:323,lat:52.1400,lon:5.3900,tags:{name:'Monkey Town Ede',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Ede'}},
+  {type:'node',id:324,lat:51.6500,lon:3.4400,tags:{name:'Monkey Town Middelburg',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Middelburg'}},
+  {type:'node',id:325,lat:53.2200,lon:6.5700,tags:{name:'Monkey Town Groningen',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Groningen'}},
+  {type:'node',id:326,lat:51.3500,lon:6.1700,tags:{name:'Monkey Town Venlo',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Venlo'}},
+  {type:'node',id:327,lat:50.8900,lon:5.9800,tags:{name:'Monkey Town Heerlen',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Heerlen'}},
+  {type:'node',id:328,lat:51.0000,lon:5.8600,tags:{name:'Monkey Town Sittard',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Sittard'}},
+  {type:'node',id:329,lat:51.8200,lon:4.8700,tags:{name:'Monkey Town Sliedrecht',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Sliedrecht'}},
+  {type:'node',id:330,lat:51.8600,lon:4.3300,tags:{name:'Monkey Town Spijkenisse',leisure:'indoor_playground',website:'https://monkeytown.eu','addr:city':'Spijkenisse'}},
+  {type:'node',id:400,lat:52.3100,lon:4.9700,tags:{name:'Ballorig Amsterdam Arena',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Amsterdam'}},
+  {type:'node',id:401,lat:52.3200,lon:4.9800,tags:{name:'Ballorig Amsterdam Gaasperplas',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Amsterdam'}},
+  {type:'node',id:402,lat:52.0850,lon:5.1200,tags:{name:'Ballorig Utrecht',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Utrecht'}},
+  {type:'node',id:403,lat:51.6900,lon:5.3000,tags:{name:"Ballorig 's-Hertogenbosch",leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':"'s-Hertogenbosch"}},
+  {type:'node',id:404,lat:51.9850,lon:5.9000,tags:{name:'Ballorig Arnhem',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Arnhem'}},
+  {type:'node',id:405,lat:52.2200,lon:6.8900,tags:{name:'Ballorig Enschede',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Enschede'}},
+  {type:'node',id:406,lat:52.5100,lon:6.0900,tags:{name:'Ballorig Zwolle',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Zwolle'}},
+  {type:'node',id:407,lat:52.3900,lon:4.4700,tags:{name:'Ballorig Beverwijk',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Beverwijk'}},
+  {type:'node',id:408,lat:52.6700,lon:5.0600,tags:{name:'Ballorig Hoorn',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Hoorn'}},
+  {type:'node',id:409,lat:52.6700,lon:4.8300,tags:{name:'Ballorig Heerhugowaard',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Heerhugowaard'}},
+  {type:'node',id:410,lat:52.3600,lon:5.2200,tags:{name:'Ballorig Almere',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Almere'}},
+  {type:'node',id:411,lat:52.5200,lon:5.4700,tags:{name:'Ballorig Lelystad',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Lelystad'}},
+  {type:'node',id:412,lat:53.1300,lon:6.0500,tags:{name:'Ballorig Drachten',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Drachten'}},
+  {type:'node',id:413,lat:52.9600,lon:5.9200,tags:{name:'Ballorig Heerenveen',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Heerenveen'}},
+  {type:'node',id:414,lat:53.0300,lon:5.6600,tags:{name:'Ballorig Sneek',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Sneek'}},
+  {type:'node',id:415,lat:53.0000,lon:6.5600,tags:{name:'Ballorig Groningen',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Groningen'}},
+  {type:'node',id:416,lat:53.1600,lon:6.7500,tags:{name:'Ballorig Hoogezand',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Hoogezand'}},
+  {type:'node',id:417,lat:52.9200,lon:6.6400,tags:{name:'Ballorig Assen',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Assen'}},
+  {type:'node',id:418,lat:52.7800,lon:6.9000,tags:{name:'Ballorig Emmen',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Emmen'}},
+  {type:'node',id:419,lat:50.8500,lon:5.6900,tags:{name:'Ballorig Maastricht',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Maastricht'}},
+  {type:'node',id:420,lat:50.8700,lon:6.0600,tags:{name:'Ballorig Kerkrade',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Kerkrade'}},
+  {type:'node',id:421,lat:51.2000,lon:5.9800,tags:{name:'Ballorig Roermond',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Roermond'}},
+  {type:'node',id:422,lat:51.0000,lon:5.8700,tags:{name:'Ballorig Sittard',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Sittard'}},
+  {type:'node',id:423,lat:51.3700,lon:6.1700,tags:{name:'Ballorig Venlo',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Venlo'}},
+  {type:'node',id:424,lat:51.4200,lon:5.4100,tags:{name:'Ballorig Veldhoven',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Veldhoven'}},
+  {type:'node',id:425,lat:51.6900,lon:5.3200,tags:{name:'Ballorig Tilburg',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Tilburg'}},
+  {type:'node',id:426,lat:51.9100,lon:4.3400,tags:{name:'Ballorig Vlaardingen',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Vlaardingen'}},
+  {type:'node',id:427,lat:52.1300,lon:4.6600,tags:{name:'Ballorig Alphen aan den Rijn',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Alphen aan den Rijn'}},
+  {type:'node',id:428,lat:52.0100,lon:4.7100,tags:{name:'Ballorig Gouda',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Gouda'}},
+  {type:'node',id:429,lat:52.0400,lon:6.1500,tags:{name:'Ballorig Zutphen',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Zutphen'}},
+  {type:'node',id:430,lat:52.0400,lon:5.5900,tags:{name:'Ballorig Veenendaal',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Veenendaal'}},
+  {type:'node',id:431,lat:52.0300,lon:5.1700,tags:{name:'Ballorig Houten',leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':'Houten'}},
+  {type:'node',id:450,lat:52.0680,lon:4.2700,tags:{name:"Jimmy's Speelparadijs",leisure:'indoor_playground',website:'https://www.jimmysspeelparadijs.nl','addr:city':'Amsterdam'}},
+  {type:'node',id:451,lat:52.2200,lon:5.1700,tags:{name:'KidsZoo Indoor Playground',leisure:'indoor_playground','addr:city':'Hilversum'}},
+  {type:'node',id:452,lat:51.8100,lon:4.6700,tags:{name:'Fun Valley',leisure:'indoor_playground','addr:city':'Dordrecht'}},
+  {type:'node',id:453,lat:52.5100,lon:6.0900,tags:{name:'Speelparadijs de Uitvinderij',leisure:'indoor_playground','addr:city':'Zwolle'}},
+  {type:'node',id:200,lat:52.3539,lon:4.5894,tags:{name:'Linnaeushof',leisure:'playground',website:'https://www.linnaeushof.nl','addr:city':'Bennebroek',opening_hours:'Mo-Su 10:00-18:00 (Apr-Oct)'}},
+  {type:'node',id:211,lat:52.0500,lon:4.3200,tags:{name:'Speeltuin Zuiderpark',leisure:'playground','addr:city':'Den Haag'}},
+  {type:'node',id:209,lat:51.5900,lon:4.7800,tags:{name:'Speel & Klim Bos',leisure:'playground','addr:city':'Breda'}},
+  {type:'node',id:500,lat:52.3200,lon:4.8300,tags:{name:'Ridammerhoeve Geitenboerderij',tourism:'children_farm',website:'https://www.geitenboerderij.nl','addr:city':'Amstelveen',opening_hours:'Mo-Su 10:00-17:00'}},
+  {type:'node',id:501,lat:52.3550,lon:4.8950,tags:{name:'Kinderboerderij De Pijp',tourism:'children_farm','addr:city':'Amsterdam',opening_hours:'Tu-Su 11:00-17:00'}},
+  {type:'node',id:502,lat:52.3700,lon:4.8700,tags:{name:'Zimmerhoeve Kinderboerderij',tourism:'children_farm','addr:city':'Amsterdam'}},
+  {type:'node',id:503,lat:52.3900,lon:4.9100,tags:{name:'Kinderboerderij De Dierencapel',tourism:'children_farm','addr:city':'Amsterdam'}},
+  {type:'node',id:504,lat:51.9200,lon:4.4700,tags:{name:'Kinderboerderij De Kraal',tourism:'children_farm','addr:city':'Rotterdam'}},
+  {type:'node',id:505,lat:51.8900,lon:4.4900,tags:{name:'Kinderboerderij De Molenwei',tourism:'children_farm','addr:city':'Rotterdam'}},
+  {type:'node',id:506,lat:52.0700,lon:4.2800,tags:{name:'Stadsboerderij Pluk',tourism:'children_farm','addr:city':'Den Haag'}},
+  {type:'node',id:507,lat:52.0800,lon:5.1200,tags:{name:'Kinderboerderij De Eilandsteede',tourism:'children_farm','addr:city':'Utrecht'}},
+  {type:'node',id:508,lat:51.9800,lon:5.9200,tags:{name:'Stadsboerderij Presikhaaf',tourism:'children_farm','addr:city':'Arnhem',opening_hours:'Mo-Su 09:00-17:00'}},
+  {type:'node',id:509,lat:51.8400,lon:5.8600,tags:{name:'Kinderboerderij De Goffert',tourism:'children_farm','addr:city':'Nijmegen'}},
+  {type:'node',id:510,lat:50.8400,lon:5.7100,tags:{name:'Kinderboerderij De Heeg',tourism:'children_farm','addr:city':'Maastricht'}},
+  {type:'node',id:511,lat:51.5000,lon:3.6100,tags:{name:'Kinderboerderij Klepperhoeve',tourism:'children_farm','addr:city':'Middelburg'}},
+  {type:'node',id:512,lat:52.1700,lon:5.3900,tags:{name:'Kinderboerderij De Veenweide',tourism:'children_farm','addr:city':'Soest'}},
+  {type:'node',id:513,lat:52.1600,lon:4.5200,tags:{name:'Alpacahoeven Klinkenberg',tourism:'children_farm',website:'https://www.alpacahoeven.nl','addr:city':'Sassenheim'}},
+  {type:'node',id:514,lat:53.0800,lon:4.7900,tags:{name:'Texel Schapenboerderij',tourism:'children_farm','addr:city':'Texel'}},
+  {type:'node',id:515,lat:51.7000,lon:5.3200,tags:{name:"Boerderij 't Geertje",tourism:'children_farm',website:'https://www.boerderijgeertje.nl','addr:city':'Zoeterwoude'}},
+  {type:'node',id:516,lat:52.3600,lon:4.9200,tags:{name:'Kinderboerderij Westerpark',tourism:'children_farm','addr:city':'Amsterdam'}},
+  {type:'node',id:517,lat:53.2200,lon:6.5800,tags:{name:'Stadsboerderij De Wierde',tourism:'children_farm','addr:city':'Groningen'}},
+  {type:'node',id:518,lat:51.4500,lon:5.4700,tags:{name:'Kinderboerderij Genneper Parken',tourism:'children_farm','addr:city':'Eindhoven'}},
+  {type:'node',id:519,lat:52.5100,lon:6.1000,tags:{name:'Kinderboerderij Zwolle',tourism:'children_farm','addr:city':'Zwolle'}},
+  {type:'node',id:520,lat:52.3800,lon:4.6400,tags:{name:'Kinderboerderij Haarlem',tourism:'children_farm','addr:city':'Haarlem'}},
+  {type:'node',id:212,lat:52.3300,lon:4.8700,tags:{name:'Midgetgolfbaan Amstelpark',leisure:'miniature_golf','addr:city':'Amsterdam'}},
+  {type:'node',id:213,lat:52.3600,lon:4.8800,tags:{name:'GlowGolf Amsterdam',leisure:'miniature_golf','addr:city':'Amsterdam'}}
+];
+
+function getCategoryForVenue(tags) {
+    var t = tags || {};
+    if (t.tourism === 'theme_park') return CATEGORIES[1];
+    if (t.tourism === 'zoo') return CATEGORIES[2];
+    if (t.tourism === 'aquarium') return CATEGORIES[3];
+    if (t.tourism === 'museum') return CATEGORIES[4];
+    if (t.tourism === 'attraction') return CATEGORIES[5];
+    if (t.tourism === 'visitor_centre') return CATEGORIES[5];
+    if (t.leisure === 'nature_reserve') return CATEGORIES[6];
+    if (t.natural === 'beach') return CATEGORIES[7];
+    if (t.historic) return CATEGORIES[8];
+    if (t.leisure === 'indoor_playground') return CATEGORIES[9];
+    if (t.leisure === 'playground') return CATEGORIES[10];
+    if (t.tourism === 'children_farm') return CATEGORIES[11];
+    if (t.leisure === 'ice_rink' || t.leisure === 'sports_centre' || t.leisure === 'swimming_pool') return CATEGORIES[12];
+    if (t.amenity === 'theatre' || t.amenity === 'cinema') return CATEGORIES[13];
+    if (t.man_made === 'windmill') return CATEGORIES[14];
+    if (t.leisure === 'miniature_golf') return CATEGORIES[15];
+    return CATEGORIES[5]; // default: attraction
+}
+
+var nearRotterdamActive = false;
+
+function buildFilterBar() {
+    var container = document.getElementById('mapFilters');
+    var html = '';
+    for (var i = 0; i < CATEGORIES.length; i++) {
+        var c = CATEGORIES[i];
+        var label = currentLang === 'zh' ? c.zh : (currentLang === 'nl' ? c.nl : c.en);
+        html += '<div class="filter-chip' + (i === 0 ? ' active' : '') + '" data-cat="' + c.id + '" style="--chip-bg:' + c.color + ';--chip-border:' + c.color + '33" onclick="toggleFilter(this)">' + c.emoji + ' ' + label + '</div>';
+    }
+    var nearLabel = currentLang === 'zh' ? '\u{1F4CD} \u9644\u8FD1Rotterdam' : (currentLang === 'nl' ? '\u{1F4CD} Bij Rotterdam' : '\u{1F4CD} Near Rotterdam');
+    html += '<div class="filter-chip filter-chip-location' + (nearRotterdamActive ? ' active' : '') + '" onclick="toggleNearRotterdam(this)">' + nearLabel + '</div>';
+    container.innerHTML = html;
+}
+
+function toggleNearRotterdam(el) {
+    nearRotterdamActive = !nearRotterdamActive;
+    el.classList.toggle('active', nearRotterdamActive);
+    if (nearRotterdamActive && map) {
+        map.setView([51.92, 4.48], 10);
+    } else if (map) {
+        map.setView([52.2, 5.3], 7);
+    }
+    renderMarkers();
+}
+
+function toggleFilter(el) {
+    var cat = el.getAttribute('data-cat');
+    if (cat === 'all') {
+        document.querySelectorAll('.filter-chip').forEach(function(c){c.classList.remove('active')});
+        el.classList.add('active');
+        activeFilters = [];
+    } else {
+        document.querySelector('.filter-chip[data-cat="all"]').classList.remove('active');
+        el.classList.toggle('active');
+        activeFilters = [];
+        document.querySelectorAll('.filter-chip.active').forEach(function(c){
+            var id = c.getAttribute('data-cat');
+            if (id !== 'all') activeFilters.push(id);
+        });
+        if (activeFilters.length === 0) {
+            document.querySelector('.filter-chip[data-cat="all"]').classList.add('active');
+        }
+    }
+    renderMarkers();
+}
+
+var visibleCount = 0;
+
+function getAgeRange(tags) {
+    var cat = getCategoryForVenue(tags);
+    var ageMap = {
+        'theme_park':'0-3 / 3-6 / 6-12','zoo':'0-3 / 3-6 / 6-12','aquarium':'0-3 / 3-6 / 6-12',
+        'museum':'3-6 / 6-12','indoor_playground':'0-3 / 3-6','playground':'0-3 / 3-6 / 6-12',
+        'children_farm':'0-3 / 3-6','beach':'0-3 / 3-6 / 6-12','nature':'3-6 / 6-12',
+        'historic':'6-12','sports':'6-12','miniature_golf':'3-6 / 6-12'
+    };
+    return ageMap[cat.id] || '';
+}
+
+function distRotterdam(lat,lon) {
+    var dLat = (lat - 51.9244) * 111;
+    var dLon = (lon - 4.4777) * 111 * Math.cos(51.9244 * Math.PI / 180);
+    return Math.sqrt(dLat*dLat + dLon*dLon);
+}
+
+function renderMarkers() {
+    if (!markers) return;
+    markers.clearLayers();
+    visibleCount = 0;
+    var searchVal = (document.getElementById('mapCitySearch').value || '').toLowerCase();
+
+    for (var i = 0; i < VENUES.length; i++) {
+        var v = VENUES[i];
+        var tags = v.tags || {};
+        var cat = getCategoryForVenue(tags);
+        var city = (tags['addr:city'] || '').toLowerCase();
+        var name = (tags.name || '').toLowerCase();
+
+        // Filter by category
+        if (activeFilters.length > 0 && activeFilters.indexOf(cat.id) === -1) continue;
+        // Filter by search
+        if (searchVal && city.indexOf(searchVal) === -1 && name.indexOf(searchVal) === -1) continue;
+        // Filter by near Rotterdam (within ~30km)
+        if (nearRotterdamActive && distRotterdam(v.lat, v.lon) > 30) continue;
+
+        var icon = L.divIcon({
+            html:'<div class="custom-marker" style="background:' + cat.color + '">' + cat.emoji + '</div>',
+            className:'',iconSize:[32,32],iconAnchor:[16,16],popupAnchor:[0,-16]
+        });
+
+        var addr = '';
+        if (tags['addr:street']) { addr = tags['addr:street']; if (tags['addr:housenumber']) addr += ' ' + tags['addr:housenumber']; }
+        if (tags['addr:city']) addr += (addr ? ', ' : '') + tags['addr:city'];
+
+        var ageRange = getAgeRange(tags);
+        var ageHtml = '';
+        if (ageRange) {
+            var ages = ageRange.split(' / ');
+            ageHtml = '<div class="vp-age">';
+            for (var a = 0; a < ages.length; a++) { ageHtml += '<span class="vp-age-tag">' + ages[a] + '</span>'; }
+            ageHtml += '</div>';
+        }
+
+        var catLabel = currentLang === 'zh' ? cat.zh : (currentLang === 'nl' ? cat.nl : cat.en);
+        var popup = '<div class="venue-popup">' +
+            '<h3>' + (tags.name || 'Venue') + '</h3>' +
+            '<span class="vp-cat" style="background:' + cat.color + '22;color:' + cat.color + '">' + cat.emoji + ' ' + catLabel + '</span>' +
+            ageHtml +
+            (addr ? '<div class="vp-addr">\u{1F4CD} ' + addr + '</div>' : '') +
+            (tags.opening_hours ? '<div class="vp-hours">\u{1F552} ' + tags.opening_hours + '</div>' : '') +
+            '<div class="vp-links">' +
+            '<a class="vp-link vp-link-map" href="https://www.google.com/maps/search/?api=1&query=' + v.lat + ',' + v.lon + '" target="_blank" rel="noopener">\u{1F5FA} Google Maps</a>' +
+            (tags.website ? '<a class="vp-link vp-link-web" href="' + tags.website + '" target="_blank" rel="sponsored noopener">\u{1F310} Website</a>' : '') +
+            '</div></div>';
+
+        var marker = L.marker([v.lat, v.lon], {icon:icon}).bindPopup(popup);
+        markers.addLayer(marker);
+        visibleCount++;
+    }
+    updateVenueCount();
+}
+
+function updateVenueCount() {
+    var el = document.getElementById('venueCount');
+    if (el) {
+        var dict = I18N[currentLang] || I18N.zh;
+        el.textContent = visibleCount + ' ' + (dict.venue_count || 'venues');
+    }
+}
+
+function handleMapSearch(val) {
+    renderMarkers();
+}
+
+function initMap() {
+    if (mapInitialized) return;
+    mapInitialized = true;
+
+    map = L.map('mapContainer', {zoomControl:true}).setView([52.2, 5.3], 7);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+        maxZoom:18
+    }).addTo(map);
+
+    markers = L.markerClusterGroup({
+        maxClusterRadius:50,
+        spiderfyOnMaxZoom:true,
+        showCoverageOnHover:false,
+        iconCreateFunction:function(cluster){
+            var count = cluster.getChildCount();
+            var size = count < 10 ? 'small' : count < 30 ? 'medium' : 'large';
+            return L.divIcon({
+                html:'<div><span>'+count+'</span></div>',
+                className:'marker-cluster marker-cluster-'+size,
+                iconSize:L.point(40,40)
+            });
+        }
+    });
+    map.addLayer(markers);
+    buildFilterBar();
+    renderMarkers();
+}
+
+// ══════════════════════════════════════════════════════
+// GLOBAL SEARCH
+// ══════════════════════════════════════════════════════
+function handleGlobalSearch(e) {
+    if (e.key === 'Enter') {
+        var q = document.getElementById('globalSearch').value.trim().toLowerCase();
+        if (!q) return;
+        // Search venues
+        var mapKeywords = ['map','venue','zoo','museum','park','beach','playground','efteling','artis',
+            '\u52a8\u7269','\u535a\u7269','\u6d77\u6ee9','\u6e38\u4e50','\u5730\u56fe','\u4eb2\u5b50','\u573a\u5730'];
+        var isMap = false;
+        for (var i=0;i<mapKeywords.length;i++){if(q.indexOf(mapKeywords[i])>=0){isMap=true;break;}}
+        if(isMap){
+            switchPage('map');
+            setTimeout(function(){document.getElementById('mapCitySearch').value=q;renderMarkers();},200);
+        } else {
+            switchPage('guides');
+        }
+    }
+}
+
+// ══════════════════════════════════════════════════════
+// ESC key
+// ══════════════════════════════════════════════════════
+document.addEventListener('keydown', function(e){
+    if(e.key==='Escape'){closeServicePanel();}
+});
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+buildGuides();
+setLang(currentLang);
+
+// ══════════════════════════════════════════════════════
+// NEWSLETTER FORM (Formspree)
+// ══════════════════════════════════════════════════════
+(function(){
+  var form = document.getElementById('newsletter-form');
+  if(!form) return;
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var data = new FormData(form);
+    fetch(form.action, {
+      method:'POST',
+      body: data,
+      headers:{'Accept':'application/json'}
+    }).then(function(r){
+      if(r.ok){
+        form.style.display='none';
+        var msg = document.getElementById('newsletter-success');
+        var lang = getLang();
+        var t = I18N[lang] && I18N[lang].newsletter_success ? I18N[lang].newsletter_success : '\u2713 \u611F\u8C22\u8BA2\u9605\uFF01';
+        msg.textContent = t;
+        msg.style.display='block';
+      } else {
+        alert(getLang()==='zh'?'\u63D0\u4EA4\u5931\u8D25\uFF0C\u8BF7\u7A0D\u540E\u518D\u8BD5':'Submission failed, please try again.');
+      }
+    }).catch(function(){
+      alert(getLang()==='zh'?'\u7F51\u7EDC\u9519\u8BEF\uFF0C\u8BF7\u7A0D\u540E\u518D\u8BD5':'Network error, please try again.');
+    });
+  });
+})();
+</script>
+</body>
+</html>

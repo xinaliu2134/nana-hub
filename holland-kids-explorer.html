@@ -1,0 +1,2360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Holland Kids Explorer · 荷兰亲子探索</title>
+  <meta name="description" content="Holland Kids Explorer: 250+ family-friendly venues across the Netherlands. Interactive bilingual map for Dutch Chinese families with kids.">
+  <link rel="canonical" href="https://xinaliu2134.github.io/nana-hub/holland-kids-explorer.html">
+  <meta property="og:title" content="Holland Kids Explorer · 荷兰亲子探索">
+  <meta property="og:description" content="250+ family-friendly venues across the Netherlands. Interactive bilingual map for families.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://xinaliu2134.github.io/nana-hub/holland-kids-explorer.html">
+  <meta name="twitter:card" content="summary">
+  <link rel="preload" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" as="script">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700&family=Noto+Sans+SC:wght@500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <style>
+    :root {
+      --bg:           #F2F4F8;
+      --surface:      #FFFFFF;
+      --primary:      #E05A1E;
+      --primary-light:#FFF0E9;
+      --primary-dark: #B84515;
+      --navy:         #1A2B4A;
+      --teal:         #0EA5A0;
+      --text:         #1A2B4A;
+      --text-secondary: #5A6A84;
+      --text-muted:   #9AA5B8;
+      --border:       #CBD5E1;
+      --border-light: #E2E8F0;
+      --shadow-sm:    0 1px 3px rgba(26,43,74,.12), 0 0 0 1px rgba(26,43,74,.04);
+      --shadow-md:    0 4px 12px rgba(26,43,74,.16), 0 0 0 1px rgba(26,43,74,.06);
+      --shadow-lg:    0 8px 24px rgba(26,43,74,.20), 0 0 0 1px rgba(26,43,74,.08);
+      --radius-sm:    6px;
+      --radius-md:    12px;
+      --radius-lg:    18px;
+      --radius-xl:    24px;
+      font-family: 'Inter', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── HEADER ─────────────────────────────────── */
+    header {
+      background: var(--navy);
+      padding: 0 20px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: var(--primary);
+      border-radius: 10px;
+      display: grid; place-items: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+    .logo-text-en {
+      font-size: 13px; font-weight: 700;
+      color: #FFFFFF; letter-spacing: .5px;
+    }
+    .logo-text-zh {
+      font-size: 11px; font-weight: 400;
+      color: rgba(255,255,255,.55);
+    }
+
+    .header-search {
+      flex: 1;
+      max-width: 480px;
+      position: relative;
+    }
+    .header-search input {
+      width: 100%;
+      background: rgba(255,255,255,.12);
+      border: 2px solid rgba(255,255,255,.2);
+      border-radius: var(--radius-md);
+      padding: 8px 40px 8px 36px;
+      font-size: 14px;
+      color: #fff;
+      outline: none;
+      transition: background .2s, border-color .2s;
+    }
+    .header-search input::placeholder { color: rgba(255,255,255,.5); }
+    .header-search input:focus {
+      background: rgba(255,255,255,.18);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(224,90,30,.25);
+    }
+    .header-search .search-icon {
+      position: absolute; left: 10px; top: 50%;
+      transform: translateY(-50%);
+      color: rgba(255,255,255,.45); font-size: 15px;
+      pointer-events: none;
+    }
+    .header-search .clear-btn {
+      position: absolute; right: 8px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: rgba(255,255,255,.4); font-size: 16px;
+      padding: 2px 4px; display: none;
+      transition: color .15s;
+    }
+    .header-search .clear-btn:hover { color: rgba(255,255,255,.8); }
+    .header-search input:not(:placeholder-shown) ~ .clear-btn { display: block; }
+
+    /* Autocomplete dropdown */
+    .autocomplete {
+      position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      max-height: 240px; overflow-y: auto;
+      z-index: 200; display: none;
+    }
+    .autocomplete.open { display: block; }
+    .autocomplete-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text);
+      display: flex; align-items: center; gap: 8px;
+      transition: background .12s;
+    }
+    .autocomplete-item:hover, .autocomplete-item.focused {
+      background: var(--primary-light);
+    }
+    .autocomplete-item .region-type {
+      margin-left: auto;
+      font-size: 11px; color: var(--text-muted);
+    }
+
+    .header-spacer { flex: 1; }
+
+    .lang-toggle {
+      display: flex;
+      background: rgba(255,255,255,.1);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 2px;
+    }
+    .lang-btn {
+      background: none; border: none; cursor: pointer;
+      color: rgba(255,255,255,.5);
+      font-size: 12px; font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      transition: background .15s, color .15s;
+    }
+    .lang-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* ── FILTERS ─────────────────────────────────── */
+    .filter-bar {
+      background: var(--surface);
+      border-bottom: 2px solid var(--border);
+      padding: 0 20px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      flex-shrink: 0;
+      scrollbar-width: none;
+    }
+    .filter-bar::-webkit-scrollbar { display: none; }
+
+    .filter-label {
+      font-size: 12px; font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .filter-chip {
+      display: flex; align-items: center; gap: 5px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 2px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 12px; font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: all .15s;
+      user-select: none;
+    }
+    .filter-chip:hover { border-color: var(--primary); color: var(--primary); }
+    .filter-chip.active {
+      color: #fff;
+      border-color: transparent;
+    }
+    .filter-chip.no-data {
+      opacity: 0.45;
+      cursor: default;
+      pointer-events: none;
+    }
+    .filter-chip.no-data:hover { border-color: var(--border); color: var(--text-secondary); }
+
+    /* ── MAIN LAYOUT ─────────────────────────────── */
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      overflow: hidden;
+    }
+
+    /* ── SIDEBAR ─────────────────────────────────── */
+    .sidebar {
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-right: 2px solid var(--border);
+    }
+
+    .sidebar-header {
+      padding: 16px 20px 12px;
+      background: var(--surface);
+      border-bottom: 2px solid var(--border-light);
+      flex-shrink: 0;
+    }
+    .result-count {
+      font-size: 13px; color: var(--text-secondary);
+    }
+    .result-count strong { color: var(--text); }
+
+    .venue-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      contain: layout style;
+      will-change: scroll-position;
+    }
+    .venue-list::-webkit-scrollbar { width: 4px; }
+    .venue-list::-webkit-scrollbar-track { background: transparent; }
+    .venue-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* Venue card */
+    .venue-card {
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      border: none;
+      cursor: pointer;
+      transition: box-shadow .15s, transform .12s;
+      box-shadow: var(--shadow-sm);
+      contain: content;
+    }
+    .venue-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+    .venue-card.active {
+      box-shadow: 0 0 0 2px var(--primary), var(--shadow-md);
+    }
+
+    .venue-card-top {
+      display: flex; align-items: flex-start; gap: 11px;
+    }
+    .venue-icon {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .venue-info { flex: 1; min-width: 0; }
+    .venue-name {
+      font-size: 14px; font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .venue-name-zh {
+      font-size: 12px; color: var(--text-secondary);
+      margin-top: 2px;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+    }
+    .venue-meta {
+      margin-top: 8px;
+      display: flex; align-items: center; gap: 6px;
+      flex-wrap: wrap;
+    }
+    .venue-tag {
+      font-size: 11px; font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+    .venue-address {
+      font-size: 11px; color: var(--text-muted);
+      display: flex; align-items: center; gap: 4px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .venue-address svg { flex-shrink: 0; }
+
+    .venue-actions {
+      margin-top: 10px;
+      display: flex; gap: 6px;
+    }
+    .btn-website {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 600;
+      color: var(--primary);
+      background: var(--primary-light);
+      border: none; border-radius: 6px;
+      padding: 5px 10px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background .15s;
+    }
+    .btn-website:hover { background: #fde0cd; }
+    .btn-map {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 600;
+      color: var(--text-secondary);
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 10px;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .btn-map:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-nav {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 600;
+      color: #fff;
+      background: #4285F4;
+      border: none;
+      border-radius: 6px;
+      padding: 5px 10px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background .15s;
+    }
+    .btn-nav:hover { background: #3367D6; }
+
+    /* Load more */
+    .load-more-btn {
+      margin: 8px 0 16px;
+      width: 100%;
+      padding: 10px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 13px; font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .load-more-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* Skeleton — subtle, no visible card frame */
+    .skeleton {
+      background: linear-gradient(90deg, var(--bg) 25%, #f0f2f5 50%, var(--bg) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+      border-radius: 6px;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .skeleton-card {
+      padding: 14px;
+    }
+
+    /* Empty state */
+    .empty-state {
+      flex: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 40px 20px;
+      text-align: center;
+      gap: 12px;
+    }
+    .empty-state-icon { font-size: 48px; }
+    .empty-state h3 { font-size: 16px; font-weight: 600; color: var(--text); }
+    .empty-state p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+    .empty-suggestions {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      justify-content: center;
+      margin-top: 8px;
+    }
+    .empty-suggestion {
+      background: var(--primary-light); color: var(--primary);
+      border: none; border-radius: 20px;
+      padding: 5px 14px; font-size: 12px; font-weight: 500;
+      cursor: pointer; transition: background .15s;
+    }
+    .empty-suggestion:hover { background: #fde0cd; }
+
+    /* ── MAP ─────────────────────────────────────── */
+    #map {
+      width: 100%; height: 100%;
+      z-index: 1;
+    }
+
+    /* Leaflet popup overrides */
+    .leaflet-popup-content-wrapper {
+      border-radius: var(--radius-md) !important;
+      box-shadow: var(--shadow-lg) !important;
+      border: 2px solid var(--border);
+      padding: 0 !important;
+      overflow: hidden;
+    }
+    .leaflet-popup-content {
+      margin: 0 !important;
+      width: 260px !important;
+    }
+    .leaflet-popup-tip-container { margin-top: -1px; }
+
+    .popup-content {
+      padding: 14px;
+    }
+    .popup-header {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+    }
+    .popup-icon {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .popup-name { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.3; }
+    .popup-name-zh { font-size: 12px; color: var(--text-secondary); }
+    .popup-address {
+      font-size: 12px; color: var(--text-muted);
+      margin-bottom: 10px; line-height: 1.4;
+    }
+    .popup-website {
+      display: block; text-align: center;
+      background: var(--primary); color: white;
+      border-radius: 8px; padding: 7px;
+      font-size: 12px; font-weight: 600;
+      text-decoration: none;
+      transition: background .15s;
+    }
+    .popup-website:hover { background: var(--primary-dark); }
+
+    /* Custom map marker */
+    .map-marker {
+      width: 34px; height: 34px;
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      border: 2.5px solid #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.1);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: transform .2s;
+    }
+    .map-marker:hover {
+      transform: rotate(-45deg) scale(1.3);
+      z-index: 1000 !important;
+    }
+    .map-marker-inner {
+      transform: rotate(45deg);
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    /* Map loading overlay */
+    .map-overlay {
+      position: absolute; inset: 0;
+      background: rgba(242,244,248,.85);
+      backdrop-filter: blur(4px);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 500; gap: 12px;
+      transition: opacity .3s;
+    }
+    .map-overlay.hidden { opacity: 0; pointer-events: none; }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .map-overlay p { font-size: 14px; color: var(--text-secondary); }
+
+    /* Map wrapper */
+    .map-wrapper { position: relative; }
+
+    /* ── TOAST NOTIFICATION ─────────────────────── */
+    .toast {
+      position: fixed;
+      top: 76px; left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: var(--navy);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: var(--radius-md);
+      font-size: 13px; font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s, transform .25s;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+      pointer-events: auto;
+    }
+
+    /* ── SCROLL TO TOP ──────────────────────────── */
+    .scroll-top-btn {
+      position: absolute;
+      bottom: 18px; right: 18px;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      box-shadow: var(--shadow-md);
+      cursor: pointer;
+      font-size: 18px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      transition: background .15s, transform .15s;
+    }
+    .scroll-top-btn:hover { background: var(--primary-dark); transform: scale(1.1); }
+    .scroll-top-btn.visible { display: flex; }
+
+    /* ── VENUE DETAIL EXTRAS ────────────────────── */
+    .venue-detail-row {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11px; color: var(--text-muted);
+      margin-top: 4px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .venue-detail-row a {
+      color: var(--primary); text-decoration: none;
+    }
+    .venue-detail-row a:hover { text-decoration: underline; }
+
+    /* ── CATEGORY SUMMARY ───────────────────────── */
+    .category-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 8px;
+    }
+    .category-summary-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 7px;
+      border-radius: 10px;
+    }
+
+    /* ── FILTER CHIP COUNT BADGE ─────────────────── */
+    .filter-chip-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 9px;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 0 5px;
+      line-height: 1;
+    }
+    .filter-chip:not(.active) .filter-chip-count {
+      background: var(--bg);
+      color: var(--text-secondary);
+    }
+    .filter-chip.active .filter-chip-count {
+      background: rgba(255,255,255,.25);
+      color: #fff;
+    }
+
+    /* ── RESPONSIVE ──────────────────────────────── */
+    @media (max-width: 768px) {
+      .main { grid-template-columns: 1fr; grid-template-rows: 50vh 1fr; }
+      .map-wrapper { order: -1; }
+      .sidebar { border-right: none; border-top: 2px solid var(--border); }
+      .header-search { max-width: 100%; }
+      .logo-text { display: none; }
+    }
+
+    /* ── AI CHAT WIDGET ────────────────────────────── */
+    .chat-fab {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), #F39C12);
+      color: #fff;
+      border: none;
+      box-shadow: 0 4px 16px rgba(224,90,30,.4);
+      cursor: pointer;
+      font-size: 24px;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9000;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .chat-fab:hover { transform: scale(1.08); box-shadow: 0 6px 24px rgba(224,90,30,.5); }
+    .chat-fab.hidden { display: none; }
+
+    .chat-panel {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      width: 380px;
+      max-height: 520px;
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 12px 48px rgba(26,43,74,.25);
+      z-index: 9001;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .chat-panel.open { display: flex; }
+
+    .chat-header {
+      background: var(--navy);
+      padding: 14px 16px;
+      display: flex; align-items: center; gap: 10px;
+      flex-shrink: 0;
+    }
+    .chat-header-icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--primary), #F39C12);
+      border-radius: 50%;
+      display: grid; place-items: center;
+      font-size: 16px;
+    }
+    .chat-header-text {
+      flex: 1;
+      color: #fff;
+      font-size: 14px; font-weight: 700;
+    }
+    .chat-header-sub {
+      color: rgba(255,255,255,.5);
+      font-size: 11px; font-weight: 400;
+    }
+    .chat-close {
+      background: none; border: none;
+      color: rgba(255,255,255,.5);
+      font-size: 20px; cursor: pointer;
+      padding: 4px;
+      transition: color .15s;
+    }
+    .chat-close:hover { color: #fff; }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 200px;
+      max-height: 340px;
+    }
+    .chat-messages::-webkit-scrollbar { width: 4px; }
+    .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .chat-msg {
+      max-width: 88%;
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 13px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+    .chat-msg.bot {
+      background: var(--bg);
+      color: var(--text);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+    .chat-msg.user {
+      background: var(--primary);
+      color: #fff;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+    .chat-msg.bot a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .chat-msg.bot a:hover { text-decoration: underline; }
+
+    .chat-venue-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px 8px;
+      margin: 3px 2px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+    }
+    .chat-venue-chip:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .chat-typing {
+      align-self: flex-start;
+      padding: 10px 14px;
+      background: var(--bg);
+      border-radius: 16px;
+      border-bottom-left-radius: 4px;
+      display: flex; gap: 4px;
+    }
+    .chat-typing span {
+      width: 6px; height: 6px;
+      background: var(--text-muted);
+      border-radius: 50%;
+      animation: typingBounce .8s ease-in-out infinite;
+    }
+    .chat-typing span:nth-child(2) { animation-delay: .15s; }
+    .chat-typing span:nth-child(3) { animation-delay: .3s; }
+    @keyframes typingBounce {
+      0%,60%,100% { transform: translateY(0); }
+      30% { transform: translateY(-4px); }
+    }
+
+    .chat-quick-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 0 16px 8px;
+    }
+    .chat-quick-btn {
+      background: var(--primary-light);
+      color: var(--primary);
+      border: none;
+      border-radius: 16px;
+      padding: 6px 12px;
+      font-size: 12px; font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .chat-quick-btn:hover { background: #fde0cd; }
+
+    .chat-input-area {
+      padding: 12px 16px;
+      border-top: 2px solid var(--border-light);
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .chat-input {
+      flex: 1;
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      padding: 8px 14px;
+      font-size: 13px;
+      color: var(--text);
+      outline: none;
+      font-family: inherit;
+      transition: border-color .2s;
+    }
+    .chat-input:focus { border-color: var(--primary); }
+    .chat-input::placeholder { color: var(--text-muted); }
+    .chat-send {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background .15s;
+    }
+    .chat-send:hover { background: var(--primary-dark); }
+
+    @media (max-width: 768px) {
+      .chat-panel { width: calc(100vw - 24px); right: 12px; bottom: 12px; max-height: 70vh; }
+      .chat-fab { bottom: 16px; right: 16px; width: 50px; height: 50px; font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ─────────────────────────────────────── -->
+<header>
+  <a class="logo" href="#" onclick="event.preventDefault(); resetHome();">
+    <div class="logo-icon">🧒</div>
+    <div class="logo-text">
+      <span class="logo-text-en">Holland Kids Explorer</span>
+      <span class="logo-text-zh">荷兰亲子探索</span>
+    </div>
+  </a>
+
+  <div class="header-search">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Search region… e.g. Zeeland, Amsterdam, Utrecht" autocomplete="off">
+    <button class="clear-btn" id="clearBtn" onclick="clearSearch()">✕</button>
+    <div class="autocomplete" id="autocomplete"></div>
+  </div>
+
+  <div class="header-spacer"></div>
+
+  <div class="lang-toggle">
+    <button class="lang-btn active" data-lang="en" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" data-lang="zh" onclick="setLang('zh')">中</button>
+  </div>
+</header>
+
+<!-- ── FILTER BAR ─────────────────────────────────── -->
+<div class="filter-bar" id="filterBar">
+  <span class="filter-label" id="filterLabel">Filter:</span>
+</div>
+
+<!-- ── MAIN ───────────────────────────────────────── -->
+<div class="main">
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" style="position:relative;">
+    <div class="sidebar-header">
+      <div class="result-count" id="resultCount">
+        <span id="resultCountText">Search a region to discover kids venues</span>
+      </div>
+      <div class="category-summary" id="categorySummary"></div>
+    </div>
+    <div class="empty-state" id="emptyState">
+      <div class="empty-state-icon">🗺️</div>
+      <h3 id="emptyTitle">Explore the Netherlands</h3>
+      <p id="emptyDesc">Search a province or city above to find museums, playgrounds, zoos, theme parks and more for kids.</p>
+      <div class="empty-suggestions">
+        <button class="empty-suggestion" onclick="searchRegion('Amsterdam')">Amsterdam</button>
+        <button class="empty-suggestion" onclick="searchRegion('Zeeland')">Zeeland</button>
+        <button class="empty-suggestion" onclick="searchRegion('Utrecht')">Utrecht</button>
+        <button class="empty-suggestion" onclick="searchRegion('Noord-Holland')">Noord-Holland</button>
+        <button class="empty-suggestion" onclick="searchRegion('Rotterdam')">Rotterdam</button>
+        <button class="empty-suggestion" onclick="searchRegion('Limburg')">Limburg</button>
+      </div>
+    </div>
+    <div class="venue-list" id="venueList" style="display:none"></div>
+    <button class="scroll-top-btn" id="scrollTopBtn" title="Scroll to top">&#8593;</button>
+  </aside>
+
+  <!-- Map -->
+  <div class="map-wrapper">
+    <div id="map"></div>
+    <div class="map-overlay hidden" id="mapOverlay">
+      <div class="spinner"></div>
+      <p id="loadingText">Loading venues…</p>
+      <p id="loadingHint" style="font-size:12px;color:var(--text-muted);margin-top:4px;"></p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── AI CHAT WIDGET ────────────────────────────── -->
+<button class="chat-fab" id="chatFab" onclick="toggleChat(true)" title="AI Assistant">🧸</button>
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-header">
+    <div class="chat-header-icon">🧸</div>
+    <div>
+      <div class="chat-header-text">Kids Explorer AI</div>
+      <div class="chat-header-sub" id="chatSubtitle">智能亲子出行助手</div>
+    </div>
+    <button class="chat-close" onclick="toggleChat(false)">✕</button>
+  </div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-quick-actions" id="chatQuickActions"></div>
+  <div class="chat-input-area">
+    <input class="chat-input" id="chatInput" placeholder="描述你的需求… e.g. 我在Amsterdam，孩子3岁，想去室内玩" autocomplete="off">
+    <button class="chat-send" id="chatSend" onclick="handleChatSend()">➤</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<style>
+  .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
+    background: rgba(224,90,30,.15) !important;
+  }
+  .marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div {
+    background: var(--primary) !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+  }
+</style>
+<script>
+// ── CONFIG ─────────────────────────────────────────
+
+const LANG = { current: 'en' };
+
+const T = {
+  en: {
+    filterLabel: 'Category:',
+    allLabel: 'All',
+    searching: 'Searching… (may take 10–40s)',
+    loadingVenues: 'Loading venues…',
+    loadingHint: 'Querying OpenStreetMap, usually 10–40s',
+    found: (n, region) => `<strong>${n}</strong> venues in <strong>${region}</strong>`,
+    notFound: 'No venues found. Try a different region.',
+    emptyTitle: 'Explore the Netherlands',
+    emptyDesc: 'Search a province or city above to find museums, playgrounds, zoos, theme parks and more for kids.',
+    noWebsite: 'No website',
+    website: '🔗 Official Website',
+    navigate: '🧭 Navigate',
+    flyTo: '📍 Show on map',
+    loadMore: 'Load more',
+    regionNotFound: 'Region not found. Try a Dutch city or province name.',
+    searchPlaceholder: 'Search region… e.g. Zeeland, Amsterdam, Utrecht',
+    resultLabel: 'Search a region to discover kids venues',
+  },
+  zh: {
+    filterLabel: '种类：',
+    allLabel: '全部',
+    searching: '搜索中… (通常需要10–40秒)',
+    loadingVenues: '正在加载场地…',
+    loadingHint: '正在查询 OpenStreetMap，通常需要 10–40 秒',
+    found: (n, region) => `<strong>${region}</strong> 共找到 <strong>${n}</strong> 个亲子场地`,
+    notFound: '未找到相关场地，请尝试其他地区。',
+    emptyTitle: '探索荷兰亲子场地',
+    emptyDesc: '在上方搜索省份或城市，找到博物馆、游乐场、动物园、主题公园等亲子活动场所。',
+    noWebsite: '暂无官网',
+    website: '🔗 官方网站',
+    navigate: '🧭 导航',
+    flyTo: '📍 在地图上显示',
+    loadMore: '加载更多',
+    regionNotFound: '未找到该地区，请输入荷兰城市或省份名称。',
+    searchPlaceholder: '搜索地区… 如 Zeeland、Amsterdam、Utrecht',
+    resultLabel: '搜索地区以发现亲子场地',
+  }
+};
+
+const CATEGORIES = [
+  { id: 'museum',     emoji: '🏛️', color: '#4ECDC4', bg: '#E8FAF8',
+    en: 'Museum',       zh: '博物馆',
+    tags: { tourism: ['museum', 'gallery'] } },
+  { id: 'aquarium',   emoji: '🐠', color: '#0077B6', bg: '#E0F4FF',
+    en: 'Aquarium',     zh: '水族馆',
+    tags: { tourism: ['aquarium'] } },
+  { id: 'zoo',        emoji: '🦁', color: '#82B74B', bg: '#EEF7E6',
+    en: 'Zoo',           zh: '动物园',
+    tags: { tourism: ['zoo'] } },
+  { id: 'children_farm', emoji: '🐑', color: '#A0C878', bg: '#F0F7E6',
+    en: "Children's Farm", zh: '儿童农场',
+    tags: { tourism: ['children_farm'] } },
+  { id: 'theme_park', emoji: '🎡', color: '#E05A1E', bg: '#FFF0E9',
+    en: 'Theme Park',   zh: '主题公园',
+    tags: { tourism: ['theme_park'], leisure: ['water_park', 'amusement_arcade'] } },
+  { id: 'indoor_playground', emoji: '🏠', color: '#FF6B35', bg: '#FFF0E9',
+    en: 'Indoor Playground', zh: '室内游乐场',
+    tags: { leisure: ['indoor_playground'] } },
+  { id: 'playground', emoji: '🛝', color: '#F7DC6F', bg: '#FEFCE8',
+    en: 'Playground',   zh: '游乐场',
+    tags: { leisure: ['playground'] } },
+  { id: 'beach',      emoji: '🏖️', color: '#0EA5A0', bg: '#E0F7F6',
+    en: 'Beach',        zh: '海滩',
+    tags: { natural: ['beach'] } },
+  { id: 'nature',     emoji: '🌳', color: '#27AE60', bg: '#E8F8EE',
+    en: 'Nature & Park', zh: '自然公园',
+    tags: { leisure: ['nature_reserve', 'park', 'miniature_golf', 'marina'] } },
+  { id: 'historic',   emoji: '🏰', color: '#8B6914', bg: '#F5EDD5',
+    en: 'Historic',     zh: '历史古迹',
+    tags: { historic: ['castle', 'monument', 'fort', 'ruins', 'windmill', 'ship'] } },
+  { id: 'sports',     emoji: '⛸️', color: '#6C5CE7', bg: '#F0EEFF',
+    en: 'Sports',       zh: '运动场',
+    tags: { leisure: ['ice_rink', 'swimming_pool', 'sports_centre'] } },
+  { id: 'theatre',    emoji: '🎭', color: '#E84393', bg: '#FEE9F4',
+    en: 'Theatre & Cinema', zh: '剧院影院',
+    tags: { amenity: ['theatre', 'cinema', 'arts_centre'] } },
+  { id: 'visitor',    emoji: '🔭', color: '#0369A1', bg: '#E0F2FE',
+    en: 'Visitor Centre', zh: '游客中心',
+    tags: { tourism: ['visitor_centre'] } },
+  { id: 'attraction', emoji: '⭐', color: '#F39C12', bg: '#FEF5E7',
+    en: 'Attraction',   zh: '景点',
+    tags: { tourism: ['attraction'] } },
+];
+
+const DUTCH_REGIONS = [
+  { name: 'Noord-Holland',  type: 'province' },
+  { name: 'Zuid-Holland',   type: 'province' },
+  { name: 'Utrecht',        type: 'province' },
+  { name: 'Noord-Brabant',  type: 'province' },
+  { name: 'Gelderland',     type: 'province' },
+  { name: 'Overijssel',     type: 'province' },
+  { name: 'Limburg',        type: 'province' },
+  { name: 'Zeeland',        type: 'province' },
+  { name: 'Drenthe',        type: 'province' },
+  { name: 'Groningen',      type: 'province' },
+  { name: 'Friesland',      type: 'province' },
+  { name: 'Flevoland',      type: 'province' },
+  { name: 'Amsterdam',      type: 'city' },
+  { name: 'Rotterdam',      type: 'city' },
+  { name: 'Den Haag',       type: 'city' },
+  { name: 'Eindhoven',      type: 'city' },
+  { name: 'Tilburg',        type: 'city' },
+  { name: 'Haarlem',        type: 'city' },
+  { name: 'Arnhem',         type: 'city' },
+  { name: 'Nijmegen',       type: 'city' },
+  { name: 'Amersfoort',     type: 'city' },
+  { name: 'Delft',          type: 'city' },
+  { name: 'Leiden',         type: 'city' },
+  { name: 'Dordrecht',      type: 'city' },
+  { name: 'Maastricht',     type: 'city' },
+  { name: 'Zwolle',         type: 'city' },
+  { name: 'Enschede',       type: 'city' },
+  { name: 'Breda',          type: 'city' },
+  { name: 'Groningen',      type: 'city' },
+  { name: 'Almere',         type: 'city' },
+  { name: 'Zaandam',        type: 'city' },
+  { name: 'Deventer',       type: 'city' },
+  { name: 'Middelburg',     type: 'city' },
+  { name: 'Leeuwarden',     type: 'city' },
+  { name: 'Apeldoorn',      type: 'city' },
+  { name: 'Schiedam',       type: 'city' },
+  { name: 'Vlissingen',     type: 'city' },
+  { name: 'Goes',           type: 'city' },
+  { name: 'Alkmaar',        type: 'city' },
+  { name: 'Hoorn',          type: 'city' },
+  { name: 'Venlo',          type: 'city' },
+  { name: 'Roermond',       type: 'city' },
+];
+
+// ── OPENING HOURS TRANSLATION ─────────────────────
+function translateHours(str) {
+  if (!str || LANG.current !== 'zh') return str;
+  return str
+    .replace(/\bMo\b/g,'周一').replace(/\bTu\b/g,'周二').replace(/\bWe\b/g,'周三')
+    .replace(/\bTh\b/g,'周四').replace(/\bFr\b/g,'周五').replace(/\bSa\b/g,'周六').replace(/\bSu\b/g,'周日')
+    .replace(/\bMar\b/g,'3月').replace(/\bApr\b/g,'4月').replace(/\bMay\b/g,'5月')
+    .replace(/\bJun\b/g,'6月').replace(/\bJul\b/g,'7月').replace(/\bAug\b/g,'8月')
+    .replace(/\bSep\b/g,'9月').replace(/\bOct\b/g,'10月').replace(/\bNov\b/g,'11月')
+    .replace(/\bDec\b/g,'12月').replace(/\bJan\b/g,'1月').replace(/\bFeb\b/g,'2月')
+    .replace(/\(seasonal\)/g,'(季节性开放)')
+    .replace(/\(last entry/g,'(最后入场')
+    .replace(/closed/gi,'休息')
+    .replace(/except holidays/gi,'节假日除外')
+    .replace(/daily/gi,'每天');
+}
+
+// ── CATEGORY TRANSLATION UTILS ────────────────────
+function getCategoryForVenue(tags) {
+  // Check all tag keys including natural, historic
+  for (const cat of CATEGORIES) {
+    for (const [key, vals] of Object.entries(cat.tags)) {
+      const val = tags[key];
+      if (val && vals.includes(val)) return cat;
+    }
+  }
+  // Extra fallbacks
+  if (tags.man_made === 'windmill') return CATEGORIES.find(c => c.id === 'historic');
+  if (tags.historic) return CATEGORIES.find(c => c.id === 'historic');
+  if (tags.natural === 'beach') return CATEGORIES.find(c => c.id === 'beach');
+  if (tags.tourism === 'visitor_centre') return CATEGORIES.find(c => c.id === 'visitor');
+  if (tags.amenity === 'arts_centre') return CATEGORIES.find(c => c.id === 'theatre');
+  return CATEGORIES[CATEGORIES.length - 1]; // fallback: attraction
+}
+
+function getCategoryById(id) {
+  return CATEGORIES.find(c => c.id === id) || CATEGORIES[CATEGORIES.length - 1];
+}
+
+// ── STATE ─────────────────────────────────────────
+let state = {
+  allVenues: [],
+  filtered: [],
+  displayed: 0,
+  activeCategory: null,
+  activeCardId: null,
+  currentRegion: '',
+  markers: new Map(),
+};
+const PAGE_SIZE = 30;
+
+// ── MAP INIT ─────────────────────────────────────
+const map = L.map('map', { zoomControl: true }).setView([52.35, 5.3], 8);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  maxZoom: 19,
+}).addTo(map);
+
+const markersLayer = L.markerClusterGroup({
+  maxClusterRadius: 45,
+  spiderfyOnMaxZoom: true,
+  showCoverageOnHover: false,
+  zoomToBoundsOnClick: true,
+  disableClusteringAtZoom: 14,
+  chunkedLoading: true,
+  chunkInterval: 100,
+  chunkDelay: 10,
+}).addTo(map);
+
+// ── FILTER BAR INIT ──────────────────────────────
+function buildFilterBar() {
+  const bar = document.getElementById('filterBar');
+  const label = document.getElementById('filterLabel');
+  bar.innerHTML = '';
+  bar.appendChild(label);
+  label.textContent = T[LANG.current].filterLabel;
+
+  // Count venues per category
+  const catCounts = {};
+  state.allVenues.forEach(v => {
+    catCounts[v.category.id] = (catCounts[v.category.id] || 0) + 1;
+  });
+  const totalCount = state.allVenues.length;
+
+  // All button
+  const allChip = document.createElement('button');
+  allChip.className = 'filter-chip' + (state.activeCategory === null ? ' active' : '');
+  allChip.style.background = state.activeCategory === null ? '#1A2B4A' : '';
+  allChip.style.borderColor = state.activeCategory === null ? '#1A2B4A' : '';
+  allChip.innerHTML = totalCount > 0
+    ? `${T[LANG.current].allLabel} <span class="filter-chip-count">${totalCount}</span>`
+    : T[LANG.current].allLabel;
+  allChip.onclick = () => setFilter(null);
+  bar.appendChild(allChip);
+
+  CATEGORIES.forEach(cat => {
+    const count = catCounts[cat.id] || 0;
+    const chip = document.createElement('button');
+    const isActive = state.activeCategory === cat.id;
+    chip.className = 'filter-chip' + (isActive ? ' active' : '') + (totalCount > 0 && count === 0 ? ' no-data' : '');
+    if (isActive) {
+      chip.style.background = cat.color;
+      chip.style.borderColor = cat.color;
+    }
+    const countBadge = totalCount > 0 ? ` <span class="filter-chip-count">${count}</span>` : '';
+    chip.innerHTML = `${cat.emoji} ${LANG.current === 'zh' ? cat.zh : cat.en}${countBadge}`;
+    chip.onclick = () => setFilter(cat.id);
+    bar.appendChild(chip);
+  });
+}
+
+function setFilter(catId) {
+  state.activeCategory = catId;
+  state.displayed = 0;
+  if (state.allVenues.length === 0) {
+    // No region loaded yet — highlight search bar and show a hint in empty state
+    buildFilterBar();
+    const cat = catId ? CATEGORIES.find(c => c.id === catId) : null;
+    const catName = cat ? (LANG.current === 'zh' ? cat.zh : cat.en) : '';
+    if (catId && cat) {
+      document.getElementById('emptyTitle').textContent =
+        LANG.current === 'zh' ? `搜索地区，查看全部${catName}` : `Search a region to browse ${catName}`;
+      document.getElementById('emptyDesc').textContent =
+        LANG.current === 'zh'
+          ? '在上方搜索框输入城市或省份，立即筛选该种类'
+          : 'Type a city or province above — results will be filtered to this category.';
+    } else {
+      updateEmptyStateText();
+    }
+    searchInput.focus();
+    return;
+  }
+  applyFilter();
+  buildFilterBar();
+}
+
+function applyFilter() {
+  state.filtered = state.activeCategory
+    ? state.allVenues.filter(v => v.category.id === state.activeCategory)
+    : state.allVenues;
+  renderList();
+  renderMarkers();
+}
+
+// ── SEARCH ───────────────────────────────────────
+const searchInput = document.getElementById('searchInput');
+const autocompleteEl = document.getElementById('autocomplete');
+let focusedIdx = -1;
+
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim().toLowerCase();
+  if (!q) { autocompleteEl.classList.remove('open'); return; }
+  const matches = DUTCH_REGIONS.filter(r =>
+    r.name.toLowerCase().includes(q)
+  ).slice(0, 8);
+  renderAutocomplete(matches, q);
+});
+
+searchInput.addEventListener('keydown', e => {
+  const items = autocompleteEl.querySelectorAll('.autocomplete-item');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    focusedIdx = Math.min(focusedIdx + 1, items.length - 1);
+    items.forEach((el, i) => el.classList.toggle('focused', i === focusedIdx));
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    focusedIdx = Math.max(focusedIdx - 1, 0);
+    items.forEach((el, i) => el.classList.toggle('focused', i === focusedIdx));
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (focusedIdx >= 0 && items[focusedIdx]) {
+      items[focusedIdx].click();
+    } else {
+      searchRegion(searchInput.value.trim());
+    }
+  } else if (e.key === 'Escape') {
+    autocompleteEl.classList.remove('open');
+  }
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.header-search')) autocompleteEl.classList.remove('open');
+});
+
+function renderAutocomplete(matches, q) {
+  focusedIdx = -1;
+  if (!matches.length) { autocompleteEl.classList.remove('open'); return; }
+  autocompleteEl.innerHTML = matches.map(r => {
+    const highlighted = r.name.replace(
+      new RegExp(`(${q})`, 'gi'),
+      '<strong style="color:var(--primary)">$1</strong>'
+    );
+    return `<div class="autocomplete-item" onclick="searchRegion('${r.name}')">
+      <span>${highlighted}</span>
+      <span class="region-type">${r.type === 'province' ? 'Province 省' : 'City 城市'}</span>
+    </div>`;
+  }).join('');
+  autocompleteEl.classList.add('open');
+}
+
+function clearSearch() {
+  searchInput.value = '';
+  autocompleteEl.classList.remove('open');
+  searchInput.focus();
+  fullReset();
+}
+
+function resetHome() {
+  searchInput.value = '';
+  autocompleteEl.classList.remove('open');
+  state.activeCategory = null;
+  state.activeCardId = null;
+  state.displayed = 0;
+  markersLayer.clearLayers();
+  state.markers.clear();
+  map.setView([52.35, 5.3], 8);
+  showOverlay(false);
+  loadStaticVenues();
+}
+
+function fullReset() {
+  // ✕ button: wipe everything and return to welcome screen
+  state.allVenues = [];
+  state.filtered = [];
+  state.displayed = 0;
+  state.activeCategory = null;
+  state.activeCardId = null;
+  state.currentRegion = '';
+  markersLayer.clearLayers();
+  state.markers.clear();
+  searchInput.value = '';
+  autocompleteEl.classList.remove('open');
+  map.setView([52.35, 5.3], 8);
+  showOverlay(false);
+  document.getElementById('resultCountText').textContent = T[LANG.current].resultLabel;
+  document.getElementById('emptyState').style.display = 'flex';
+  document.getElementById('venueList').style.display = 'none';
+  document.getElementById('venueList').innerHTML = '';
+  document.getElementById('categorySummary').innerHTML = '';
+  updateEmptyStateText();
+  buildFilterBar();
+}
+
+// ── TOAST NOTIFICATION ───────────────────────────
+function showToast(message, duration = 3000) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => toast.classList.remove('show'), duration);
+}
+
+// ── SCROLL TO TOP ────────────────────────────────
+const scrollTopBtn = document.getElementById('scrollTopBtn');
+document.getElementById('venueList').addEventListener('scroll', function() {
+  scrollTopBtn.classList.toggle('visible', this.scrollTop > 200);
+});
+scrollTopBtn.addEventListener('click', () => {
+  document.getElementById('venueList').scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// ── GEOCODE + OVERPASS ───────────────────────────
+async function searchRegion(name) {
+  searchInput.value = name;
+  autocompleteEl.classList.remove('open');
+  state.currentRegion = name;
+
+  showOverlay(true);
+  document.getElementById('resultCountText').innerHTML = T[LANG.current].searching;
+
+  try {
+    // 1. Nominatim geocode
+    const nominatimUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(name + ' Netherlands')}&format=json&limit=1&addressdetails=1`;
+    // Note: User-Agent is a forbidden header in browser fetch — omit it
+    const geoRes = await fetch(nominatimUrl);
+    const geoData = await geoRes.json();
+
+    if (!geoData.length) {
+      showToast(T[LANG.current].regionNotFound);
+      showOverlay(false);
+      return;
+    }
+
+    const place = geoData[0];
+    const [s, n, w, e] = place.boundingbox.map(Number);
+    const bbox = `${s},${w},${n},${e}`;
+
+    // Fly to region
+    map.fitBounds([[s, w], [n, e]], { padding: [20, 20] });
+
+    // 2. Overpass query — tries 3 endpoints automatically on failure
+    const overpassQuery = buildOverpassQuery(bbox);
+    const osmData = await fetchOverpass(overpassQuery);
+
+    processOSMData(osmData.elements);
+    showOverlay(false);
+
+  } catch (err) {
+    console.error('Search error:', err);
+    showOverlay(false);
+    document.getElementById('resultCountText').innerHTML =
+      `⚠️ 错误: ${err.message || err} — 请检查网络连接后重试`;
+  }
+}
+
+const OVERPASS_ENDPOINTS = [
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.openstreetmap.fr/api/interpreter',
+  'https://overpass-api.de/api/interpreter',
+];
+
+function buildOverpassQuery(bbox) {
+  const b = bbox;
+  // Use regex OR — 15 statements instead of 41, much lighter on the server
+  return `[out:json][timeout:60];
+(
+  node["name"]["tourism"~"museum|gallery|aquarium|zoo|theme_park|attraction|visitor_centre"](${b});
+  node["name"]["leisure"~"playground|water_park|ice_rink|miniature_golf|nature_reserve|marina"](${b});
+  node["name"]["amenity"~"theatre|cinema"](${b});
+  node["name"]["natural"="beach"](${b});
+  node["name"]["historic"~"castle|ruins|monument|fort|mill"](${b});
+  node["name"]["man_made"="windmill"](${b});
+  way["name"]["tourism"~"museum|gallery|aquarium|zoo|theme_park|attraction|visitor_centre"](${b});
+  way["name"]["leisure"~"playground|water_park|nature_reserve"](${b});
+  way["name"]["amenity"~"theatre|cinema"](${b});
+  way["name"]["natural"="beach"](${b});
+  way["name"]["historic"~"castle|ruins|fort|mill"](${b});
+  way["name"]["man_made"="windmill"](${b});
+  relation["name"]["tourism"~"museum|zoo|theme_park"](${b});
+  relation["name"]["leisure"="nature_reserve"](${b});
+  relation["name"]["natural"="beach"](${b});
+);
+out center;`;
+}
+
+// Netherlands bounding box
+const NL_BBOX = '50.75,3.35,53.55,7.22';
+
+// Build Overpass query for a single category across any bbox
+function buildCategoryQuery(catId, bbox) {
+  const cat = CATEGORIES.find(c => c.id === catId);
+  if (!cat) return buildOverpassQuery(bbox);
+  const stmts = [];
+  Object.entries(cat.tags).forEach(([key, vals]) => {
+    const op = vals.length === 1 ? '=' : '~';
+    const val = vals.join('|');
+    ['node', 'way', 'relation'].forEach(t =>
+      stmts.push(`  ${t}["name"]["${key}"${op}"${val}"](${bbox});`)
+    );
+  });
+  return `[out:json][timeout:90];\n(\n${stmts.join('\n')}\n);\nout center;`;
+}
+
+// Search entire Netherlands — catId=null means all categories
+async function searchNL(catId) {
+  const cat = catId ? CATEGORIES.find(c => c.id === catId) : null;
+  const regionLabel = cat
+    ? (LANG.current === 'zh' ? `${cat.zh} · 荷兰全境` : `${cat.en} · All Netherlands`)
+    : (LANG.current === 'zh' ? '荷兰全境' : 'All Netherlands');
+
+  state.currentRegion = regionLabel;
+  state.activeCategory = catId;
+  state.allVenues = [];
+  state.filtered = [];
+  state.displayed = 0;
+  markersLayer.clearLayers();
+  state.markers.clear();
+
+  showOverlay(true);
+  document.getElementById('resultCountText').innerHTML = T[LANG.current].searching;
+  map.setView([52.35, 5.3], 8);
+  searchInput.value = '';
+
+  try {
+    const query = catId ? buildCategoryQuery(catId, NL_BBOX) : buildOverpassQuery(NL_BBOX);
+    const osmData = await fetchOverpass(query);
+    processOSMData(osmData.elements);
+    showOverlay(false);
+  } catch (err) {
+    console.error('NL search error:', err);
+    showOverlay(false);
+    document.getElementById('resultCountText').innerHTML =
+      `⚠️ ${err.message || err} — 请重试`;
+  }
+}
+
+async function fetchOverpass(query) {
+  let lastErr;
+  for (let i = 0; i < OVERPASS_ENDPOINTS.length; i++) {
+    const url = OVERPASS_ENDPOINTS[i] + '?data=' + encodeURIComponent(query);
+    const controller = new AbortController();
+    const tid = setTimeout(() => controller.abort(), 35000); // 35s per endpoint
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(tid);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.remark && /timed out|timeout/i.test(json.remark)) {
+          lastErr = new Error('Server timeout'); continue;
+        }
+        return json;
+      }
+      lastErr = new Error(`HTTP ${res.status}`);
+    } catch (e) {
+      clearTimeout(tid);
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error('All Overpass endpoints failed');
+}
+
+
+function processOSMData(elements) {
+  const venues = [];
+  const seen = new Set();
+
+  for (const el of elements) {
+    const tags = el.tags || {};
+    const name = tags.name || tags['name:nl'] || tags['name:en'];
+    if (!name) continue;
+
+    const lat = el.lat ?? el.center?.lat;
+    const lon = el.lon ?? el.center?.lon;
+    if (!lat || !lon) continue;
+
+    const key = `${name.toLowerCase()}-${Math.round(lat*1000)}-${Math.round(lon*1000)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const cat = getCategoryForVenue(tags);
+    const rawWebsite = tags.website || tags['contact:website'] || tags['url'] || '';
+    const website = rawWebsite
+      ? (rawWebsite.startsWith('http') ? rawWebsite : 'https://' + rawWebsite)
+      : '';
+
+    const city = tags['addr:city'] || tags['addr:town'] || tags['addr:village'] || '';
+    const street = [tags['addr:street'], tags['addr:housenumber']].filter(Boolean).join(' ');
+    const address = [street, city].filter(Boolean).join(', ');
+
+    venues.push({
+      id: `${el.type}/${el.id}`,
+      name,
+      nameZh: tags['name:zh'] || tags['name:zh-Hans'] || '',
+      lat, lon,
+      category: cat,
+      website,
+      address,
+      phone: tags.phone || tags['contact:phone'] || '',
+      openingHours: tags.opening_hours || '',
+      osmType: el.type,
+      osmId: el.id,
+    });
+  }
+
+  // Sort: named categories first, then alphabetical
+  venues.sort((a, b) => {
+    if (a.category.id !== 'attraction' && b.category.id === 'attraction') return -1;
+    if (a.category.id === 'attraction' && b.category.id !== 'attraction') return 1;
+    return a.name.localeCompare(b.name);
+  });
+
+  state.allVenues = venues;
+  state.displayed = 0;
+  applyFilter();
+  buildFilterBar();
+
+  document.getElementById('resultCountText').innerHTML =
+    venues.length
+      ? T[LANG.current].found(venues.length, state.currentRegion)
+      : T[LANG.current].notFound;
+
+  renderCategorySummary();
+}
+
+// ── RENDER LIST ──────────────────────────────────
+function renderList() {
+  const list = document.getElementById('venueList');
+  const empty = document.getElementById('emptyState');
+
+  if (state.allVenues.length === 0) {
+    empty.style.display = 'flex';
+    list.style.display = 'none';
+    updateEmptyStateText();
+    // Show filter hint if a category chip was somehow triggered
+    if (state.activeCategory) {
+      const cat = CATEGORIES.find(c => c.id === state.activeCategory);
+      document.getElementById('emptyTitle').textContent =
+        LANG.current === 'zh' ? '请先搜索地区' : 'Search a region first';
+      document.getElementById('emptyDesc').textContent =
+        LANG.current === 'zh'
+          ? `在上方搜索框输入城市或省份，再按「${cat?.zh || ''}」筛选`
+          : `Type a city or province in the search bar above, then filter by "${cat?.en || ''}"`;
+    }
+    return;
+  }
+  if (state.filtered.length === 0) {
+    // Filter active but no matching venues
+    empty.style.display = 'flex';
+    list.style.display = 'none';
+    const cat = CATEGORIES.find(c => c.id === state.activeCategory);
+    const catName = cat ? (LANG.current === 'zh' ? cat.zh : cat.en) : '';
+    document.getElementById('emptyTitle').textContent =
+      LANG.current === 'zh' ? `${state.currentRegion} 暂无${catName}` : `No ${catName} in ${state.currentRegion}`;
+    document.getElementById('emptyDesc').textContent =
+      LANG.current === 'zh' ? '试试其他分类，或搜索其他地区。' : 'Try a different category or search another region.';
+    return;
+  }
+  empty.style.display = 'none';
+  list.style.display = 'flex';
+
+  const toShow = state.filtered.slice(0, state.displayed + PAGE_SIZE);
+  state.displayed = toShow.length;
+
+  const frag = document.createDocumentFragment();
+
+  toShow.forEach(v => {
+    const card = document.createElement('div');
+    card.className = 'venue-card' + (v.id === state.activeCardId ? ' active' : '');
+    card.id = 'card-' + v.id.replace(/[^a-z0-9]/gi, '-');
+    card.innerHTML = `
+      <div class="venue-card-top">
+        <div class="venue-icon" style="background:${v.category.bg}">${v.category.emoji}</div>
+        <div class="venue-info">
+          <div class="venue-name">${v.name}</div>
+          ${v.nameZh ? `<div class="venue-name-zh">${v.nameZh}</div>` : ''}
+          <div class="venue-meta">
+            <span class="venue-tag" style="background:${v.category.bg};color:${v.category.color}">
+              ${LANG.current === 'zh' ? v.category.zh : v.category.en}
+            </span>
+            ${v.address ? `<span class="venue-address">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="4" r="2.5" stroke="currentColor" stroke-width="1.2"/><path d="M5 10 C2 7 0.5 5.5 0.5 4a4.5 4.5 0 019 0c0 1.5-1.5 3-4.5 6z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+              ${v.address}
+            </span>` : ''}
+          </div>
+          ${v.openingHours ? `<div class="venue-detail-row">\u{1F552} ${translateHours(v.openingHours)}</div>` : ''}
+          ${v.phone ? `<div class="venue-detail-row">\u{1F4DE} <a href="tel:${v.phone}">${v.phone}</a></div>` : ''}
+        </div>
+      </div>
+      <div class="venue-actions">
+        ${v.website
+          ? `<a class="btn-website" href="${v.website}" target="_blank" rel="noopener">${T[LANG.current].website}</a>`
+          : `<span class="btn-website" style="opacity:.45;cursor:default">${T[LANG.current].noWebsite}</span>`
+        }
+        <a class="btn-nav" href="https://www.google.com/maps/dir/?api=1&destination=${v.lat},${v.lon}" target="_blank" rel="noopener">${T[LANG.current].navigate}</a>
+        <button class="btn-map" onclick="flyToVenue('${v.id}')">${T[LANG.current].flyTo}</button>
+      </div>
+    `;
+    card.addEventListener('click', e => {
+      if (e.target.closest('a,button')) return;
+      selectVenue(v.id);
+    });
+    frag.appendChild(card);
+  });
+
+  list.innerHTML = '';
+  list.appendChild(frag);
+
+  if (state.displayed < state.filtered.length) {
+    const btn = document.createElement('button');
+    btn.className = 'load-more-btn';
+    btn.textContent = `${T[LANG.current].loadMore} (${state.filtered.length - state.displayed} more)`;
+    btn.onclick = () => { renderList(); };
+    list.appendChild(btn);
+  }
+}
+
+function renderCategorySummary() {
+  const el = document.getElementById('categorySummary');
+  if (!state.allVenues.length) { el.innerHTML = ''; return; }
+  const counts = {};
+  state.allVenues.forEach(v => { counts[v.category.id] = (counts[v.category.id] || 0) + 1; });
+  el.innerHTML = CATEGORIES
+    .filter(cat => counts[cat.id])
+    .map(cat => `<span class="category-summary-chip" style="background:${cat.bg};color:${cat.color}">
+      ${cat.emoji} ${counts[cat.id]}
+    </span>`).join('');
+}
+
+function updateEmptyStateText() {
+  document.getElementById('emptyTitle').textContent = T[LANG.current].emptyTitle;
+  document.getElementById('emptyDesc').textContent = T[LANG.current].emptyDesc;
+}
+
+// ── RENDER MARKERS ───────────────────────────────
+const _iconCache = {};
+function getIcon(cat) {
+  if (!_iconCache[cat.id]) {
+    _iconCache[cat.id] = L.divIcon({
+      html: `<div class="map-marker" style="background:${cat.color}"><div class="map-marker-inner">${cat.emoji}</div></div>`,
+      className: '', iconSize: [34, 34], iconAnchor: [17, 34], popupAnchor: [0, -36],
+    });
+  }
+  return _iconCache[cat.id];
+}
+
+function renderMarkers() {
+  markersLayer.clearLayers();
+  state.markers.clear();
+
+  const batch = [];
+  state.filtered.forEach(v => {
+    const marker = L.marker([v.lat, v.lon], { icon: getIcon(v.category) });
+    marker.bindPopup(() => buildPopup(v), { maxWidth: 280, minWidth: 260 });
+    marker.on('click', () => selectVenue(v.id));
+    state.markers.set(v.id, marker);
+    batch.push(marker);
+  });
+  markersLayer.addLayers(batch);
+}
+
+function buildPopup(v) {
+  return `<div class="popup-content">
+    <div class="popup-header">
+      <div class="popup-icon" style="background:${v.category.bg}">${v.category.emoji}</div>
+      <div>
+        <div class="popup-name">${v.name}</div>
+        ${v.nameZh ? `<div class="popup-name-zh">${v.nameZh}</div>` : ''}
+      </div>
+    </div>
+    ${v.address ? `<div class="popup-address">\u{1F4CD} ${v.address}</div>` : ''}
+    ${v.openingHours ? `<div class="popup-address">\u{1F552} ${translateHours(v.openingHours)}</div>` : ''}
+    ${v.phone ? `<div class="popup-address">\u{1F4DE} <a href="tel:${v.phone}" style="color:var(--primary);text-decoration:none">${v.phone}</a></div>` : ''}
+    <div style="display:flex;gap:6px">
+      ${v.website
+        ? `<a class="popup-website" href="${v.website}" target="_blank" rel="noopener" style="flex:1">${T[LANG.current].website}</a>`
+        : ''
+      }
+      <a class="popup-website" href="https://www.google.com/maps/dir/?api=1&destination=${v.lat},${v.lon}" target="_blank" rel="noopener" style="flex:1;background:#4285F4">${T[LANG.current].navigate}</a>
+    </div>
+  </div>`;
+}
+
+// ── VENUE SELECTION ──────────────────────────────
+function selectVenue(id) {
+  state.activeCardId = id;
+  // Highlight card
+  document.querySelectorAll('.venue-card').forEach(c => c.classList.remove('active'));
+  const cardEl = document.getElementById('card-' + id.replace(/[^a-z0-9]/gi, '-'));
+  if (cardEl) {
+    cardEl.classList.add('active');
+    cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  // Open marker popup
+  const marker = state.markers.get(id);
+  if (marker) { marker.openPopup(); }
+}
+
+function flyToVenue(id) {
+  const v = state.allVenues.find(x => x.id === id);
+  if (!v) return;
+  map.flyTo([v.lat, v.lon], 16, { duration: 1 });
+  selectVenue(id);
+}
+
+// ── OVERLAY ──────────────────────────────────────
+function showOverlay(show) {
+  const overlay = document.getElementById('mapOverlay');
+  document.getElementById('loadingText').textContent = T[LANG.current].loadingVenues;
+  document.getElementById('loadingHint').textContent = show ? T[LANG.current].loadingHint : '';
+  overlay.classList.toggle('hidden', !show);
+}
+
+// ── LANGUAGE ─────────────────────────────────────
+function setLang(lang) {
+  LANG.current = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === lang);
+  });
+  document.getElementById('searchInput').placeholder = T[lang].searchPlaceholder;
+  updateEmptyStateText();
+  buildFilterBar();
+  if (state.allVenues.length) {
+    document.getElementById('resultCountText').innerHTML =
+      T[lang].found(state.filtered.length, state.currentRegion);
+    renderList();
+    renderMarkers();
+    renderCategorySummary();
+  } else {
+    document.getElementById('resultCountText').textContent = T[lang].resultLabel;
+  }
+}
+
+// ── SKELETON LOADING ─────────────────────────────
+function showSkeletons() {
+  const list = document.getElementById('venueList');
+  document.getElementById('emptyState').style.display = 'none';
+  list.style.display = 'flex';
+  list.innerHTML = Array(4).fill(0).map(() => `
+    <div class="skeleton-card">
+      <div style="display:flex;gap:11px;align-items:center">
+        <div class="skeleton" style="width:36px;height:36px;border-radius:50%;flex-shrink:0"></div>
+        <div style="flex:1">
+          <div class="skeleton" style="height:12px;margin-bottom:8px;width:70%"></div>
+          <div class="skeleton" style="height:10px;width:45%"></div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Override searchRegion to show skeletons
+const _origSearch = searchRegion;
+window.searchRegion = async (name) => {
+  showSkeletons();
+  await _origSearch(name);
+};
+
+// ── STATIC VENUE DATA (instant load, no API needed) ──
+const STATIC_NL_VENUES = [
+  // Theme Parks
+  { type:'node',id:1,lat:51.6508,lon:5.0474, tags:{name:'Efteling',tourism:'theme_park',website:'https://www.efteling.com','addr:city':'Kaatsheuvel','addr:street':'Europalaan','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-19:00'}},
+  { type:'node',id:2,lat:52.4416,lon:5.5836, tags:{name:'Walibi Holland',tourism:'theme_park',website:'https://www.walibi.nl','addr:city':'Biddinghuizen','addr:street':'Spijkweg','addr:housenumber':'30',opening_hours:'Mo-Su 10:00-18:00 (seasonal)'}},
+  { type:'node',id:3,lat:52.1469,lon:4.3714, tags:{name:'Duinrell',tourism:'theme_park',website:'https://www.duinrell.nl','addr:city':'Wassenaar','addr:street':'Duinrell','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:4,lat:52.6289,lon:6.5689, tags:{name:'Attractiepark Slagharen',tourism:'theme_park',website:'https://www.slagharen.com','addr:city':'Slagharen','addr:street':'Zwarte Dijk','addr:housenumber':'37',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:5,lat:51.4272,lon:6.0058, tags:{name:'Toverland',tourism:'theme_park',website:'https://www.toverland.com','addr:city':'Sevenum','addr:street':'Toverland','addr:housenumber':'2',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:6,lat:52.0644,lon:4.2972, tags:{name:'Drievliet',tourism:'theme_park',website:'https://www.drievliet.nl','addr:city':'Den Haag','addr:street':"Laan van 's-Gravenmade",'addr:housenumber':'81',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:7,lat:52.3935,lon:6.4558, tags:{name:'Avonturenpark Hellendoorn',tourism:'theme_park',website:'https://www.avonturenpark.nl','addr:city':'Hellendoorn','addr:street':'Luttenbergerweg','addr:housenumber':'22',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:8,lat:52.2044,lon:5.3886, tags:{name:'Julianatoren',tourism:'theme_park',website:'https://www.julianatoren.nl','addr:city':'Apeldoorn','addr:street':'Amersfoortseweg','addr:housenumber':'35',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:9,lat:51.9130,lon:4.4620, tags:{name:'Plaswijckpark',tourism:'theme_park',website:'https://www.plaswijckpark.nl','addr:city':'Rotterdam','addr:street':'Ringdijk','addr:housenumber':'20',opening_hours:'Mo-Su 09:00-18:00'}},
+  { type:'node',id:130,lat:52.2900,lon:5.1500, tags:{name:'Speelpark Oud Valkeveen',tourism:'theme_park',website:'https://www.oudvalkeveen.nl','addr:city':'Naarden',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:131,lat:52.7100,lon:5.3000, tags:{name:'Sprookjeswonderland',tourism:'theme_park',website:'https://www.sprookjeswonderland.nl','addr:city':'Enkhuizen',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:132,lat:52.2700,lon:6.7900, tags:{name:'De Waarbeek',tourism:'theme_park',website:'https://www.dewaarbeek.nl','addr:city':'Hengelo',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:133,lat:51.8200,lon:5.8900, tags:{name:'Attractiepark Tivoli',tourism:'theme_park',website:'https://www.attractieparktivoli.nl','addr:city':'Berg en Dal',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  // Zoos & Animals
+  { type:'node',id:10,lat:52.3663,lon:4.9158, tags:{name:'Artis',tourism:'zoo',website:'https://www.artis.nl','addr:city':'Amsterdam','addr:street':'Plantage Kerklaan','addr:housenumber':'38-40',opening_hours:'Mar-Oct: Mo-Su 09:00-18:00; Nov-Feb: 09:00-17:00'}},
+  { type:'node',id:11,lat:51.9751,lon:5.9003, tags:{name:"Burgers' Zoo",tourism:'zoo',website:'https://www.burgerszoo.nl','addr:city':'Arnhem','addr:street':'Antoon van Hooffplein','addr:housenumber':'1',opening_hours:'Mo-Su 09:00-18:00'}},
+  { type:'node',id:12,lat:51.5349,lon:5.1162, tags:{name:'Beekse Bergen',tourism:'zoo',website:'https://www.beeksebergen.nl','addr:city':'Hilvarenbeek','addr:street':'Beekse Bergen','addr:housenumber':'1',opening_hours:'Mo-Fr 10:00-17:30; Sa-Su 09:30-19:00'}},
+  { type:'node',id:13,lat:52.7797,lon:6.9009, tags:{name:'Wildlands Adventure Zoo',tourism:'zoo',website:'https://www.wildlands.nl','addr:city':'Emmen','addr:street':'Raatakkers','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:14,lat:52.1584,lon:5.3841, tags:{name:'Dierenpark Amersfoort',tourism:'zoo',website:'https://www.dierenparkamersfoort.nl','addr:city':'Amersfoort','addr:street':'Barchman Wuytierslaan','addr:housenumber':'224',opening_hours:'Mo-Su 09:00-18:00'}},
+  { type:'node',id:15,lat:50.8613,lon:6.0403, tags:{name:'GaiaZOO',tourism:'zoo',website:'https://www.gaiazoo.nl','addr:city':'Kerkrade','addr:street':'Gaiaboulevard','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:16,lat:52.3484,lon:5.6249, tags:{name:'Dolfinarium',tourism:'zoo',website:'https://www.dolfinarium.nl','addr:city':'Harderwijk','addr:street':'Zuiderzeeboulevard','addr:housenumber':'22',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:17,lat:52.0174,lon:5.8804, tags:{name:'Apenheul',tourism:'zoo',website:'https://www.apenheul.nl','addr:city':'Apeldoorn','addr:street':'J.C. Wilslaan','addr:housenumber':'21',opening_hours:'Mo-Su 09:30-17:00 (Apr-Oct)'}},
+  { type:'node',id:18,lat:52.7778,lon:6.9003, tags:{name:'Dierenpark Emmen',tourism:'zoo',website:'https://www.dierenparkemmen.nl','addr:city':'Emmen',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:134,lat:51.9270,lon:4.4490, tags:{name:'Diergaarde Blijdorp',tourism:'zoo',website:'https://www.diergaardeblijdorp.nl','addr:city':'Rotterdam','addr:street':'Blijdorplaan','addr:housenumber':'8',opening_hours:'Mo-Su 09:00-18:00'}},
+  { type:'node',id:135,lat:51.9600,lon:5.5700, tags:{name:'Ouwehands Dierenpark',tourism:'zoo',website:'https://www.ouwehand.nl','addr:city':'Rhenen','addr:street':'Grebbeweg','addr:housenumber':'111',opening_hours:'Mo-Su 09:00-18:00'}},
+  { type:'node',id:136,lat:52.1200,lon:4.6500, tags:{name:'Avifauna Bird Park',tourism:'zoo',website:'https://www.avifauna.nl','addr:city':'Alphen aan den Rijn','addr:street':'Hoorn','addr:housenumber':'65',opening_hours:'Mo-Su 09:00-18:00'}},
+  { type:'node',id:137,lat:51.6900,lon:5.9700, tags:{name:'Stadsboerderij Gennep',tourism:'children_farm','addr:city':'Gennep',opening_hours:'Mo-Su 09:00-17:00'}},
+  // Aquariums
+  { type:'node',id:20,lat:52.1043,lon:4.2753, tags:{name:'Sea Life Scheveningen',tourism:'aquarium',website:'https://www.visitsealife.com/scheveningen','addr:city':'Den Haag','addr:street':'Strandweg','addr:housenumber':'13',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:21,lat:52.3698,lon:4.9033, tags:{name:'Sea Life Amsterdam',tourism:'aquarium',website:'https://www.visitsealife.com/amsterdam','addr:city':'Amsterdam',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:22,lat:51.9103,lon:4.4697, tags:{name:'Oceanium Rotterdam',tourism:'aquarium',website:'https://www.rotterdamzoo.nl','addr:city':'Rotterdam','addr:street':'Blijdorplaan','addr:housenumber':'8',opening_hours:'Mo-Su 09:00-18:00'}},
+  { type:'node',id:23,lat:52.3500,lon:5.6200, tags:{name:'Dolfinarium Harderwijk',tourism:'aquarium',website:'https://www.dolfinarium.nl','addr:city':'Harderwijk','addr:street':'Zuiderzeeboulevard','addr:housenumber':'22',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:24,lat:53.0900,lon:4.7500, tags:{name:'Ecomare',tourism:'aquarium',website:'https://www.ecomare.nl','addr:city':'De Koog, Texel','addr:street':'Ruijslaan','addr:housenumber':'92',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:25,lat:52.0000,lon:5.9200, tags:{name:"Burgers' Ocean",tourism:'aquarium',website:'https://www.burgerszoo.nl','addr:city':'Arnhem','addr:street':'Antoon van Hooffplein','addr:housenumber':'1',opening_hours:'Mo-Su 09:00-18:00'}},
+  { type:'node',id:26,lat:53.1700,lon:5.8500, tags:{name:'AquaZoo Friesland',tourism:'aquarium',website:'https://www.aquazoo.nl','addr:city':'Leeuwarden','addr:street':'De Groene Ster','addr:housenumber':'2',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:27,lat:53.3900,lon:6.4600, tags:{name:'Zeehondencentrum Pieterburen',tourism:'aquarium',website:'https://www.zeehondencentrum.nl','addr:city':'Pieterburen','addr:street':'Hoofdstraat','addr:housenumber':'94a',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:28,lat:51.8200,lon:3.8600, tags:{name:'A Seal Stellendam',tourism:'aquarium',website:'https://www.aseal.nl','addr:city':'Stellendam',opening_hours:'Mo-Su 10:00-17:00'}},
+  // Museums
+  { type:'node',id:30,lat:52.3744,lon:4.9122, tags:{name:'NEMO Science Museum',tourism:'museum',website:'https://www.nemosciencemuseum.nl','addr:city':'Amsterdam','addr:street':'Oosterdok','addr:housenumber':'2',opening_hours:'Tu-Su 10:00-17:30 (Mo closed, except holidays)'}},
+  { type:'node',id:31,lat:52.3600,lon:4.8852, tags:{name:'Rijksmuseum',tourism:'museum',website:'https://www.rijksmuseum.nl','addr:city':'Amsterdam','addr:street':'Museumstraat','addr:housenumber':'1',opening_hours:'Mo-Su 09:00-17:00'}},
+  { type:'node',id:32,lat:52.3584,lon:4.8811, tags:{name:'Van Gogh Museum',tourism:'museum',website:'https://www.vangoghmuseum.nl','addr:city':'Amsterdam','addr:street':'Museumplein','addr:housenumber':'6',opening_hours:'Mo-Su 09:00-17:00'}},
+  { type:'node',id:33,lat:52.3752,lon:4.8840, tags:{name:'Anne Frank House',tourism:'museum',website:'https://www.annefrank.org','addr:city':'Amsterdam','addr:street':'Prinsengracht','addr:housenumber':'263-267',opening_hours:'Mo-Su 09:00-22:00'}},
+  { type:'node',id:34,lat:52.1584,lon:4.4819, tags:{name:'Naturalis Biodiversity Center',tourism:'museum',website:'https://www.naturalis.nl','addr:city':'Leiden','addr:street':'Darwinweg','addr:housenumber':'2',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:35,lat:52.0813,lon:4.3148, tags:{name:'Mauritshuis',tourism:'museum',website:'https://www.mauritshuis.nl','addr:city':'Den Haag','addr:street':'Plein','addr:housenumber':'29',opening_hours:'Mo 13:00-18:00; Tu-Su 10:00-18:00; Th 10:00-20:00'}},
+  { type:'node',id:36,lat:53.2107,lon:6.5617, tags:{name:'Groninger Museum',tourism:'museum',website:'https://www.groningermuseum.nl','addr:city':'Groningen','addr:street':'Museumeiland','addr:housenumber':'1',opening_hours:'Tu-Su 10:00-17:00'}},
+  { type:'node',id:37,lat:52.7018,lon:5.2887, tags:{name:'Zuiderzeemuseum',tourism:'museum',website:'https://www.zuiderzeemuseum.nl','addr:city':'Enkhuizen','addr:street':'Wierdijk','addr:housenumber':'12-22',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:38,lat:51.9892,lon:5.8904, tags:{name:'Nederlands Openluchtmuseum',tourism:'museum',website:'https://www.openluchtmuseum.nl','addr:city':'Arnhem','addr:street':'Hoeferlaan','addr:housenumber':'4',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:39,lat:52.3752,lon:4.9165, tags:{name:'Scheepvaartmuseum',tourism:'museum',website:'https://www.hetscheepvaartmuseum.nl','addr:city':'Amsterdam','addr:street':'Kattenburgerplein','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:40,lat:52.2571,lon:6.1607, tags:{name:'Speelgoedmuseum Deventer',tourism:'museum',website:'https://www.speelgoedmuseum.nl','addr:city':'Deventer','addr:street':'Brink','addr:housenumber':'47',opening_hours:'Tu-Su 10:00-17:00'}},
+  { type:'node',id:41,lat:50.8484,lon:5.7049, tags:{name:'Bonnefantenmuseum',tourism:'museum',website:'https://www.bonnefanten.nl','addr:city':'Maastricht','addr:street':'Avenue Ceramique','addr:housenumber':'250',opening_hours:'Tu-Su 11:00-17:00'}},
+  { type:'node',id:42,lat:52.3580,lon:4.9188, tags:{name:'Tropenmuseum',tourism:'museum',website:'https://www.tropenmuseum.nl','addr:city':'Amsterdam','addr:street':'Linnaeusstraat','addr:housenumber':'2',opening_hours:'Tu-Su 10:00-17:00'}},
+  { type:'node',id:43,lat:52.0749,lon:4.3148, tags:{name:'Gemeentemuseum Den Haag',tourism:'museum',website:'https://www.gemeentemuseum.nl','addr:city':'Den Haag','addr:street':'Stadhouderslaan','addr:housenumber':'41',opening_hours:'Tu-Su 10:00-17:00'}},
+  { type:'node',id:138,lat:52.1700,lon:4.4600, tags:{name:'Corpus Journey through the Human Body',tourism:'museum',website:'https://www.corpusexperience.nl','addr:city':'Oegstgeest','addr:street':'Willem Einthovenstraat','addr:housenumber':'1',opening_hours:'Tu-Su 10:00-17:00 (last entry 15:00)'}},
+  { type:'node',id:139,lat:52.0850,lon:5.1150, tags:{name:'Spoorwegmuseum',tourism:'museum',website:'https://www.spoorwegmuseum.nl','addr:city':'Utrecht','addr:street':'Maliebaanstation',opening_hours:'Tu-Su 10:00-17:00'}},
+  { type:'node',id:140,lat:52.3660,lon:4.9160, tags:{name:'Micropia',tourism:'museum',website:'https://www.micropia.nl','addr:city':'Amsterdam','addr:street':'Plantage Kerklaan','addr:housenumber':'38-40',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:141,lat:52.3800,lon:4.6300, tags:{name:'Het Dolhuys - Museum of the Mind',tourism:'museum','addr:city':'Haarlem','addr:street':'Schotersingel','addr:housenumber':'2',opening_hours:'Tu-Su 11:00-17:00'}},
+  { type:'node',id:142,lat:52.2200,lon:4.4200, tags:{name:'Space Expo',tourism:'museum',website:'https://www.space-expo.nl','addr:city':'Noordwijk','addr:street':'Keplerlaan','addr:housenumber':'3',opening_hours:'Tu-Su 10:00-17:00'}},
+  { type:'node',id:143,lat:52.3700,lon:4.9000, tags:{name:'Ontdekhoek',tourism:'museum','addr:city':'Amsterdam'}},
+  { type:'node',id:144,lat:51.6200,lon:3.9300, tags:{name:'Watersnoodmuseum',tourism:'museum',website:'https://www.watersnoodmuseum.nl','addr:city':'Ouwerkerk','addr:street':'Weg van de Buitenlandse Pers','addr:housenumber':'5',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:145,lat:51.9100,lon:4.4900, tags:{name:'Mariniersmuseum',tourism:'museum',website:'https://www.mariniersmuseum.nl','addr:city':'Rotterdam','addr:street':'Wijnhaven','addr:housenumber':'7-13',opening_hours:'Tu-Su 10:00-17:00'}},
+  // Attractions & Nature
+  { type:'node',id:50,lat:52.0978,lon:4.3003, tags:{name:'Madurodam',tourism:'attraction',website:'https://www.madurodam.nl','addr:city':'Den Haag','addr:street':'George Maduroplein','addr:housenumber':'1',opening_hours:'Mo-Su 11:00-17:00'}},
+  { type:'node',id:51,lat:52.2705,lon:4.5466, tags:{name:'Keukenhof',tourism:'attraction',website:'https://www.keukenhof.nl','addr:city':'Lisse','addr:street':'Stationsweg','addr:housenumber':'166A',opening_hours:'Mar-May: Mo-Su 08:00-19:30'}},
+  { type:'node',id:52,lat:52.4745,lon:4.8122, tags:{name:'Zaanse Schans',tourism:'attraction',website:'https://www.zaanseschans.nl','addr:city':'Zaandam','addr:street':'Schansend','addr:housenumber':'7',opening_hours:'Mo-Su 09:00-17:00'}},
+  { type:'node',id:53,lat:52.7335,lon:6.0819, tags:{name:'Giethoorn',tourism:'attraction','addr:city':'Giethoorn'}},
+  { type:'node',id:54,lat:52.3664,lon:4.9085, tags:{name:'Hortus Botanicus Amsterdam',tourism:'attraction',website:'https://www.dehortus.nl','addr:city':'Amsterdam','addr:street':'Plantage Middenlaan','addr:housenumber':'2A',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:55,lat:52.1612,lon:4.4678, tags:{name:'Hortus Botanicus Leiden',tourism:'attraction',website:'https://www.hortusleiden.nl','addr:city':'Leiden','addr:street':'Rapenburg','addr:housenumber':'73',opening_hours:'Tu-Su 10:00-17:00'}},
+  // Nature Reserves
+  { type:'node',id:60,lat:52.0848,lon:5.8319, tags:{name:'Nationaal Park De Hoge Veluwe',leisure:'nature_reserve',website:'https://www.hogeveluwe.nl','addr:city':'Otterlo','addr:street':'Houtkampweg','addr:housenumber':'9',opening_hours:'Mo-Su 08:00-20:00 (seasonal)'}},
+  { type:'node',id:61,lat:51.4557,lon:5.8647, tags:{name:'Nationaal Park De Groote Peel',leisure:'nature_reserve','addr:city':'Ospel'}},
+  { type:'node',id:62,lat:52.4966,lon:4.7043, tags:{name:'Amsterdamse Waterleidingduinen',leisure:'nature_reserve','addr:city':'Vogelenzang'}},
+  { type:'node',id:146,lat:52.7900,lon:6.4200, tags:{name:'Nationaal Park Dwingelderveld',leisure:'nature_reserve','addr:city':'Dwingeloo'}},
+  { type:'node',id:147,lat:52.0800,lon:5.3000, tags:{name:'Nationaal Park Utrechtse Heuvelrug',leisure:'nature_reserve','addr:city':'Utrechtse Heuvelrug'}},
+  { type:'node',id:148,lat:53.4900,lon:6.2000, tags:{name:'Nationaal Park Schiermonnikoog',leisure:'nature_reserve','addr:city':'Schiermonnikoog'}},
+  { type:'node',id:149,lat:53.3600,lon:6.2100, tags:{name:'Nationaal Park Lauwersmeer',leisure:'nature_reserve','addr:city':'Lauwersoog'}},
+  { type:'node',id:150,lat:51.7400,lon:4.8200, tags:{name:'Nationaal Park De Biesbosch',leisure:'nature_reserve',website:'https://www.np-debiesbosch.nl','addr:city':'Werkendam'}},
+  { type:'node',id:151,lat:51.9400,lon:4.5200, tags:{name:'Kralingse Bos',leisure:'nature_reserve','addr:city':'Rotterdam'}},
+  // Beaches
+  { type:'node',id:70,lat:52.1055,lon:4.2731, tags:{name:'Scheveningen Strand',natural:'beach','addr:city':'Den Haag'}},
+  { type:'node',id:71,lat:52.3699,lon:4.5331, tags:{name:'Zandvoort aan Zee',natural:'beach','addr:city':'Zandvoort'}},
+  { type:'node',id:72,lat:52.4029,lon:4.5490, tags:{name:'Bloemendaal aan Zee',natural:'beach','addr:city':'Bloemendaal'}},
+  { type:'node',id:73,lat:51.3756,lon:3.4034, tags:{name:'Cadzand-Bad Strand',natural:'beach','addr:city':'Cadzand-Bad'}},
+  { type:'node',id:74,lat:51.5639,lon:3.4972, tags:{name:'Domburg Strand',natural:'beach','addr:city':'Domburg'}},
+  { type:'node',id:75,lat:52.6657,lon:4.6543, tags:{name:'Bergen aan Zee',natural:'beach','addr:city':'Bergen aan Zee'}},
+  { type:'node',id:76,lat:52.6215,lon:4.6229, tags:{name:'Egmond aan Zee',natural:'beach','addr:city':'Egmond aan Zee'}},
+  { type:'node',id:77,lat:52.2049,lon:4.4082, tags:{name:'Katwijk aan Zee',natural:'beach','addr:city':'Katwijk'}},
+  { type:'node',id:152,lat:53.0600,lon:4.7800, tags:{name:'Texel Strand',natural:'beach','addr:city':'Texel'}},
+  { type:'node',id:153,lat:53.4500,lon:5.7600, tags:{name:'Ameland Strand',natural:'beach','addr:city':'Ameland'}},
+  { type:'node',id:154,lat:51.7300,lon:3.7700, tags:{name:'Renesse Strand',natural:'beach','addr:city':'Renesse'}},
+  { type:'node',id:155,lat:52.2400,lon:4.4300, tags:{name:'Noordwijk aan Zee',natural:'beach','addr:city':'Noordwijk'}},
+  { type:'node',id:156,lat:52.0700,lon:4.2200, tags:{name:'Kijkduin',natural:'beach','addr:city':'Den Haag'}},
+  { type:'node',id:157,lat:51.9800,lon:4.1200, tags:{name:'Hoek van Holland',natural:'beach','addr:city':'Hoek van Holland'}},
+  // Historic / Castles
+  { type:'node',id:80,lat:52.3337,lon:5.0739, tags:{name:'Muiderslot',historic:'castle',website:'https://www.muiderslot.nl','addr:city':'Muiden','addr:street':'Herengracht','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:81,lat:52.1022,lon:5.0069, tags:{name:'Kasteel De Haar',historic:'castle',website:'https://www.kasteeldehaar.nl','addr:city':'Haarzuilens','addr:street':'Kasteellaan','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:82,lat:50.9214,lon:5.9283, tags:{name:'Kasteel Hoensbroek',historic:'castle',website:'https://www.kasteelhoensbroek.nl','addr:city':'Hoensbroek','addr:street':'Klinkertstraat','addr:housenumber':'118',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:83,lat:51.7894,lon:5.0168, tags:{name:'Slot Loevestein',historic:'castle',website:'https://www.loevestein.nl','addr:city':'Poederoijen','addr:street':'Loevestein','addr:housenumber':'1',opening_hours:'Tu-Su 11:00-17:00 (seasonal)'}},
+  { type:'node',id:84,lat:52.8380,lon:6.8656, tags:{name:'Hunebedcentrum',historic:'monument',website:'https://www.hunebedcentrum.eu','addr:city':'Borger','addr:street':'Bronnegerstraat','addr:housenumber':'12',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:158,lat:52.1300,lon:4.6200, tags:{name:'Archeon',historic:'archaeological_site',website:'https://www.archeon.nl','addr:city':'Alphen aan den Rijn','addr:street':'Archeonlaan','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:159,lat:51.9700,lon:5.7900, tags:{name:'Kasteel Doorwerth',historic:'castle',website:'https://www.glk.nl','addr:city':'Doorwerth'}},
+  { type:'node',id:160,lat:53.0100,lon:7.1900, tags:{name:'Fort Bourtange',historic:'fort',website:'https://www.vestingbourtange.nl','addr:city':'Bourtange'}},
+  { type:'node',id:161,lat:51.7600,lon:5.2200, tags:{name:'Kasteel Ammersoyen',historic:'castle',website:'https://www.glk.nl','addr:city':'Ammerzoden'}},
+  // Windmills
+  { type:'node',id:90,lat:51.8834,lon:4.6333, tags:{name:'Kinderdijk Molens',man_made:'windmill',website:'https://www.kinderdijk.nl','addr:city':'Kinderdijk','addr:street':'Nederwaard','addr:housenumber':'1B',opening_hours:'Mo-Su 09:00-17:30'}},
+  { type:'node',id:91,lat:52.1612,lon:4.4891, tags:{name:'Molen de Valk',man_made:'windmill',website:'https://www.molendevalk.nl','addr:city':'Leiden','addr:street':'2e Binnenvestgracht','addr:housenumber':'1',opening_hours:'Tu-Sa 10:00-17:00; Su 13:00-17:00'}},
+  // Sports
+  { type:'node',id:100,lat:50.8936,lon:6.0314, tags:{name:'SnowWorld Landgraaf',leisure:'ice_rink',website:'https://www.snowworld.com','addr:city':'Landgraaf','addr:street':'Witte Wereld','addr:housenumber':'1',opening_hours:'Mo-Su 09:00-23:00'}},
+  { type:'node',id:101,lat:52.3906,lon:4.8374, tags:{name:'Jaap Eden IJsbaan',leisure:'ice_rink',website:'https://www.jaapeden.nl','addr:city':'Amsterdam','addr:street':'Radioweg','addr:housenumber':'64',opening_hours:'Mo-Su 09:00-22:00 (seasonal)'}},
+  { type:'node',id:162,lat:52.0600,lon:4.3700, tags:{name:'De Uithof',leisure:'sports_centre',website:'https://www.deuithof.nl','addr:city':'Den Haag'}},
+  { type:'node',id:163,lat:51.4300,lon:5.4700, tags:{name:'Zwembad De Tongelreep',leisure:'swimming_pool','addr:city':'Eindhoven'}},
+  { type:'node',id:164,lat:52.0100,lon:4.7100, tags:{name:'GZC Donk',leisure:'swimming_pool','addr:city':'Gouda'}},
+  { type:'node',id:165,lat:53.2100,lon:6.5800, tags:{name:'Bjoeks Klimmuur',leisure:'sports_centre','addr:city':'Groningen'}},
+  { type:'node',id:166,lat:52.0500,lon:4.4800, tags:{name:'SnowWorld Zoetermeer',leisure:'ice_rink',website:'https://www.snowworld.com','addr:city':'Zoetermeer','addr:street':'Buytenparklaan','addr:housenumber':'20',opening_hours:'Mo-Su 09:00-23:00'}},
+  // Visitor Centres
+  { type:'node',id:110,lat:52.2705,lon:4.5479, tags:{name:'Keukenhof Visitor Centre',tourism:'visitor_centre','addr:city':'Lisse'}},
+  { type:'node',id:111,lat:53.1923,lon:5.4020, tags:{name:'Friesland Bezoekerscentrum',tourism:'visitor_centre','addr:city':'Leeuwarden'}},
+  // Theatre & Cinema
+  { type:'node',id:120,lat:52.3657,lon:4.8824, tags:{name:'Stadsschouwburg Amsterdam',amenity:'theatre',website:'https://www.internationaaltheater.nl','addr:city':'Amsterdam','addr:street':'Leidseplein','addr:housenumber':'26',opening_hours:'Mo-Su varies'}},
+  { type:'node',id:121,lat:51.9244,lon:4.4777, tags:{name:'Theater Rotterdam',amenity:'theatre',website:'https://www.theaterrotterdam.nl','addr:city':'Rotterdam'}},
+  { type:'node',id:122,lat:52.0813,lon:4.3148, tags:{name:'Theater aan het Spui',amenity:'theatre','addr:city':'Den Haag'}},
+  { type:'node',id:167,lat:51.6508,lon:5.0474, tags:{name:'Efteling Theater',amenity:'theatre',website:'https://www.efteling.com','addr:city':'Kaatsheuvel'}},
+  { type:'node',id:168,lat:52.0900,lon:5.1100, tags:{name:'TivoliVredenburg',amenity:'theatre',website:'https://www.tivolivredenburg.nl','addr:city':'Utrecht','addr:street':'Vredenburgkade','addr:housenumber':'11',opening_hours:'Mo-Su varies'}},
+  { type:'node',id:169,lat:52.3100,lon:4.9400, tags:{name:'Pathé Arena',amenity:'cinema',website:'https://www.pathe.nl','addr:city':'Amsterdam'}},
+  { type:'node',id:170,lat:52.0900,lon:4.2900, tags:{name:'Omniversum IMAX',amenity:'cinema',website:'https://www.omniversum.nl','addr:city':'Den Haag','addr:street':'President Kennedylaan','addr:housenumber':'5',opening_hours:'Mo-Su varies'}},
+  { type:'node',id:171,lat:52.3840,lon:4.9010, tags:{name:'Filmmuseum Eye',amenity:'cinema',website:'https://www.eyefilm.nl','addr:city':'Amsterdam','addr:street':'IJpromenade','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-21:00'}},
+  // ── Indoor Playgrounds: Monkey Town ──
+  { type:'node',id:300,lat:52.3700,lon:4.8100, tags:{name:'Monkey Town Amsterdam West',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Amsterdam'}},
+  { type:'node',id:301,lat:52.4000,lon:4.9400, tags:{name:'Monkey Town Amsterdam Noord',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Amsterdam'}},
+  { type:'node',id:302,lat:51.9244,lon:4.4777, tags:{name:'Monkey Town Rotterdam',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Rotterdam','addr:street':'Akkeroord','addr:housenumber':'10'}},
+  { type:'node',id:303,lat:52.0700,lon:4.3000, tags:{name:'Monkey Town Den Haag',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Den Haag','addr:street':'Jaap Edenweg','addr:housenumber':'10'}},
+  { type:'node',id:304,lat:52.0900,lon:5.1100, tags:{name:'Monkey Town Amersfoort',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Amersfoort','addr:street':'Middelhoefseweg','addr:housenumber':'10'}},
+  { type:'node',id:305,lat:52.2100,lon:5.9700, tags:{name:'Monkey Town Apeldoorn',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Apeldoorn','addr:street':'Sleutelbloemstraat','addr:housenumber':'71d'}},
+  { type:'node',id:306,lat:51.9850,lon:5.9000, tags:{name:'Monkey Town Arnhem',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Arnhem','addr:street':'Cruquiusweg','addr:housenumber':'3a'}},
+  { type:'node',id:307,lat:51.5900,lon:4.7800, tags:{name:'Monkey Town Breda',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Breda','addr:street':'Tramsingel','addr:housenumber':'48'}},
+  { type:'node',id:308,lat:51.4400,lon:5.4800, tags:{name:'Monkey Town Eindhoven',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Eindhoven','addr:street':'Vijfkamplaan','addr:housenumber':'15'}},
+  { type:'node',id:309,lat:52.2200,lon:6.8900, tags:{name:'Monkey Town Enschede',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Enschede','addr:street':'Colosseum','addr:housenumber':'82'}},
+  { type:'node',id:310,lat:52.0100,lon:4.7100, tags:{name:'Monkey Town Gouda',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Gouda','addr:street':'Groenhovenpark','addr:housenumber':'1A'}},
+  { type:'node',id:311,lat:53.2000,lon:5.8000, tags:{name:'Monkey Town Leeuwarden',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Leeuwarden','addr:street':'Snekertrekweg','addr:housenumber':'39'}},
+  { type:'node',id:312,lat:51.4500,lon:5.4600, tags:{name:'Monkey Town Valkenswaard',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Valkenswaard','addr:street':'Pastoor Heerkensdreef','addr:housenumber':'15'}},
+  { type:'node',id:313,lat:51.6900,lon:5.3000, tags:{name:'Monkey Town Tilburg',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Tilburg','addr:street':'Spaubeekstraat','addr:housenumber':'89a'}},
+  { type:'node',id:314,lat:52.5100,lon:6.0900, tags:{name:'Monkey Town Zwolle',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Zwolle','addr:street':'Grote Voort','addr:housenumber':'13'}},
+  { type:'node',id:315,lat:52.0100,lon:4.3600, tags:{name:'Monkey Town Rijswijk',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Rijswijk','addr:street':'Lange Kleiweg','addr:housenumber':'1H'}},
+  { type:'node',id:316,lat:52.0800,lon:4.3300, tags:{name:'Monkey Town Delft',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Delft','addr:street':'Rijksstraatweg','addr:housenumber':'39'}},
+  { type:'node',id:317,lat:52.3400,lon:5.6200, tags:{name:'Monkey Town Harderwijk',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Harderwijk','addr:street':'Verkeersweg','addr:housenumber':'3'}},
+  { type:'node',id:318,lat:51.8500,lon:5.8600, tags:{name:'Monkey Town Wijchen',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Wijchen','addr:street':'Nieuweweg','addr:housenumber':'201'}},
+  { type:'node',id:319,lat:51.4400,lon:4.2800, tags:{name:'Monkey Town Bergen op Zoom',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Bergen op Zoom','addr:street':'Langstraat','addr:housenumber':'5'}},
+  { type:'node',id:320,lat:52.4800,lon:4.6500, tags:{name:'Monkey Town Uitgeest',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Uitgeest','addr:street':'Molenwerf','addr:housenumber':'20'}},
+  { type:'node',id:321,lat:52.3300,lon:4.8600, tags:{name:'Monkey Town Diemen',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Diemen','addr:street':'Sniep','addr:housenumber':'26'}},
+  { type:'node',id:322,lat:51.8100,lon:5.9600, tags:{name:'Monkey Town Doetinchem',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Doetinchem','addr:street':'Edisonstraat','addr:housenumber':'1'}},
+  { type:'node',id:323,lat:52.1400,lon:5.3900, tags:{name:'Monkey Town Ede',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Ede','addr:street':'Vening Meineszstraat','addr:housenumber':'4'}},
+  { type:'node',id:324,lat:51.6500,lon:3.4400, tags:{name:'Monkey Town Middelburg',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Middelburg','addr:street':'Podium','addr:housenumber':'3'}},
+  { type:'node',id:325,lat:53.2200,lon:6.5700, tags:{name:'Monkey Town Groningen',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Groningen','addr:street':'Peizerweg','addr:housenumber':'74'}},
+  { type:'node',id:326,lat:51.3500,lon:6.1700, tags:{name:'Monkey Town Venlo',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Venlo','addr:street':'Heymansstraat','addr:housenumber':'101'}},
+  { type:'node',id:327,lat:50.8900,lon:5.9800, tags:{name:'Monkey Town Heerlen',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Heerlen','addr:street':'Stadionbaan','addr:housenumber':'50'}},
+  { type:'node',id:328,lat:51.0000,lon:5.8600, tags:{name:'Monkey Town Sittard',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Sittard','addr:street':'Haspelsestraat','addr:housenumber':'131'}},
+  { type:'node',id:329,lat:51.8200,lon:4.8700, tags:{name:'Monkey Town Sliedrecht',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Sliedrecht','addr:street':'Leeghwaterstraat','addr:housenumber':'65'}},
+  { type:'node',id:330,lat:51.8600,lon:4.3300, tags:{name:'Monkey Town Spijkenisse',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Spijkenisse','addr:street':'Einsteinweg','addr:housenumber':'6'}},
+  // ── Indoor Playgrounds: Ballorig ──
+  { type:'node',id:400,lat:52.3100,lon:4.9700, tags:{name:'Ballorig Amsterdam Arena',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Amsterdam'}},
+  { type:'node',id:401,lat:52.3200,lon:4.9800, tags:{name:'Ballorig Amsterdam Gaasperplas',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Amsterdam'}},
+  { type:'node',id:402,lat:52.0850,lon:5.1200, tags:{name:'Ballorig Utrecht',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Utrecht','addr:street':'Mississippidreef','addr:housenumber':'22'}},
+  { type:'node',id:403,lat:51.6900,lon:5.3000, tags:{name:"Ballorig 's-Hertogenbosch",leisure:'indoor_playground',website:'https://www.ballorig.nl','addr:city':"'s-Hertogenbosch"}},
+  { type:'node',id:404,lat:51.9850,lon:5.9000, tags:{name:'Ballorig Arnhem',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Arnhem','addr:street':'Hazenkamp','addr:housenumber':'36'}},
+  { type:'node',id:405,lat:52.2200,lon:6.8900, tags:{name:'Ballorig Enschede',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Enschede','addr:street':'J.J. van Deinselaan','addr:housenumber':'30'}},
+  { type:'node',id:406,lat:52.5100,lon:6.0900, tags:{name:'Ballorig Zwolle',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Zwolle','addr:street':'Ossenkamp','addr:housenumber':'6'}},
+  { type:'node',id:407,lat:52.3900,lon:4.4700, tags:{name:'Ballorig Beverwijk',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Beverwijk','addr:street':'Parallelweg','addr:housenumber':'120'}},
+  { type:'node',id:408,lat:52.6700,lon:5.0600, tags:{name:'Ballorig Hoorn',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Hoorn','addr:street':'Wogmergouw','addr:housenumber':'4'}},
+  { type:'node',id:409,lat:52.6700,lon:4.8300, tags:{name:'Ballorig Heerhugowaard',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Heerhugowaard','addr:street':'WM Dudokweg','addr:housenumber':'1'}},
+  { type:'node',id:410,lat:52.3600,lon:5.2200, tags:{name:'Ballorig Almere',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Almere','addr:street':'Scoutingpad','addr:housenumber':'1'}},
+  { type:'node',id:411,lat:52.5200,lon:5.4700, tags:{name:'Ballorig Lelystad',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Lelystad','addr:street':'Badweg','addr:housenumber':'17A'}},
+  { type:'node',id:412,lat:53.1300,lon:6.0500, tags:{name:'Ballorig Drachten',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Drachten','addr:street':'Dopplerlaan','addr:housenumber':'26A'}},
+  { type:'node',id:413,lat:52.9600,lon:5.9200, tags:{name:'Ballorig Heerenveen',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Heerenveen','addr:street':'Pim Mulierlaan','addr:housenumber':'51'}},
+  { type:'node',id:414,lat:53.0300,lon:5.6600, tags:{name:'Ballorig Sneek',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Sneek','addr:street':'Alexanderstraat','addr:housenumber':'10A'}},
+  { type:'node',id:415,lat:53.0000,lon:6.5600, tags:{name:'Ballorig Groningen',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Groningen','addr:street':'Bieskemaar','addr:housenumber':'1'}},
+  { type:'node',id:416,lat:53.1600,lon:6.7500, tags:{name:'Ballorig Hoogezand',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Hoogezand','addr:street':'Kees de Haanstraat','addr:housenumber':'71'}},
+  { type:'node',id:417,lat:52.9200,lon:6.6400, tags:{name:'Ballorig Assen',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Assen','addr:street':'Zuidenveld','addr:housenumber':'133'}},
+  { type:'node',id:418,lat:52.7800,lon:6.9000, tags:{name:'Ballorig Emmen',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Emmen','addr:street':'Oosterbracht','addr:housenumber':'11'}},
+  { type:'node',id:419,lat:50.8500,lon:5.6900, tags:{name:'Ballorig Maastricht',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Maastricht','addr:street':'Oosterweg','addr:housenumber':'5'}},
+  { type:'node',id:420,lat:50.8700,lon:6.0600, tags:{name:'Ballorig Kerkrade',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Kerkrade','addr:street':'Roda J.C. Ring','addr:housenumber':'2G'}},
+  { type:'node',id:421,lat:51.2000,lon:5.9800, tags:{name:'Ballorig Roermond',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Roermond','addr:street':'Elmpterweg','addr:housenumber':'48'}},
+  { type:'node',id:422,lat:51.0000,lon:5.8700, tags:{name:'Ballorig Sittard',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Sittard','addr:street':'Lissabonlaan','addr:housenumber':'30'}},
+  { type:'node',id:423,lat:51.3700,lon:6.1700, tags:{name:'Ballorig Venlo',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Venlo','addr:street':'Straelseweg','addr:housenumber':'331a'}},
+  { type:'node',id:424,lat:51.4200,lon:5.4100, tags:{name:'Ballorig Veldhoven',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Veldhoven','addr:street':'De Run','addr:housenumber':'5201'}},
+  { type:'node',id:425,lat:51.6900,lon:5.3200, tags:{name:'Ballorig Tilburg',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Tilburg','addr:street':'Von Suppestraat','addr:housenumber':'35A'}},
+  { type:'node',id:426,lat:51.9100,lon:4.3400, tags:{name:'Ballorig Vlaardingen',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Vlaardingen','addr:street':'Parallelweg','addr:housenumber':'4C'}},
+  { type:'node',id:427,lat:52.1300,lon:4.6600, tags:{name:'Ballorig Alphen aan den Rijn',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Alphen aan den Rijn','addr:street':'Rijnhavenkade','addr:housenumber':'2A'}},
+  { type:'node',id:428,lat:52.0100,lon:4.7100, tags:{name:'Ballorig Gouda',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Gouda','addr:street':'Burgemeester van Reenensingel','addr:housenumber':'125'}},
+  { type:'node',id:429,lat:52.0400,lon:6.1500, tags:{name:'Ballorig Zutphen',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Zutphen','addr:street':'Dreef','addr:housenumber':'12'}},
+  { type:'node',id:430,lat:52.0400,lon:5.5900, tags:{name:'Ballorig Veenendaal',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Veenendaal','addr:street':'Galileistraat','addr:housenumber':'3'}},
+  { type:'node',id:431,lat:52.0300,lon:5.1700, tags:{name:'Ballorig Houten',leisure:'indoor_playground',website:'https://www.ballorig.nl',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Houten','addr:street':'Tuibrug','addr:housenumber':'3'}},
+  // ── Indoor Playgrounds: Other Chains ──
+  { type:'node',id:450,lat:52.0680,lon:4.2700, tags:{name:"Jimmy's Speelparadijs",leisure:'indoor_playground',website:'https://www.jimmysspeelparadijs.nl','addr:city':'Amsterdam'}},
+  { type:'node',id:451,lat:52.2200,lon:5.1700, tags:{name:'KidsZoo Indoor Playground',leisure:'indoor_playground','addr:city':'Hilversum'}},
+  { type:'node',id:452,lat:51.8100,lon:4.6700, tags:{name:'Fun Valley',leisure:'indoor_playground',website:'https://www.funvalleymaastricht.nl','addr:city':'Dordrecht'}},
+  { type:'node',id:453,lat:52.5100,lon:6.0900, tags:{name:'Speelparadijs de Uitvinderij',leisure:'indoor_playground','addr:city':'Zwolle'}},
+  // ── Outdoor Playgrounds ──
+  { type:'node',id:200,lat:52.3539,lon:4.5894, tags:{name:'Linnaeushof',leisure:'playground',website:'https://www.linnaeushof.nl','addr:city':'Bennebroek','addr:street':'Rijksstraatweg','addr:housenumber':'4',opening_hours:'Mo-Su 10:00-18:00 (Apr-Oct)'}},
+  { type:'node',id:211,lat:52.0500,lon:4.3200, tags:{name:'Speeltuin Zuiderpark',leisure:'playground','addr:city':'Den Haag'}},
+  { type:'node',id:209,lat:51.5900,lon:4.7800, tags:{name:'Speel & Klim Bos',leisure:'playground','addr:city':'Breda'}},
+  // ── Children's Farms (Kinderboerderij) ──
+  { type:'node',id:500,lat:52.3200,lon:4.8300, tags:{name:'Ridammerhoeve Geitenboerderij',tourism:'children_farm',website:'https://www.geitenboerderij.nl','addr:city':'Amstelveen','addr:street':'Nieuwe Meerlaan','addr:housenumber':'4',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:501,lat:52.3550,lon:4.8950, tags:{name:'Kinderboerderij De Pijp',tourism:'children_farm','addr:city':'Amsterdam','addr:street':'Lizzy Ansinghstraat','addr:housenumber':'82',opening_hours:'Tu-Su 11:00-17:00'}},
+  { type:'node',id:502,lat:52.3700,lon:4.8700, tags:{name:'Zimmerhoeve Kinderboerderij',tourism:'children_farm','addr:city':'Amsterdam'}},
+  { type:'node',id:503,lat:52.3900,lon:4.9100, tags:{name:'Kinderboerderij De Dierencapel',tourism:'children_farm','addr:city':'Amsterdam'}},
+  { type:'node',id:504,lat:51.9200,lon:4.4700, tags:{name:'Kinderboerderij De Kraal',tourism:'children_farm','addr:city':'Rotterdam'}},
+  { type:'node',id:505,lat:51.8900,lon:4.4900, tags:{name:'Kinderboerderij De Molenwei',tourism:'children_farm','addr:city':'Rotterdam'}},
+  { type:'node',id:506,lat:52.0700,lon:4.2800, tags:{name:'Stadsboerderij Pluk',tourism:'children_farm','addr:city':'Den Haag'}},
+  { type:'node',id:507,lat:52.0800,lon:5.1200, tags:{name:'Kinderboerderij De Eilandsteede',tourism:'children_farm','addr:city':'Utrecht'}},
+  { type:'node',id:508,lat:51.9800,lon:5.9200, tags:{name:'Stadsboerderij Presikhaaf',tourism:'children_farm','addr:city':'Arnhem','addr:street':'Ruitenberglaan','addr:housenumber':'4',opening_hours:'Mo-Su 09:00-17:00'}},
+  { type:'node',id:509,lat:51.8400,lon:5.8600, tags:{name:'Kinderboerderij De Goffert',tourism:'children_farm','addr:city':'Nijmegen'}},
+  { type:'node',id:510,lat:50.8400,lon:5.7100, tags:{name:'Kinderboerderij De Heeg',tourism:'children_farm','addr:city':'Maastricht'}},
+  { type:'node',id:511,lat:51.5000,lon:3.6100, tags:{name:'Kinderboerderij Klepperhoeve',tourism:'children_farm','addr:city':'Middelburg'}},
+  { type:'node',id:512,lat:52.1700,lon:5.3900, tags:{name:'Kinderboerderij De Veenweide',tourism:'children_farm','addr:city':'Soest'}},
+  { type:'node',id:513,lat:52.1600,lon:4.5200, tags:{name:'Alpacahoeven Klinkenberg',tourism:'children_farm',website:'https://www.alpacahoeven.nl','addr:city':'Sassenheim'}},
+  { type:'node',id:514,lat:53.0800,lon:4.7900, tags:{name:'Texel Schapenboerderij',tourism:'children_farm','addr:city':'Texel'}},
+  { type:'node',id:515,lat:51.7000,lon:5.3200, tags:{name:"Boerderij 't Geertje",tourism:'children_farm',website:'https://www.boerderijgeertje.nl','addr:city':'Zoeterwoude'}},
+  { type:'node',id:516,lat:52.3600,lon:4.9200, tags:{name:'Kinderboerderij Westerpark',tourism:'children_farm','addr:city':'Amsterdam'}},
+  { type:'node',id:517,lat:53.2200,lon:6.5800, tags:{name:'Stadsboerderij De Wierde',tourism:'children_farm','addr:city':'Groningen'}},
+  { type:'node',id:518,lat:51.4500,lon:5.4700, tags:{name:'Kinderboerderij Genneper Parken',tourism:'children_farm','addr:city':'Eindhoven'}},
+  { type:'node',id:519,lat:52.5100,lon:6.1000, tags:{name:'Kinderboerderij Zwolle',tourism:'children_farm','addr:city':'Zwolle'}},
+  { type:'node',id:520,lat:52.3800,lon:4.6400, tags:{name:'Kinderboerderij Haarlem',tourism:'children_farm','addr:city':'Haarlem'}},
+  // Miniature Golf
+  { type:'node',id:212,lat:52.3300,lon:4.8700, tags:{name:'Midgetgolfbaan Amstelpark',leisure:'miniature_golf','addr:city':'Amsterdam'}},
+  { type:'node',id:213,lat:52.3600,lon:4.8800, tags:{name:'GlowGolf Amsterdam',leisure:'miniature_golf','addr:city':'Amsterdam'}},
+];
+
+function loadStaticVenues() {
+  state.currentRegion = LANG.current === 'zh' ? '荷兰精选场地' : 'Featured Netherlands Venues';
+  processOSMData(STATIC_NL_VENUES);
+}
+
+// ── AI CHAT ENGINE ────────────────────────────────
+
+// City coordinates for distance calculations
+const CITY_COORDS = {
+  amsterdam:[52.37,4.90],rotterdam:[51.92,4.48],'den haag':[52.08,4.30],utrecht:[52.09,5.12],
+  eindhoven:[51.44,5.48],groningen:[53.22,6.57],tilburg:[51.56,5.09],almere:[52.35,5.26],
+  breda:[51.59,4.78],nijmegen:[51.84,5.87],arnhem:[51.98,5.91],haarlem:[52.38,4.64],
+  enschede:[52.22,6.89],amersfoort:[52.16,5.39],apeldoorn:[52.21,5.97],
+  'den bosch':[51.69,5.30],'hertogenbosch':[51.69,5.30],leiden:[52.16,4.49],
+  maastricht:[50.85,5.69],dordrecht:[51.81,4.67],zoetermeer:[52.06,4.49],
+  zwolle:[52.51,6.09],deventer:[52.26,6.16],leeuwarden:[53.20,5.80],
+  delft:[52.01,4.36],alkmaar:[52.63,4.75],heerlen:[50.89,5.98],
+  middelburg:[51.50,3.61],lisse:[52.26,4.56],hilversum:[52.22,5.17],
+  gouda:[52.01,4.71],hoorn:[52.64,5.06],lelystad:[52.52,5.47],
+  // Aliases
+  鹿特丹:[51.92,4.48],阿姆斯特丹:[52.37,4.90],海牙:[52.08,4.30],
+  乌特勒支:[52.09,5.12],埃因霍温:[51.44,5.48],格罗宁根:[53.22,6.57],
+  莱顿:[52.16,4.49],代尔夫特:[52.01,4.36],马斯特里赫特:[50.85,5.69],
+  哈勒姆:[52.38,4.64],阿纳姆:[51.98,5.91],
+};
+
+// Interest keywords → category mapping
+const INTEREST_MAP = {
+  // Chinese keywords
+  '动物':['zoo','children_farm'],'动物园':['zoo'],'农场':['children_farm'],'儿童农场':['children_farm'],
+  '博物馆':['museum'],'科学':['museum'],'艺术':['museum'],
+  '游乐园':['theme_park'],'主题公园':['theme_park'],'过山车':['theme_park'],'游乐场':['theme_park','indoor_playground'],
+  '室内':['indoor_playground','museum','aquarium'],'下雨':['indoor_playground','museum','aquarium'],
+  '海滩':['beach'],'海边':['beach'],'沙滩':['beach'],'游泳':['beach','sports'],
+  '城堡':['historic'],'历史':['historic'],'古迹':['historic'],
+  '自然':['nature'],'公园':['nature'],'森林':['nature'],'骑车':['nature'],
+  '水族馆':['aquarium'],'鱼':['aquarium'],'海豚':['aquarium'],
+  '滑冰':['sports'],'运动':['sports'],'滑雪':['sports'],
+  '剧院':['theatre'],'电影':['theatre'],'看戏':['theatre'],
+  '室内游乐':['indoor_playground'],'蹦床':['indoor_playground'],
+  // English keywords
+  'animal':['zoo','children_farm'],'zoo':['zoo'],'farm':['children_farm'],'petting':['children_farm'],
+  'museum':['museum'],'science':['museum'],'art':['museum'],
+  'theme park':['theme_park'],'amusement':['theme_park'],'roller coaster':['theme_park'],
+  'indoor':['indoor_playground','museum','aquarium'],'rain':['indoor_playground','museum','aquarium'],
+  'beach':['beach'],'sea':['beach'],'swim':['beach','sports'],
+  'castle':['historic'],'history':['historic'],
+  'nature':['nature'],'park':['nature'],'forest':['nature'],'bike':['nature'],
+  'aquarium':['aquarium'],'fish':['aquarium'],'dolphin':['aquarium'],
+  'skating':['sports'],'sport':['sports'],'snow':['sports'],
+  'theatre':['theatre'],'cinema':['theatre'],'movie':['theatre'],
+  'playground':['indoor_playground','playground'],'trampoline':['indoor_playground'],
+  'monkey town':['indoor_playground'],'ballorig':['indoor_playground'],
+};
+
+// Age keywords
+const AGE_HINTS = {
+  '婴儿':1,'宝宝':2,'1岁':1,'2岁':2,'3岁':3,'幼儿':3,'小朋友':5,
+  '4岁':4,'5岁':5,'6岁':6,'7岁':7,'8岁':8,'9岁':9,'10岁':10,
+  '学龄':7,'小学':8,'teenager':13,'青少年':13,'toddler':2,'baby':1,
+};
+
+function haversine(lat1,lon1,lat2,lon2) {
+  const R = 6371;
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLon = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function parseUserMessage(msg) {
+  const lower = msg.toLowerCase();
+  const result = { city: null, coords: null, categories: new Set(), age: null, maxDist: null, raw: msg };
+
+  // Detect city
+  for (const [name, coords] of Object.entries(CITY_COORDS)) {
+    if (lower.includes(name.toLowerCase())) {
+      result.city = name;
+      result.coords = coords;
+      break;
+    }
+  }
+
+  // Detect interests
+  for (const [kw, cats] of Object.entries(INTEREST_MAP)) {
+    if (lower.includes(kw.toLowerCase())) {
+      cats.forEach(c => result.categories.add(c));
+    }
+  }
+
+  // Detect age
+  for (const [kw, age] of Object.entries(AGE_HINTS)) {
+    if (lower.includes(kw)) { result.age = age; break; }
+  }
+
+  // Detect distance preference
+  const distMatch = lower.match(/(\d+)\s*(km|公里|分钟|min)/);
+  if (distMatch) {
+    const num = parseInt(distMatch[1]);
+    if (distMatch[2] === '分钟' || distMatch[2] === 'min') {
+      result.maxDist = num * 1.2; // ~1.2km per minute driving
+    } else {
+      result.maxDist = num;
+    }
+  }
+
+  return result;
+}
+
+function recommendVenues(parsed) {
+  let venues = [...STATIC_NL_VENUES].map(v => {
+    const tags = v.tags || {};
+    const cat = getCategoryForVenue(tags);
+    return { ...v, _cat: cat, _name: tags.name, _city: tags['addr:city'] || '' };
+  });
+
+  // Filter by category if specified
+  if (parsed.categories.size > 0) {
+    venues = venues.filter(v => parsed.categories.has(v._cat.id));
+  }
+
+  // Calculate distance if location specified
+  if (parsed.coords) {
+    venues.forEach(v => {
+      v._dist = haversine(parsed.coords[0], parsed.coords[1], v.lat, v.lon);
+    });
+    // Filter by max distance
+    if (parsed.maxDist) {
+      venues = venues.filter(v => v._dist <= parsed.maxDist);
+    }
+    // Sort by distance
+    venues.sort((a, b) => a._dist - b._dist);
+  } else {
+    // Random shuffle for variety
+    venues.sort(() => Math.random() - 0.5);
+  }
+
+  // Age-based adjustments
+  if (parsed.age !== null) {
+    if (parsed.age <= 3) {
+      // Prioritize farms, indoor playgrounds, small playgrounds
+      const priority = ['children_farm', 'indoor_playground', 'playground', 'zoo'];
+      venues.sort((a, b) => {
+        const aP = priority.indexOf(a._cat.id);
+        const bP = priority.indexOf(b._cat.id);
+        if (aP >= 0 && bP < 0) return -1;
+        if (aP < 0 && bP >= 0) return 1;
+        return (a._dist || 0) - (b._dist || 0);
+      });
+    } else if (parsed.age >= 8) {
+      // Prioritize theme parks, sports, museums
+      const priority = ['theme_park', 'sports', 'museum', 'historic'];
+      venues.sort((a, b) => {
+        const aP = priority.indexOf(a._cat.id);
+        const bP = priority.indexOf(b._cat.id);
+        if (aP >= 0 && bP < 0) return -1;
+        if (aP < 0 && bP >= 0) return 1;
+        return (a._dist || 0) - (b._dist || 0);
+      });
+    }
+  }
+
+  return venues.slice(0, 6);
+}
+
+function buildChatResponse(parsed, venues) {
+  const isZh = /[\u4e00-\u9fff]/.test(parsed.raw);
+  let parts = [];
+
+  if (venues.length === 0) {
+    return isZh
+      ? '抱歉，没有找到完全匹配的场地。试试换个关键词或放宽距离范围？'
+      : "Sorry, no exact matches found. Try different keywords or a wider range?";
+  }
+
+  // Opening line
+  if (isZh) {
+    let opener = '为你推荐以下场地';
+    if (parsed.city) opener = `在 ${parsed.city} 附近为你推荐`;
+    if (parsed.age) opener += `（适合${parsed.age}岁孩子）`;
+    opener += '：';
+    parts.push(opener);
+  } else {
+    let opener = 'Here are my recommendations';
+    if (parsed.city) opener = `Near ${parsed.city}, here are my picks`;
+    if (parsed.age) opener += ` (for age ${parsed.age})`;
+    opener += ':';
+    parts.push(opener);
+  }
+
+  // Venue list
+  venues.forEach((v, i) => {
+    const dist = v._dist ? ` (${v._dist.toFixed(1)}km)` : '';
+    const catLabel = isZh ? v._cat.zh : v._cat.en;
+    parts.push(`\n${v._cat.emoji} <strong>${v._name}</strong>${dist}\n<span style="color:var(--text-muted);font-size:11px">${catLabel} · ${v._city}</span>`);
+  });
+
+  // Tips
+  if (isZh) {
+    if (parsed.age && parsed.age <= 3) parts.push('\n💡 小贴士：低龄宝宝推荐儿童农场和室内游乐场，安全又有趣！');
+    if (parsed.categories.has('indoor_playground')) parts.push('\n💡 Monkey Town 和 Ballorig 在荷兰各地都有分店，是雨天遛娃首选！');
+    parts.push('\n点击场地名称可在地图上查看位置。');
+  } else {
+    if (parsed.age && parsed.age <= 3) parts.push("\n💡 Tip: Children's farms and indoor playgrounds are great for toddlers!");
+    parts.push('\nClick a venue name to see it on the map.');
+  }
+
+  return parts.join('');
+}
+
+// Chat UI logic
+let chatOpen = false;
+
+function toggleChat(open) {
+  chatOpen = open;
+  document.getElementById('chatPanel').classList.toggle('open', open);
+  document.getElementById('chatFab').classList.toggle('hidden', open);
+  if (open && document.getElementById('chatMessages').children.length === 0) {
+    initChat();
+  }
+  if (open) document.getElementById('chatInput').focus();
+}
+
+function initChat() {
+  const isZh = LANG.current === 'zh';
+  addBotMessage(isZh
+    ? '👋 你好！我是亲子出行助手。\n\n告诉我你的情况，比如：\n• 你在哪个城市？\n• 孩子多大？\n• 想要室内还是室外？\n• 对什么感兴趣？\n\n我会根据你的需求推荐最合适的去处！'
+    : "👋 Hi! I'm your family outing assistant.\n\nTell me about your situation:\n• Which city are you in?\n• How old are your kids?\n• Indoor or outdoor?\n• Any interests?\n\nI'll recommend the best places for your family!"
+  );
+  showQuickActions(isZh);
+}
+
+function showQuickActions(isZh) {
+  const el = document.getElementById('chatQuickActions');
+  const actions = isZh
+    ? [
+        ['🏠 Amsterdam室内玩', '我在Amsterdam，下雨天想找室内游乐场'],
+        ['🦁 带3岁宝宝看动物', '我孩子3岁，想去看动物，在Rotterdam附近'],
+        ['🏖️ 周末海滩推荐', '周末想带孩子去海滩，从Den Haag出发'],
+        ['🏛️ 博物馆推荐', '想带8岁孩子去博物馆，在Utrecht'],
+      ]
+    : [
+        ['🏠 Indoor Amsterdam', 'Indoor activities in Amsterdam for rainy day'],
+        ['🦁 Zoo near Rotterdam', 'Zoo or farm near Rotterdam for 3 year old'],
+        ['🏖️ Beach trip', 'Beach near Den Haag for kids'],
+        ['🏛️ Museum Utrecht', 'Museum for 8 year old near Utrecht'],
+      ];
+  el.innerHTML = actions.map(([label, msg]) =>
+    `<button class="chat-quick-btn" onclick="sendQuickMsg('${msg.replace(/'/g,"\\'")}')">${label}</button>`
+  ).join('');
+}
+
+function sendQuickMsg(msg) {
+  document.getElementById('chatInput').value = msg;
+  handleChatSend();
+}
+
+function addBotMessage(text) {
+  const el = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'chat-msg bot';
+  div.innerHTML = text.replace(/\n/g, '<br>');
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+}
+
+function addUserMessage(text) {
+  const el = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'chat-msg user';
+  div.textContent = text;
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+}
+
+function showTyping() {
+  const el = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'chat-typing';
+  div.id = 'chatTyping';
+  div.innerHTML = '<span></span><span></span><span></span>';
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('chatTyping');
+  if (t) t.remove();
+}
+
+function handleChatSend() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  addUserMessage(msg);
+  input.value = '';
+
+  // Hide quick actions after first message
+  document.getElementById('chatQuickActions').innerHTML = '';
+
+  showTyping();
+
+  setTimeout(() => {
+    removeTyping();
+    const parsed = parseUserMessage(msg);
+    const venues = recommendVenues(parsed);
+    const response = buildChatResponse(parsed, venues);
+
+    // Build clickable venue chips
+    let venueChips = '';
+    if (venues.length > 0) {
+      venueChips = '<div style="margin-top:8px">' + venues.map(v =>
+        `<span class="chat-venue-chip" onclick="chatShowVenue(${v.lat},${v.lon},'${v._name.replace(/'/g,"\\'")}')">${v._cat.emoji} ${v._name}</span>`
+      ).join('') + '</div>';
+    }
+
+    addBotMessage(response + venueChips);
+  }, 600 + Math.random() * 400);
+}
+
+function chatShowVenue(lat, lon, name) {
+  map.flyTo([lat, lon], 14, { duration: 1 });
+  // Try to find and select the venue
+  const v = state.allVenues.find(x => x.name === name);
+  if (v) selectVenue(v.id);
+  // Close chat on mobile
+  if (window.innerWidth <= 768) toggleChat(false);
+}
+
+// Chat input enter key
+document.getElementById('chatInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); handleChatSend(); }
+});
+
+// ── INIT ─────────────────────────────────────────
+buildFilterBar();
+setLang('en');
+loadStaticVenues();
+</script>
+</body>
+</html>

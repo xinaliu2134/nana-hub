@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Legacy — Family Memory Preservation Platform</title>
+<meta name="description" content="Legacy (传家): A family memory preservation platform for recording and sharing stories, recipes, and wisdom across generations.">
+<link rel="canonical" href="https://xinaliu2134.github.io/nana-hub/legacy-pitch-deck.html">
+<meta property="og:title" content="Legacy — Family Memory Preservation Platform">
+<meta property="og:description" content="Record and share family stories, recipes, and wisdom across generations.">
+<meta property="og:type" content="website">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ===========================================
+   VIEWPORT FITTING: MANDATORY BASE STYLES
+   Include this ENTIRE file in every presentation.
+   These styles ensure slides fit exactly in the viewport.
+   =========================================== */
+
+/* 1. Lock html/body to viewport */
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+}
+
+html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+}
+
+/* 2. Each slide = exact viewport height */
+.slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* 3. Content container with flex for centering */
+.slide-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-height: 100%;
+    overflow: hidden;
+    padding: var(--slide-padding);
+}
+
+/* 4. ALL typography uses clamp() for responsive scaling */
+:root {
+    --title-size: clamp(1.5rem, 5vw, 4rem);
+    --h2-size: clamp(1.25rem, 3.5vw, 2.5rem);
+    --h3-size: clamp(1rem, 2.5vw, 1.75rem);
+    --body-size: clamp(0.75rem, 1.5vw, 1.125rem);
+    --small-size: clamp(0.65rem, 1vw, 0.875rem);
+    --slide-padding: clamp(1rem, 4vw, 4rem);
+    --content-gap: clamp(0.5rem, 2vw, 2rem);
+    --element-gap: clamp(0.25rem, 1vw, 1rem);
+}
+
+/* 5. Cards/containers use viewport-relative max sizes */
+.card, .container, .content-box {
+    max-width: min(90vw, 1000px);
+    max-height: min(80vh, 700px);
+}
+
+/* 6. Lists auto-scale with viewport */
+.feature-list, .bullet-list {
+    gap: clamp(0.4rem, 1vh, 1rem);
+}
+
+.feature-list li, .bullet-list li {
+    font-size: var(--body-size);
+    line-height: 1.4;
+}
+
+/* 7. Grids adapt to available space */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+}
+
+/* 8. Images constrained to viewport */
+img, .image-container {
+    max-width: 100%;
+    max-height: min(50vh, 400px);
+    object-fit: contain;
+}
+
+/* Short viewports (< 700px height) */
+@media (max-height: 700px) {
+    :root {
+        --slide-padding: clamp(0.75rem, 3vw, 2rem);
+        --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+        --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+        --h2-size: clamp(1rem, 3vw, 1.75rem);
+    }
+}
+
+/* Very short viewports (< 600px height) */
+@media (max-height: 600px) {
+    :root {
+        --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+        --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+        --title-size: clamp(1.1rem, 4vw, 2rem);
+        --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+    }
+    .nav-dots, .keyboard-hint, .decorative {
+        display: none;
+    }
+}
+
+/* Extremely short (landscape phones, < 500px height) */
+@media (max-height: 500px) {
+    :root {
+        --slide-padding: clamp(0.4rem, 2vw, 1rem);
+        --title-size: clamp(1rem, 3.5vw, 1.5rem);
+        --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+        --body-size: clamp(0.65rem, 1vw, 0.85rem);
+    }
+}
+
+/* Narrow viewports (< 600px width) */
+@media (max-width: 600px) {
+    :root {
+        --title-size: clamp(1.25rem, 7vw, 2.5rem);
+    }
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* REDUCED MOTION */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
+    html {
+        scroll-behavior: auto;
+    }
+}
+
+/* ===========================================
+   LEGACY PITCH DECK — DARK BOTANICAL THEME
+   =========================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #0f0f0f;
+    color: #e8e4df;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography */
+h1, h2, h3, .display-text {
+    font-family: 'Cormorant', serif;
+    font-weight: 400;
+    line-height: 1.15;
+    color: #e8e4df;
+}
+
+.accent-gold { color: #d4a574; }
+.accent-pink { color: #e8b4b8; }
+.accent-warm { color: #c9b896; }
+.muted { color: #9a9590; }
+
+/* Gradient orbs */
+.orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.12;
+    pointer-events: none;
+    z-index: 0;
+    will-change: transform;
+    animation: orbFloat 20s ease-in-out infinite;
+}
+
+.orb-gold {
+    background: radial-gradient(circle, #d4a574, transparent 70%);
+}
+
+.orb-pink {
+    background: radial-gradient(circle, #e8b4b8, transparent 70%);
+}
+
+.orb-warm {
+    background: radial-gradient(circle, #c9b896, transparent 70%);
+}
+
+@keyframes orbFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(15px, -20px) scale(1.05); }
+    50% { transform: translate(-10px, 15px) scale(0.95); }
+    75% { transform: translate(20px, 10px) scale(1.02); }
+}
+
+.orb:nth-child(2) { animation-delay: -5s; }
+.orb:nth-child(3) { animation-delay: -10s; }
+
+/* Thin accent lines */
+.accent-line {
+    width: clamp(40px, 8vw, 80px);
+    height: 1px;
+    background: linear-gradient(90deg, #d4a574, transparent);
+    margin: clamp(0.5rem, 1.5vh, 1.5rem) 0;
+}
+
+.accent-line-center {
+    width: clamp(40px, 8vw, 80px);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #d4a574, transparent);
+    margin: clamp(0.5rem, 1.5vh, 1.5rem) auto;
+}
+
+/* Italic signature */
+.signature {
+    font-family: 'Cormorant', serif;
+    font-style: italic;
+    font-weight: 400;
+    color: #9a9590;
+    font-size: clamp(0.85rem, 1.3vw, 1.1rem);
+}
+
+/* Slide content alignment */
+.slide-content {
+    z-index: 1;
+    position: relative;
+}
+
+.centered {
+    align-items: center;
+    text-align: center;
+}
+
+/* Reveal animations */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.reveal-delay-1 { transition-delay: 0.15s; }
+.reveal-delay-2 { transition-delay: 0.3s; }
+.reveal-delay-3 { transition-delay: 0.45s; }
+.reveal-delay-4 { transition-delay: 0.6s; }
+.reveal-delay-5 { transition-delay: 0.75s; }
+
+/* Cards for pillars/stats */
+.pillar-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(0.75rem, 2vw, 2rem);
+    margin-top: clamp(0.75rem, 2vh, 2rem);
+    max-width: min(90vw, 1100px);
+}
+
+@media (max-width: 700px) {
+    .pillar-grid {
+        grid-template-columns: 1fr;
+        gap: clamp(0.5rem, 1.5vw, 1rem);
+    }
+}
+
+.pillar-card {
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(212, 165, 116, 0.1);
+    border-radius: clamp(8px, 1.2vw, 16px);
+    padding: clamp(0.75rem, 2vw, 2rem);
+    transition: border-color 0.4s ease, background 0.4s ease;
+}
+
+.pillar-card:hover {
+    border-color: rgba(212, 165, 116, 0.25);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.pillar-icon {
+    font-size: clamp(1.2rem, 2.5vw, 2rem);
+    margin-bottom: clamp(0.3rem, 0.8vh, 0.75rem);
+    display: block;
+}
+
+.pillar-title {
+    font-family: 'Cormorant', serif;
+    font-size: clamp(0.95rem, 1.8vw, 1.35rem);
+    font-weight: 600;
+    color: #d4a574;
+    margin-bottom: clamp(0.2rem, 0.5vh, 0.5rem);
+}
+
+.pillar-desc {
+    font-size: var(--small-size);
+    color: #9a9590;
+    line-height: 1.5;
+}
+
+/* Stat cards */
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(0.75rem, 2vw, 2rem);
+    margin-top: clamp(0.75rem, 2vh, 2rem);
+    max-width: min(90vw, 1100px);
+}
+
+@media (max-width: 700px) {
+    .stat-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.stat-card {
+    text-align: center;
+    padding: clamp(0.5rem, 1.5vw, 1.5rem);
+}
+
+.stat-number {
+    font-family: 'Cormorant', serif;
+    font-size: clamp(1.5rem, 4vw, 3.5rem);
+    font-weight: 700;
+    color: #d4a574;
+    line-height: 1;
+    margin-bottom: clamp(0.2rem, 0.5vh, 0.5rem);
+}
+
+.stat-label {
+    font-size: var(--small-size);
+    color: #9a9590;
+    line-height: 1.4;
+}
+
+/* Steps */
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(0.5rem, 1.5vw, 1.5rem);
+    margin-top: clamp(0.75rem, 2vh, 2rem);
+    max-width: min(90vw, 1100px);
+}
+
+@media (max-width: 800px) {
+    .steps-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 500px) {
+    .steps-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.step-card {
+    text-align: center;
+    padding: clamp(0.5rem, 1.2vw, 1.5rem);
+    position: relative;
+}
+
+.step-num {
+    font-family: 'Cormorant', serif;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 700;
+    color: rgba(212, 165, 116, 0.15);
+    line-height: 1;
+    margin-bottom: clamp(0.1rem, 0.3vh, 0.3rem);
+}
+
+.step-icon {
+    font-size: clamp(1.2rem, 2.5vw, 2rem);
+    margin-bottom: clamp(0.2rem, 0.5vh, 0.5rem);
+    display: block;
+}
+
+.step-title {
+    font-family: 'Cormorant', serif;
+    font-size: clamp(0.85rem, 1.5vw, 1.15rem);
+    font-weight: 600;
+    color: #e8e4df;
+    margin-bottom: clamp(0.1rem, 0.3vh, 0.25rem);
+}
+
+.step-desc {
+    font-size: var(--small-size);
+    color: #9a9590;
+    line-height: 1.4;
+}
+
+/* Step connector arrows */
+.step-card:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: clamp(-12px, -1.2vw, -6px);
+    top: 50%;
+    width: clamp(12px, 2vw, 24px);
+    height: 1px;
+    background: linear-gradient(90deg, rgba(212,165,116,0.3), transparent);
+}
+
+@media (max-width: 800px) {
+    .step-card:nth-child(2)::after { display: none; }
+}
+
+/* Traction badges */
+.traction-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: clamp(0.5rem, 1.5vw, 1.5rem);
+    margin-top: clamp(0.75rem, 2vh, 2rem);
+    max-width: min(80vw, 800px);
+}
+
+@media (max-width: 600px) {
+    .traction-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.traction-item {
+    display: flex;
+    align-items: flex-start;
+    gap: clamp(0.5rem, 1vw, 1rem);
+    padding: clamp(0.5rem, 1vw, 1rem);
+    background: rgba(255,255,255,0.02);
+    border-radius: clamp(6px, 1vw, 12px);
+    border: 1px solid rgba(212,165,116,0.07);
+}
+
+.traction-icon {
+    font-size: clamp(1rem, 2vw, 1.5rem);
+    flex-shrink: 0;
+}
+
+.traction-text {
+    font-size: var(--body-size);
+    color: #e8e4df;
+    line-height: 1.4;
+}
+
+.traction-text span {
+    display: block;
+    font-size: var(--small-size);
+    color: #9a9590;
+    margin-top: 2px;
+}
+
+/* Roadmap */
+.roadmap-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(0.5rem, 1.5vw, 1.5rem);
+    margin-top: clamp(0.75rem, 2vh, 2rem);
+    max-width: min(90vw, 1000px);
+}
+
+@media (max-width: 700px) {
+    .roadmap-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.roadmap-item {
+    position: relative;
+    padding: clamp(0.5rem, 1.2vw, 1.25rem);
+    border-left: 2px solid rgba(212,165,116,0.2);
+    padding-left: clamp(0.6rem, 1.2vw, 1.25rem);
+}
+
+.roadmap-phase {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: clamp(0.55rem, 0.8vw, 0.7rem);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #d4a574;
+    margin-bottom: clamp(0.15rem, 0.4vh, 0.35rem);
+}
+
+.roadmap-title {
+    font-family: 'Cormorant', serif;
+    font-size: clamp(0.8rem, 1.4vw, 1.1rem);
+    color: #e8e4df;
+    margin-bottom: clamp(0.1rem, 0.3vh, 0.25rem);
+}
+
+.roadmap-desc {
+    font-size: var(--small-size);
+    color: #9a9590;
+    line-height: 1.4;
+}
+
+/* Navigation dots */
+.nav-dots {
+    position: fixed;
+    right: clamp(12px, 2vw, 24px);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(6px, 1vh, 12px);
+    z-index: 100;
+}
+
+.nav-dot {
+    width: clamp(6px, 0.6vw, 8px);
+    height: clamp(6px, 0.6vw, 8px);
+    border-radius: 50%;
+    background: rgba(154, 149, 144, 0.3);
+    cursor: pointer;
+    transition: all 0.4s ease;
+    border: none;
+    padding: 0;
+}
+
+.nav-dot:hover {
+    background: rgba(212, 165, 116, 0.5);
+    transform: scale(1.3);
+}
+
+.nav-dot.active {
+    background: #d4a574;
+    transform: scale(1.4);
+    box-shadow: 0 0 12px rgba(212, 165, 116, 0.3);
+}
+
+/* Edit mode */
+.edit-trigger {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 60px;
+    height: 60px;
+    z-index: 200;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.edit-trigger:hover {
+    opacity: 1;
+}
+
+.edit-trigger::after {
+    content: 'Edit';
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    font-size: 10px;
+    color: #d4a574;
+    font-family: 'IBM Plex Sans', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    background: rgba(15,15,15,0.9);
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(212,165,116,0.2);
+}
+
+body.edit-mode [contenteditable] {
+    outline: 1px dashed rgba(212, 165, 116, 0.3);
+    cursor: text;
+    border-radius: 4px;
+}
+
+body.edit-mode [contenteditable]:focus {
+    outline: 1px solid rgba(212, 165, 116, 0.6);
+    background: rgba(212, 165, 116, 0.05);
+}
+
+.edit-banner {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(90deg, rgba(212,165,116,0.15), rgba(15,15,15,0.95));
+    color: #d4a574;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: clamp(0.6rem, 1vw, 0.75rem);
+    padding: 6px 16px;
+    z-index: 200;
+    text-align: center;
+    letter-spacing: 0.05em;
+}
+
+body.edit-mode .edit-banner {
+    display: block;
+}
+
+/* Slide-specific number/label */
+.slide-label {
+    position: absolute;
+    top: clamp(1rem, 3vh, 2.5rem);
+    left: var(--slide-padding);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: clamp(0.55rem, 0.8vw, 0.7rem);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: rgba(154, 149, 144, 0.4);
+    z-index: 1;
+}
+
+/* CTA button */
+.cta-btn {
+    display: inline-block;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: clamp(0.7rem, 1.2vw, 0.95rem);
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #0f0f0f;
+    background: linear-gradient(135deg, #d4a574, #c9b896);
+    padding: clamp(0.6rem, 1.2vw, 1rem) clamp(1.5rem, 3vw, 3rem);
+    border-radius: 100px;
+    text-decoration: none;
+    transition: all 0.4s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.cta-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(212, 165, 116, 0.25);
+}
+
+/* Logo text */
+.logo-text {
+    font-family: 'Cormorant', serif;
+    font-weight: 400;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    font-size: clamp(0.7rem, 1.2vw, 1rem);
+    color: #d4a574;
+}
+
+/* Market highlight */
+.market-highlight {
+    font-family: 'Cormorant', serif;
+    font-size: clamp(1.5rem, 3.5vw, 3rem);
+    font-weight: 700;
+    background: linear-gradient(135deg, #d4a574, #e8b4b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+}
+
+/* Spacer */
+.spacer-sm { height: clamp(0.3rem, 0.8vh, 0.75rem); }
+.spacer-md { height: clamp(0.5rem, 1.5vh, 1.5rem); }
+.spacer-lg { height: clamp(0.75rem, 2.5vh, 2.5rem); }
+
+</style>
+</head>
+<body>
+
+<!-- Edit mode banner -->
+<div class="edit-banner">EDIT MODE — Click any text to edit. Press Ctrl+S to save. Press E or click top-left to exit.</div>
+<div class="edit-trigger" onclick="toggleEdit()" title="Enter edit mode"></div>
+
+<!-- Navigation dots -->
+<nav class="nav-dots" aria-label="Slide navigation">
+    <button class="nav-dot active" data-slide="0" aria-label="Slide 1"></button>
+    <button class="nav-dot" data-slide="1" aria-label="Slide 2"></button>
+    <button class="nav-dot" data-slide="2" aria-label="Slide 3"></button>
+    <button class="nav-dot" data-slide="3" aria-label="Slide 4"></button>
+    <button class="nav-dot" data-slide="4" aria-label="Slide 5"></button>
+    <button class="nav-dot" data-slide="5" aria-label="Slide 6"></button>
+    <button class="nav-dot" data-slide="6" aria-label="Slide 7"></button>
+    <button class="nav-dot" data-slide="7" aria-label="Slide 8"></button>
+</nav>
+
+<!-- ============================================
+     SLIDE 1 — TITLE
+     ============================================ -->
+<section class="slide" id="slide-0">
+    <div class="orb orb-gold" style="width:clamp(300px,50vw,700px);height:clamp(300px,50vw,700px);top:-15%;right:-10%;"></div>
+    <div class="orb orb-pink" style="width:clamp(200px,35vw,500px);height:clamp(200px,35vw,500px);bottom:-10%;left:-5%;"></div>
+    <div class="orb orb-warm" style="width:clamp(150px,25vw,350px);height:clamp(150px,25vw,350px);top:40%;left:30%;"></div>
+
+    <div class="slide-content centered">
+        <div class="reveal">
+            <div class="logo-text" contenteditable="false">Legacy</div>
+        </div>
+
+        <div class="spacer-lg"></div>
+
+        <h1 class="reveal reveal-delay-1" contenteditable="false" style="font-size:var(--title-size);font-style:italic;max-width:min(85vw,800px);">
+            Every family has a story<br>worth keeping
+        </h1>
+
+        <div class="accent-line-center reveal reveal-delay-2"></div>
+
+        <p class="reveal reveal-delay-3 signature" contenteditable="false" style="max-width:min(80vw,550px);">
+            A voice-first platform that captures, preserves, and shares the recipes, stories, and wisdom that make your family unique.
+        </p>
+
+        <div class="spacer-lg"></div>
+
+        <p class="reveal reveal-delay-4 muted" style="font-size:var(--small-size);letter-spacing:0.15em;text-transform:uppercase;" contenteditable="false">
+            Family Memory Preservation
+        </p>
+    </div>
+</section>
+
+<!-- ============================================
+     SLIDE 2 — PROBLEM
+     ============================================ -->
+<section class="slide" id="slide-1">
+    <div class="orb orb-pink" style="width:clamp(250px,40vw,600px);height:clamp(250px,40vw,600px);top:-10%;left:-15%;"></div>
+    <div class="orb orb-gold" style="width:clamp(200px,30vw,400px);height:clamp(200px,30vw,400px);bottom:10%;right:-5%;"></div>
+    <div class="orb orb-warm" style="width:clamp(150px,20vw,300px);height:clamp(150px,20vw,300px);top:60%;left:50%;"></div>
+
+    <div class="slide-label">02 / The Problem</div>
+
+    <div class="slide-content centered">
+        <p class="reveal muted" style="font-size:var(--small-size);text-transform:uppercase;letter-spacing:0.2em;" contenteditable="false">The silent crisis</p>
+
+        <div class="spacer-sm"></div>
+
+        <h2 class="reveal reveal-delay-1" style="font-size:var(--h2-size);max-width:min(85vw,750px);" contenteditable="false">
+            Every day, irreplaceable family<br>knowledge <em class="accent-pink">disappears</em>
+        </h2>
+
+        <div class="accent-line-center reveal reveal-delay-2"></div>
+
+        <div class="stat-grid reveal reveal-delay-3">
+            <div class="stat-card">
+                <div class="stat-number" contenteditable="false">10,000</div>
+                <div class="stat-label" contenteditable="false">recipes lost daily when<br>grandparents pass away</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" contenteditable="false">73%</div>
+                <div class="stat-label" contenteditable="false">of families have<br>no recorded history</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" contenteditable="false">3</div>
+                <div class="stat-label" contenteditable="false">the average number of grandma's<br>recipes a person remembers</div>
+            </div>
+        </div>
+
+        <div class="spacer-md"></div>
+
+        <p class="reveal reveal-delay-4 signature" contenteditable="false">
+            Once these memories are gone, they're gone forever.
+        </p>
+    </div>
+</section>
+
+<!-- ============================================
+     SLIDE 3 — SOLUTION
+     ============================================ -->
+<section class="slide" id="slide-2">
+    <div class="orb orb-gold" style="width:clamp(300px,45vw,650px);height:clamp(300px,45vw,650px);top:-5%;right:-15%;"></div>
+    <div class="orb orb-warm" style="width:clamp(200px,30vw,450px);height:clamp(200px,30vw,450px);bottom:-10%;left:10%;"></div>
+    <div class="orb orb-pink" style="width:clamp(120px,18vw,250px);height:clamp(120px,18vw,250px);top:30%;left:-5%;"></div>
+
+    <div class="slide-label">03 / The Solution</div>
+
+    <div class="slide-content centered">
+        <p class="reveal muted" style="font-size:var(--small-size);text-transform:uppercase;letter-spacing:0.2em;" contenteditable="false">Introducing</p>
+
+        <div class="spacer-sm"></div>
+
+        <h2 class="reveal reveal-delay-1" style="font-size:var(--h2-size);" contenteditable="false">
+            Legacy: <em class="accent-gold">Speak it. Keep it. Share it.</em>
+        </h2>
+
+        <div class="accent-line-center reveal reveal-delay-2"></div>
+
+        <div class="pillar-grid">
+            <div class="pillar-card reveal reveal-delay-2">
+                <span class="pillar-icon">&#127908;</span>
+                <div class="pillar-title" contenteditable="false">Voice-First Recording</div>
+                <div class="pillar-desc" contenteditable="false">Speak naturally, don't type. Grandma doesn't need to learn an app -- she just talks.</div>
+            </div>
+            <div class="pillar-card reveal reveal-delay-3">
+                <span class="pillar-icon">&#10024;</span>
+                <div class="pillar-title" contenteditable="false">AI-Powered Formatting</div>
+                <div class="pillar-desc" contenteditable="false">Raw voice recordings are auto-organized into beautiful chapters, recipes, and stories.</div>
+            </div>
+            <div class="pillar-card reveal reveal-delay-4">
+                <span class="pillar-icon">&#128101;</span>
+                <div class="pillar-title" contenteditable="false">Family Sharing</div>
+                <div class="pillar-desc" contenteditable="false">Private family circles. Only the people who matter can see, contribute, and cherish together.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================
+     SLIDE 4 — HOW IT WORKS
+     ============================================ -->
+<section class="slide" id="slide-3">
+    <div class="orb orb-warm" style="width:clamp(280px,40vw,550px);height:clamp(280px,40vw,550px);top:5%;left:-10%;"></div>
+    <div class="orb orb-pink" style="width:clamp(200px,30vw,400px);height:clamp(200px,30vw,400px);bottom:-5%;right:10%;"></div>
+    <div class="orb orb-gold" style="width:clamp(130px,18vw,250px);height:clamp(130px,18vw,250px);top:50%;right:-5%;"></div>
+
+    <div class="slide-label">04 / How It Works</div>
+
+    <div class="slide-content centered">
+        <h2 class="reveal" style="font-size:var(--h2-size);" contenteditable="false">
+            Simple enough for <em class="accent-pink">anyone</em>
+        </h2>
+
+        <p class="reveal reveal-delay-1 muted" style="font-size:var(--body-size);max-width:min(70vw,500px);margin:0 auto;" contenteditable="false">
+            Four steps. No learning curve. No account required to start.
+        </p>
+
+        <div class="steps-grid">
+            <div class="step-card reveal reveal-delay-1">
+                <div class="step-num">1</div>
+                <span class="step-icon">&#128241;</span>
+                <div class="step-title" contenteditable="false">Open Legacy</div>
+                <div class="step-desc" contenteditable="false">Works on any device. No download needed.</div>
+            </div>
+            <div class="step-card reveal reveal-delay-2">
+                <div class="step-num">2</div>
+                <span class="step-icon">&#127908;</span>
+                <div class="step-title" contenteditable="false">Tap & Speak</div>
+                <div class="step-desc" contenteditable="false">One button. Start talking about your recipe, story, or memory.</div>
+            </div>
+            <div class="step-card reveal reveal-delay-3">
+                <div class="step-num">3</div>
+                <span class="step-icon">&#10024;</span>
+                <div class="step-title" contenteditable="false">AI Formats</div>
+                <div class="step-desc" contenteditable="false">Your words become beautifully structured entries automatically.</div>
+            </div>
+            <div class="step-card reveal reveal-delay-4">
+                <div class="step-num">4</div>
+                <span class="step-icon">&#128150;</span>
+                <div class="step-title" contenteditable="false">Share with Family</div>
+                <div class="step-desc" contenteditable="false">Invite loved ones to your private family circle.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================
+     SLIDE 5 — MARKET
+     ============================================ -->
+<section class="slide" id="slide-4">
+    <div class="orb orb-gold" style="width:clamp(350px,50vw,700px);height:clamp(350px,50vw,700px);top:-15%;left:-10%;"></div>
+    <div class="orb orb-pink" style="width:clamp(180px,25vw,350px);height:clamp(180px,25vw,350px);bottom:15%;right:-5%;"></div>
+    <div class="orb orb-warm" style="width:clamp(200px,30vw,400px);height:clamp(200px,30vw,400px);top:50%;right:20%;"></div>
+
+    <div class="slide-label">05 / Market Opportunity</div>
+
+    <div class="slide-content centered">
+        <h2 class="reveal" style="font-size:var(--h2-size);" contenteditable="false">
+            A massive, underserved market
+        </h2>
+
+        <div class="accent-line-center reveal reveal-delay-1"></div>
+
+        <div class="spacer-sm"></div>
+
+        <div class="reveal reveal-delay-2">
+            <span class="market-highlight" contenteditable="false">190M+</span>
+            <p class="muted" style="font-size:var(--body-size);margin-top:clamp(0.2rem,0.5vh,0.5rem);" contenteditable="false">
+                people living outside their home country in Europe alone
+            </p>
+        </div>
+
+        <div class="spacer-md"></div>
+
+        <div class="pillar-grid reveal reveal-delay-3">
+            <div class="pillar-card">
+                <div class="pillar-title" contenteditable="false">Immigrant Families</div>
+                <div class="pillar-desc" contenteditable="false">Preserving culture and language across generations and continents. The urgency is real.</div>
+            </div>
+            <div class="pillar-card">
+                <div class="pillar-title" contenteditable="false">Multigenerational Households</div>
+                <div class="pillar-desc" contenteditable="false">Where oral traditions still live but are one generation from disappearing.</div>
+            </div>
+            <div class="pillar-card" style="border-color:rgba(212,165,116,0.2);">
+                <div class="pillar-title" contenteditable="false">TAM: &euro;2.4B</div>
+                <div class="pillar-desc" contenteditable="false">Family heritage, genealogy, and memory preservation market. Growing 12% YoY.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================
+     SLIDE 6 — TRACTION
+     ============================================ -->
+<section class="slide" id="slide-5">
+    <div class="orb orb-pink" style="width:clamp(250px,35vw,500px);height:clamp(250px,35vw,500px);top:10%;right:-10%;"></div>
+    <div class="orb orb-warm" style="width:clamp(200px,30vw,400px);height:clamp(200px,30vw,400px);bottom:-5%;left:-10%;"></div>
+    <div class="orb orb-gold" style="width:clamp(150px,20vw,300px);height:clamp(150px,20vw,300px);top:-5%;left:40%;"></div>
+
+    <div class="slide-label">06 / Traction</div>
+
+    <div class="slide-content centered">
+        <p class="reveal muted" style="font-size:var(--small-size);text-transform:uppercase;letter-spacing:0.2em;" contenteditable="false">Early momentum</p>
+
+        <div class="spacer-sm"></div>
+
+        <h2 class="reveal reveal-delay-1" style="font-size:var(--h2-size);" contenteditable="false">
+            Built in 1 week, already <em class="accent-gold">resonating</em>
+        </h2>
+
+        <div class="accent-line-center reveal reveal-delay-2"></div>
+
+        <div class="traction-grid">
+            <div class="traction-item reveal reveal-delay-2">
+                <span class="traction-icon">&#127760;</span>
+                <div class="traction-text" contenteditable="false">Web app live in 7 languages<span>EN, ZH, FR, DE, ES, IT, PT</span></div>
+            </div>
+            <div class="traction-item reveal reveal-delay-3">
+                <span class="traction-icon">&#128172;</span>
+                <div class="traction-text" contenteditable="false">WeChat miniprogram<span>Built for the Chinese diaspora community</span></div>
+            </div>
+            <div class="traction-item reveal reveal-delay-4">
+                <span class="traction-icon">&#128640;</span>
+                <div class="traction-text" contenteditable="false">4 GitHub Pages deployments<span>Rapid iteration, real users testing</span></div>
+            </div>
+            <div class="traction-item reveal reveal-delay-5">
+                <span class="traction-icon">&#127908;</span>
+                <div class="traction-text" contenteditable="false">Multilingual voice-to-text<span>Speak in your mother tongue, AI understands</span></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================
+     SLIDE 7 — VISION
+     ============================================ -->
+<section class="slide" id="slide-6">
+    <div class="orb orb-gold" style="width:clamp(300px,45vw,600px);height:clamp(300px,45vw,600px);top:-10%;right:-10%;"></div>
+    <div class="orb orb-pink" style="width:clamp(200px,30vw,400px);height:clamp(200px,30vw,400px);bottom:10%;left:-5%;"></div>
+    <div class="orb orb-warm" style="width:clamp(180px,25vw,350px);height:clamp(180px,25vw,350px);top:40%;left:20%;"></div>
+
+    <div class="slide-label">07 / Vision</div>
+
+    <div class="slide-content centered">
+        <h2 class="reveal" style="font-size:var(--h2-size);" contenteditable="false">
+            From digital memories to<br><em class="accent-pink">physical heirlooms</em>
+        </h2>
+
+        <p class="reveal reveal-delay-1 signature" style="max-width:min(75vw,550px);" contenteditable="false">
+            Legacy grows with your family. What starts as a voice note becomes a printed cookbook on your shelf.
+        </p>
+
+        <div class="spacer-sm"></div>
+
+        <div class="roadmap-grid">
+            <div class="roadmap-item reveal reveal-delay-1">
+                <div class="roadmap-phase">Phase 1</div>
+                <div class="roadmap-title" contenteditable="false">Cloud Sync</div>
+                <div class="roadmap-desc" contenteditable="false">Memories safe, accessible everywhere, always backed up.</div>
+            </div>
+            <div class="roadmap-item reveal reveal-delay-2">
+                <div class="roadmap-phase">Phase 2</div>
+                <div class="roadmap-title" contenteditable="false">Family Collaboration</div>
+                <div class="roadmap-desc" contenteditable="false">Multiple family members contribute to shared collections.</div>
+            </div>
+            <div class="roadmap-item reveal reveal-delay-3">
+                <div class="roadmap-phase">Phase 3</div>
+                <div class="roadmap-title" contenteditable="false">AI-Enhanced Stories</div>
+                <div class="roadmap-desc" contenteditable="false">AI connects memories, suggests prompts, fills narrative gaps.</div>
+            </div>
+            <div class="roadmap-item reveal reveal-delay-4">
+                <div class="roadmap-phase">Phase 4</div>
+                <div class="roadmap-title" contenteditable="false">Printed Heirlooms</div>
+                <div class="roadmap-desc" contenteditable="false">Physical cookbooks and memoirs, printed and bound. Gifts that last generations.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================
+     SLIDE 8 — ASK / CONTACT
+     ============================================ -->
+<section class="slide" id="slide-7">
+    <div class="orb orb-gold" style="width:clamp(350px,50vw,750px);height:clamp(350px,50vw,750px);top:-20%;left:20%;opacity:0.15;"></div>
+    <div class="orb orb-pink" style="width:clamp(250px,35vw,500px);height:clamp(250px,35vw,500px);bottom:-15%;right:10%;"></div>
+    <div class="orb orb-warm" style="width:clamp(200px,28vw,400px);height:clamp(200px,28vw,400px);top:30%;left:-10%;"></div>
+
+    <div class="slide-content centered">
+        <div class="reveal">
+            <div class="logo-text" contenteditable="false">Legacy</div>
+        </div>
+
+        <div class="spacer-md"></div>
+
+        <h2 class="reveal reveal-delay-1" style="font-size:var(--title-size);font-style:italic;max-width:min(80vw,700px);" contenteditable="false">
+            Let's preserve<br>what matters
+        </h2>
+
+        <div class="accent-line-center reveal reveal-delay-2"></div>
+
+        <div class="spacer-md"></div>
+
+        <div class="reveal reveal-delay-3">
+            <a href="mailto:hello@legacy-app.com" class="cta-btn">Get in Touch</a>
+        </div>
+
+        <div class="spacer-lg"></div>
+
+        <div class="reveal reveal-delay-4" style="display:flex;flex-direction:column;gap:clamp(0.2rem,0.5vh,0.4rem);align-items:center;">
+            <p class="muted" style="font-size:var(--small-size);" contenteditable="false">hello@legacy-app.com</p>
+            <p class="muted" style="font-size:var(--small-size);" contenteditable="false">legacy-app.com</p>
+        </div>
+
+        <div class="spacer-md"></div>
+
+        <p class="reveal reveal-delay-5 signature" contenteditable="false">
+            Because some things are too precious to forget.
+        </p>
+    </div>
+</section>
+
+
+<script>
+(function() {
+    'use strict';
+
+    // ---- INTERSECTION OBSERVER FOR REVEAL ANIMATIONS ----
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, {
+        threshold: 0.15,
+        rootMargin: '0px 0px -50px 0px'
+    });
+
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    // ---- NAVIGATION DOTS ----
+    const slides = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.nav-dot');
+
+    const slideObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const index = Array.from(slides).indexOf(entry.target);
+                dots.forEach((d, i) => d.classList.toggle('active', i === index));
+            }
+        });
+    }, { threshold: 0.5 });
+
+    slides.forEach(s => slideObserver.observe(s));
+
+    dots.forEach(dot => {
+        dot.addEventListener('click', () => {
+            const idx = parseInt(dot.dataset.slide);
+            slides[idx].scrollIntoView({ behavior: 'smooth' });
+        });
+    });
+
+    // ---- KEYBOARD NAVIGATION ----
+    let currentSlide = 0;
+
+    function goToSlide(index) {
+        if (index < 0) index = 0;
+        if (index >= slides.length) index = slides.length - 1;
+        currentSlide = index;
+        slides[index].scrollIntoView({ behavior: 'smooth' });
+    }
+
+    document.addEventListener('keydown', (e) => {
+        // Update current slide from scroll position
+        slides.forEach((s, i) => {
+            const rect = s.getBoundingClientRect();
+            if (Math.abs(rect.top) < window.innerHeight * 0.5) currentSlide = i;
+        });
+
+        if (e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') {
+            if (document.body.classList.contains('edit-mode') && e.key === ' ') return;
+            e.preventDefault();
+            goToSlide(currentSlide + 1);
+        } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+            e.preventDefault();
+            goToSlide(currentSlide - 1);
+        } else if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            goToSlide(currentSlide + 1);
+        } else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            goToSlide(currentSlide - 1);
+        } else if (e.key === 'Home') {
+            e.preventDefault();
+            goToSlide(0);
+        } else if (e.key === 'End') {
+            e.preventDefault();
+            goToSlide(slides.length - 1);
+        } else if (e.key === 'e' || e.key === 'E') {
+            if (document.activeElement.hasAttribute('contenteditable') &&
+                document.body.classList.contains('edit-mode')) return;
+            toggleEdit();
+        }
+    });
+
+    // ---- EDIT MODE ----
+    window.toggleEdit = function() {
+        const isEditing = document.body.classList.toggle('edit-mode');
+        document.querySelectorAll('[contenteditable]').forEach(el => {
+            el.contentEditable = isEditing ? 'true' : 'false';
+        });
+    };
+
+    // Ctrl+S to save
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            if (document.body.classList.contains('edit-mode')) {
+                // Save all editable content to localStorage
+                const editables = document.querySelectorAll('[contenteditable]');
+                const data = {};
+                editables.forEach((el, i) => {
+                    data['edit_' + i] = el.innerHTML;
+                });
+                localStorage.setItem('legacy-deck-edits', JSON.stringify(data));
+
+                // Visual feedback
+                const banner = document.querySelector('.edit-banner');
+                const orig = banner.textContent;
+                banner.textContent = 'Saved to localStorage!';
+                banner.style.background = 'linear-gradient(90deg, rgba(232,180,184,0.2), rgba(15,15,15,0.95))';
+                setTimeout(() => {
+                    banner.textContent = orig;
+                    banner.style.background = '';
+                }, 1500);
+            }
+        }
+    });
+
+    // Restore saved edits
+    function restoreEdits() {
+        const saved = localStorage.getItem('legacy-deck-edits');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                const editables = document.querySelectorAll('[contenteditable]');
+                editables.forEach((el, i) => {
+                    if (data['edit_' + i]) {
+                        el.innerHTML = data['edit_' + i];
+                    }
+                });
+            } catch(e) {}
+        }
+    }
+    restoreEdits();
+
+})();
+</script>
+
+</body>
+</html>
