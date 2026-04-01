@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://xinaliu2134.github.io/nana-hub/sitemap.xml
