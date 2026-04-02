@@ -4,10 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Holland Kids Explorer · 荷兰亲子探索</title>
-  <meta name="description" content="Holland Kids Explorer: 250+ family-friendly venues across the Netherlands. Interactive bilingual map for Dutch Chinese families with kids.">
+  <meta name="description" content="Holland Kids Explorer: 500+ family-friendly venues across the Netherlands. Interactive bilingual map for Dutch Chinese families with kids.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧒</text></svg>">
   <link rel="canonical" href="https://xinaliu2134.github.io/nana-hub/holland-kids-explorer.html">
   <meta property="og:title" content="Holland Kids Explorer · 荷兰亲子探索">
-  <meta property="og:description" content="250+ family-friendly venues across the Netherlands. Interactive bilingual map for families.">
+  <meta property="og:description" content="500+ family-friendly venues across the Netherlands. Interactive bilingual map for families.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://xinaliu2134.github.io/nana-hub/holland-kids-explorer.html">
   <meta name="twitter:card" content="summary">
@@ -624,6 +625,62 @@
       color: #fff;
     }
 
+    /* ── FAVORITE BUTTON ────────────────────────── */
+    .venue-fav-btn {
+      position: absolute; top: 10px; right: 10px;
+      background: none; border: none;
+      font-size: 20px; cursor: pointer;
+      opacity: 0.5; transition: opacity .15s, transform .15s;
+      line-height: 1; padding: 2px;
+      z-index: 2;
+    }
+    .venue-fav-btn:hover { opacity: 0.8; }
+    .venue-fav-btn.favorited { opacity: 1; }
+    .venue-fav-btn.bounce {
+      animation: favBounce .35s ease;
+    }
+    @keyframes favBounce {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.35); }
+      100% { transform: scale(1); }
+    }
+    .venue-card { position: relative; }
+
+    /* ── DISTANCE BADGE ──────────────────────────── */
+    .venue-distance {
+      font-size: 11px; color: var(--teal); font-weight: 600;
+      display: inline-flex; align-items: center; gap: 3px;
+    }
+
+    /* ── NEAR ME BUTTON ──────────────────────────── */
+    .nearme-btn {
+      background: none; border: none;
+      color: rgba(255,255,255,.5);
+      font-size: 20px; cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 8px;
+      transition: color .15s, background .15s;
+      flex-shrink: 0;
+    }
+    .nearme-btn:hover { color: #fff; background: rgba(255,255,255,.1); }
+    .nearme-btn.active { color: #4FC3F7; }
+
+    /* ── AUTOCOMPLETE VENUE RESULT ────────────────── */
+    .autocomplete-item .venue-result-detail {
+      font-size: 11px; color: var(--text-muted);
+      margin-left: 4px;
+    }
+    .autocomplete-item .venue-emoji {
+      font-size: 16px; flex-shrink: 0;
+    }
+    .autocomplete-section-label {
+      padding: 6px 14px 2px;
+      font-size: 10px; font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
     /* ── RESPONSIVE ──────────────────────────────── */
     @media (max-width: 768px) {
       .main { grid-template-columns: 1fr; grid-template-rows: 50vh 1fr; }
@@ -849,10 +906,11 @@
 
   <div class="header-search">
     <span class="search-icon">🔍</span>
-    <input type="text" id="searchInput" placeholder="Search region… e.g. Zeeland, Amsterdam, Utrecht" autocomplete="off">
+    <input type="text" id="searchInput" placeholder="Search venue or region... 搜索场地或地区..." autocomplete="off">
     <button class="clear-btn" id="clearBtn" onclick="clearSearch()">✕</button>
     <div class="autocomplete" id="autocomplete"></div>
   </div>
+  <button class="nearme-btn" id="nearmeBtn" onclick="activateNearMe()" title="Near Me 我附近">📍</button>
 
   <div class="header-spacer"></div>
 
@@ -966,8 +1024,13 @@ const T = {
     flyTo: '📍 Show on map',
     loadMore: 'Load more',
     regionNotFound: 'Region not found. Try a Dutch city or province name.',
-    searchPlaceholder: 'Search region… e.g. Zeeland, Amsterdam, Utrecht',
+    searchPlaceholder: 'Search venue or region... e.g. Efteling, Amsterdam',
     resultLabel: 'Search a region to discover kids venues',
+    favoritesLabel: 'Favorites',
+    nearMe: 'Near Me',
+    nearMeSearching: 'Getting your location...',
+    nearMePermDenied: 'Location access denied. Enable it in browser settings to use Near Me.',
+    nearMeError: 'Could not get your location. Please try again.',
   },
   zh: {
     filterLabel: '种类：',
@@ -985,8 +1048,13 @@ const T = {
     flyTo: '📍 在地图上显示',
     loadMore: '加载更多',
     regionNotFound: '未找到该地区，请输入荷兰城市或省份名称。',
-    searchPlaceholder: '搜索地区… 如 Zeeland、Amsterdam、Utrecht',
+    searchPlaceholder: '搜索场地或地区... 如 Efteling、Amsterdam',
     resultLabel: '搜索地区以发现亲子场地',
+    favoritesLabel: '收藏',
+    nearMe: '我附近',
+    nearMeSearching: '正在获取位置...',
+    nearMePermDenied: '位置访问被拒绝，请在浏览器设置中允许以使用"我附近"功能。',
+    nearMeError: '无法获取位置，请重试。',
   }
 };
 
@@ -1134,6 +1202,10 @@ let state = {
   activeCardId: null,
   currentRegion: '',
   markers: new Map(),
+  favorites: JSON.parse(localStorage.getItem('kids-explorer-favorites') || '[]'),
+  showFavoritesOnly: false,
+  userLocation: null,
+  userLocationMarker: null,
 };
 const PAGE_SIZE = 30;
 
@@ -1170,11 +1242,23 @@ function buildFilterBar() {
   });
   const totalCount = state.allVenues.length;
 
+  // Favorites chip
+  const favCount = state.favorites.length;
+  const favChip = document.createElement('button');
+  favChip.className = 'filter-chip' + (state.showFavoritesOnly ? ' active' : '');
+  if (state.showFavoritesOnly) {
+    favChip.style.background = '#E05A1E';
+    favChip.style.borderColor = '#E05A1E';
+  }
+  favChip.innerHTML = `❤️ ${T[LANG.current].favoritesLabel}${favCount > 0 ? ` <span class="filter-chip-count">${favCount}</span>` : ''}`;
+  favChip.onclick = () => toggleFavoritesFilter();
+  bar.appendChild(favChip);
+
   // All button
   const allChip = document.createElement('button');
-  allChip.className = 'filter-chip' + (state.activeCategory === null ? ' active' : '');
-  allChip.style.background = state.activeCategory === null ? '#1A2B4A' : '';
-  allChip.style.borderColor = state.activeCategory === null ? '#1A2B4A' : '';
+  allChip.className = 'filter-chip' + (!state.showFavoritesOnly && state.activeCategory === null ? ' active' : '');
+  allChip.style.background = !state.showFavoritesOnly && state.activeCategory === null ? '#1A2B4A' : '';
+  allChip.style.borderColor = !state.showFavoritesOnly && state.activeCategory === null ? '#1A2B4A' : '';
   allChip.innerHTML = totalCount > 0
     ? `${T[LANG.current].allLabel} <span class="filter-chip-count">${totalCount}</span>`
     : T[LANG.current].allLabel;
@@ -1184,7 +1268,7 @@ function buildFilterBar() {
   CATEGORIES.forEach(cat => {
     const count = catCounts[cat.id] || 0;
     const chip = document.createElement('button');
-    const isActive = state.activeCategory === cat.id;
+    const isActive = !state.showFavoritesOnly && state.activeCategory === cat.id;
     chip.className = 'filter-chip' + (isActive ? ' active' : '') + (totalCount > 0 && count === 0 ? ' no-data' : '');
     if (isActive) {
       chip.style.background = cat.color;
@@ -1199,6 +1283,7 @@ function buildFilterBar() {
 
 function setFilter(catId) {
   state.activeCategory = catId;
+  state.showFavoritesOnly = false;
   state.displayed = 0;
   if (state.allVenues.length === 0) {
     // No region loaded yet — highlight search bar and show a hint in empty state
@@ -1223,9 +1308,20 @@ function setFilter(catId) {
 }
 
 function applyFilter() {
-  state.filtered = state.activeCategory
+  let list = state.activeCategory
     ? state.allVenues.filter(v => v.category.id === state.activeCategory)
-    : state.allVenues;
+    : [...state.allVenues];
+  if (state.showFavoritesOnly) {
+    list = list.filter(v => state.favorites.includes(v.id));
+  }
+  // If user location available, compute distances
+  if (state.userLocation) {
+    list.forEach(v => {
+      v._userDist = haversine(state.userLocation[0], state.userLocation[1], v.lat, v.lon);
+    });
+    list.sort((a, b) => a._userDist - b._userDist);
+  }
+  state.filtered = list;
   renderList();
   renderMarkers();
 }
@@ -1238,10 +1334,37 @@ let focusedIdx = -1;
 searchInput.addEventListener('input', () => {
   const q = searchInput.value.trim().toLowerCase();
   if (!q) { autocompleteEl.classList.remove('open'); return; }
-  const matches = DUTCH_REGIONS.filter(r =>
+  const regionMatches = DUTCH_REGIONS.filter(r =>
     r.name.toLowerCase().includes(q)
-  ).slice(0, 8);
-  renderAutocomplete(matches, q);
+  ).slice(0, 5);
+  // Search venue names from static data and current loaded venues
+  const venueSource = state.allVenues.length > 0 ? state.allVenues : [];
+  const staticVenueMatches = STATIC_NL_VENUES
+    .filter(v => v.tags.name && v.tags.name.toLowerCase().includes(q))
+    .map(v => ({
+      name: v.tags.name,
+      type: 'venue',
+      lat: v.lat,
+      lon: v.lon,
+      emoji: getCategoryForVenue(v.tags).emoji,
+      catLabel: LANG.current === 'zh' ? getCategoryForVenue(v.tags).zh : getCategoryForVenue(v.tags).en,
+      city: v.tags['addr:city'] || '',
+      id: `${v.type}/${v.id}`,
+    }));
+  const loadedVenueMatches = venueSource
+    .filter(v => v.name.toLowerCase().includes(q) && !staticVenueMatches.find(s => s.name === v.name))
+    .map(v => ({
+      name: v.name,
+      type: 'venue',
+      lat: v.lat,
+      lon: v.lon,
+      emoji: v.category.emoji,
+      catLabel: LANG.current === 'zh' ? v.category.zh : v.category.en,
+      city: v.address ? v.address.split(',').pop().trim() : '',
+      id: v.id,
+    }));
+  const allVenueMatches = [...staticVenueMatches, ...loadedVenueMatches].slice(0, 5);
+  renderAutocomplete(regionMatches, q, allVenueMatches);
 });
 
 searchInput.addEventListener('keydown', e => {
@@ -1258,7 +1381,7 @@ searchInput.addEventListener('keydown', e => {
     e.preventDefault();
     if (focusedIdx >= 0 && items[focusedIdx]) {
       items[focusedIdx].click();
-    } else {
+    } else if (searchInput.value.trim()) {
       searchRegion(searchInput.value.trim());
     }
   } else if (e.key === 'Escape') {
@@ -1270,22 +1393,53 @@ document.addEventListener('click', e => {
   if (!e.target.closest('.header-search')) autocompleteEl.classList.remove('open');
 });
 
-function renderAutocomplete(matches, q) {
+function renderAutocomplete(regionMatches, q, venueMatches) {
   focusedIdx = -1;
-  if (!matches.length) { autocompleteEl.classList.remove('open'); return; }
-  autocompleteEl.innerHTML = matches.map(r => {
-    const safeQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const safeName = escapeHtml(r.name);
-    const highlighted = safeName.replace(
-      new RegExp(`(${safeQ})`, 'gi'),
-      '<strong style="color:var(--primary)">$1</strong>'
-    );
-    const escapedName = r.name.replace(/'/g, "\\'").replace(/[<>"]/g, '');
-    return `<div class="autocomplete-item" onclick="searchRegion('${escapedName}')">
-      <span>${highlighted}</span>
-      <span class="region-type">${r.type === 'province' ? 'Province 省' : 'City 城市'}</span>
+  venueMatches = venueMatches || [];
+  if (!regionMatches.length && !venueMatches.length) { autocompleteEl.classList.remove('open'); return; }
+  const safeQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  let html = '';
+  // Near Me option at the top
+  if ('near me'.includes(q) || '我附近'.includes(q) || 'nearme'.includes(q.replace(/\s/g,''))) {
+    html += `<div class="autocomplete-item" onclick="activateNearMe()">
+      <span class="venue-emoji">📍</span>
+      <span>Near Me ${LANG.current === 'zh' ? '我附近' : ''}</span>
+      <span class="region-type">${LANG.current === 'zh' ? '定位' : 'Location'}</span>
     </div>`;
-  }).join('');
+  }
+  // Venue results
+  if (venueMatches.length > 0) {
+    html += `<div class="autocomplete-section-label">${LANG.current === 'zh' ? '场地' : 'Venues'}</div>`;
+    html += venueMatches.map(v => {
+      const safeName = escapeHtml(v.name);
+      const highlighted = safeName.replace(
+        new RegExp(`(${safeQ})`, 'gi'),
+        '<strong style="color:var(--primary)">$1</strong>'
+      );
+      return `<div class="autocomplete-item" data-venue-lat="${v.lat}" data-venue-lon="${v.lon}" data-venue-id="${v.id}" onclick="searchVenueFromAutocomplete(${v.lat},${v.lon},'${v.id.replace(/'/g,"\\'")}','${v.name.replace(/'/g,"\\'")}')">
+        <span class="venue-emoji">${v.emoji}</span>
+        <span>${highlighted}<span class="venue-result-detail"> · ${v.city}</span></span>
+        <span class="region-type">${v.catLabel}</span>
+      </div>`;
+    }).join('');
+  }
+  // Region results
+  if (regionMatches.length > 0) {
+    html += `<div class="autocomplete-section-label">${LANG.current === 'zh' ? '地区' : 'Regions'}</div>`;
+    html += regionMatches.map(r => {
+      const safeName = escapeHtml(r.name);
+      const highlighted = safeName.replace(
+        new RegExp(`(${safeQ})`, 'gi'),
+        '<strong style="color:var(--primary)">$1</strong>'
+      );
+      const escapedName = r.name.replace(/'/g, "\\'").replace(/[<>"]/g, '');
+      return `<div class="autocomplete-item" onclick="searchRegion('${escapedName}')">
+        <span>${highlighted}</span>
+        <span class="region-type">${r.type === 'province' ? 'Province 省' : 'City 城市'}</span>
+      </div>`;
+    }).join('');
+  }
+  autocompleteEl.innerHTML = html;
   autocompleteEl.classList.add('open');
 }
 
@@ -1301,6 +1455,7 @@ function resetHome() {
   autocompleteEl.classList.remove('open');
   state.activeCategory = null;
   state.activeCardId = null;
+  state.showFavoritesOnly = false;
   state.displayed = 0;
   markersLayer.clearLayers();
   state.markers.clear();
@@ -1317,6 +1472,7 @@ function fullReset() {
   state.activeCategory = null;
   state.activeCardId = null;
   state.currentRegion = '';
+  state.showFavoritesOnly = false;
   markersLayer.clearLayers();
   state.markers.clear();
   searchInput.value = '';
@@ -1608,7 +1764,10 @@ function renderList() {
     const card = document.createElement('div');
     card.className = 'venue-card' + (v.id === state.activeCardId ? ' active' : '');
     card.id = 'card-' + v.id.replace(/[^a-z0-9]/gi, '-');
+    const isFav = state.favorites.includes(v.id);
+    const distHtml = v._userDist != null ? `<span class="venue-distance">📍 ${v._userDist.toFixed(1)} km</span>` : '';
     card.innerHTML = `
+      <button class="venue-fav-btn ${isFav ? 'favorited' : ''}" onclick="event.stopPropagation(); toggleFavorite('${v.id.replace(/'/g,"\\'")}', this)" title="${isFav ? 'Remove favorite' : 'Add favorite'}">${isFav ? '❤️' : '♡'}</button>
       <div class="venue-card-top">
         <div class="venue-icon" style="background:${v.category.bg}">${v.category.emoji}</div>
         <div class="venue-info">
@@ -1618,6 +1777,7 @@ function renderList() {
             <span class="venue-tag" style="background:${v.category.bg};color:${v.category.color}">
               ${LANG.current === 'zh' ? v.category.zh : v.category.en}
             </span>
+            ${distHtml}
             ${v.address ? `<span class="venue-address">
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="4" r="2.5" stroke="currentColor" stroke-width="1.2"/><path d="M5 10 C2 7 0.5 5.5 0.5 4a4.5 4.5 0 019 0c0 1.5-1.5 3-4.5 6z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
               ${v.address}
@@ -1799,82 +1959,81 @@ window.searchRegion = async (name) => {
 // ── STATIC VENUE DATA (instant load, no API needed) ──
 const STATIC_NL_VENUES = [
   // Theme Parks
-  { type:'node',id:1,lat:51.6508,lon:5.0474, tags:{name:'Efteling',tourism:'theme_park',website:'https://www.efteling.com','addr:city':'Kaatsheuvel','addr:street':'Europalaan','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-19:00'}},
-  { type:'node',id:2,lat:52.4416,lon:5.5836, tags:{name:'Walibi Holland',tourism:'theme_park',website:'https://www.walibi.nl','addr:city':'Biddinghuizen','addr:street':'Spijkweg','addr:housenumber':'30',opening_hours:'Mo-Su 10:00-18:00 (seasonal)'}},
-  { type:'node',id:3,lat:52.1469,lon:4.3714, tags:{name:'Duinrell',tourism:'theme_park',website:'https://www.duinrell.nl','addr:city':'Wassenaar','addr:street':'Duinrell','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
-  { type:'node',id:4,lat:52.6289,lon:6.5689, tags:{name:'Attractiepark Slagharen',tourism:'theme_park',website:'https://www.slagharen.com','addr:city':'Slagharen','addr:street':'Zwarte Dijk','addr:housenumber':'37',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
-  { type:'node',id:5,lat:51.4272,lon:6.0058, tags:{name:'Toverland',tourism:'theme_park',website:'https://www.toverland.com','addr:city':'Sevenum','addr:street':'Toverland','addr:housenumber':'2',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
-  { type:'node',id:6,lat:52.0644,lon:4.2972, tags:{name:'Drievliet',tourism:'theme_park',website:'https://www.drievliet.nl','addr:city':'Den Haag','addr:street':"Laan van 's-Gravenmade",'addr:housenumber':'81',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
-  { type:'node',id:7,lat:52.3935,lon:6.4558, tags:{name:'Avonturenpark Hellendoorn',tourism:'theme_park',website:'https://www.avonturenpark.nl','addr:city':'Hellendoorn','addr:street':'Luttenbergerweg','addr:housenumber':'22',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
-  { type:'node',id:8,lat:52.2044,lon:5.3886, tags:{name:'Julianatoren',tourism:'theme_park',website:'https://www.julianatoren.nl','addr:city':'Apeldoorn','addr:street':'Amersfoortseweg','addr:housenumber':'35',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
-  { type:'node',id:9,lat:51.9130,lon:4.4620, tags:{name:'Plaswijckpark',tourism:'theme_park',website:'https://www.plaswijckpark.nl','addr:city':'Rotterdam','addr:street':'Ringdijk','addr:housenumber':'20',opening_hours:'Mo-Su 09:00-18:00'}},
-  { type:'node',id:130,lat:52.2900,lon:5.1500, tags:{name:'Speelpark Oud Valkeveen',tourism:'theme_park',website:'https://www.oudvalkeveen.nl','addr:city':'Naarden',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
-  { type:'node',id:131,lat:52.7100,lon:5.3000, tags:{name:'Sprookjeswonderland',tourism:'theme_park',website:'https://www.sprookjeswonderland.nl','addr:city':'Enkhuizen',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
-  { type:'node',id:132,lat:52.2700,lon:6.7900, tags:{name:'De Waarbeek',tourism:'theme_park',website:'https://www.dewaarbeek.nl','addr:city':'Hengelo',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
-  { type:'node',id:133,lat:51.8200,lon:5.8900, tags:{name:'Attractiepark Tivoli',tourism:'theme_park',website:'https://www.attractieparktivoli.nl','addr:city':'Berg en Dal',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:1,lat:51.6508,lon:5.0474, tags:{nameZh:'艾夫特琳',name:'Efteling',tourism:'theme_park',website:'https://www.efteling.com','addr:city':'Kaatsheuvel','addr:street':'Europalaan','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-19:00'}},
+  { type:'node',id:2,lat:52.4416,lon:5.5836, tags:{nameZh:'瓦利比',name:'Walibi Holland',tourism:'theme_park',website:'https://www.walibi.nl','addr:city':'Biddinghuizen','addr:street':'Spijkweg','addr:housenumber':'30',opening_hours:'Mo-Su 10:00-18:00 (seasonal)'}},
+  { type:'node',id:3,lat:52.1469,lon:4.3714, tags:{nameZh:'杜因勒尔',name:'Duinrell',tourism:'theme_park',website:'https://www.duinrell.nl','addr:city':'Wassenaar','addr:street':'Duinrell','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:4,lat:52.6289,lon:6.5689, tags:{nameZh:'斯拉格哈伦游乐园',name:'Attractiepark Slagharen',tourism:'theme_park',website:'https://www.slagharen.com','addr:city':'Slagharen','addr:street':'Zwarte Dijk','addr:housenumber':'37',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:5,lat:51.4272,lon:6.0058, tags:{nameZh:'魔法乐园',name:'Toverland',tourism:'theme_park',website:'https://www.toverland.com','addr:city':'Sevenum','addr:street':'Toverland','addr:housenumber':'2',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:6,lat:52.0644,lon:4.2972, tags:{nameZh:'三叶草乐园',name:'Drievliet',tourism:'theme_park',website:'https://www.drievliet.nl','addr:city':'Den Haag','addr:street':"Laan van 's-Gravenmade",'addr:housenumber':'81',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:7,lat:52.3935,lon:6.4558, tags:{nameZh:'海伦多恩冒险乐园',name:'Avonturenpark Hellendoorn',tourism:'theme_park',website:'https://www.avonturenpark.nl','addr:city':'Hellendoorn','addr:street':'Luttenbergerweg','addr:housenumber':'22',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:8,lat:52.2044,lon:5.3886, tags:{nameZh:'朱莉安娜塔乐园',name:'Julianatoren',tourism:'theme_park',website:'https://www.julianatoren.nl','addr:city':'Apeldoorn','addr:street':'Amersfoortseweg','addr:housenumber':'35',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:9,lat:51.9130,lon:4.4620, tags:{nameZh:'普拉斯维克公园',name:'Plaswijckpark',tourism:'theme_park',website:'https://www.plaswijckpark.nl','addr:city':'Rotterdam','addr:street':'Ringdijk','addr:housenumber':'20',opening_hours:'Mo-Su 09:00-18:00'}},
+  { type:'node',id:130,lat:52.2900,lon:5.1500, tags:{nameZh:'老瓦尔克芬乐园',name:'Speelpark Oud Valkeveen',tourism:'theme_park',website:'https://www.oudvalkeveen.nl','addr:city':'Naarden',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:131,lat:52.7100,lon:5.3000, tags:{nameZh:'童话仙境',name:'Sprookjeswonderland',tourism:'theme_park',website:'https://www.sprookjeswonderland.nl','addr:city':'Enkhuizen',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:132,lat:52.2700,lon:6.7900, tags:{nameZh:'瓦尔贝克乐园',name:'De Waarbeek',tourism:'theme_park',website:'https://www.dewaarbeek.nl','addr:city':'Hengelo',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:133,lat:51.8200,lon:5.8900, tags:{nameZh:'蒂沃利乐园',name:'Attractiepark Tivoli',tourism:'theme_park',website:'https://www.attractieparktivoli.nl','addr:city':'Berg en Dal',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
   // Zoos & Animals
-  { type:'node',id:10,lat:52.3663,lon:4.9158, tags:{name:'Artis',tourism:'zoo',website:'https://www.artis.nl','addr:city':'Amsterdam','addr:street':'Plantage Kerklaan','addr:housenumber':'38-40',opening_hours:'Mar-Oct: Mo-Su 09:00-18:00; Nov-Feb: 09:00-17:00'}},
-  { type:'node',id:11,lat:51.9751,lon:5.9003, tags:{name:"Burgers' Zoo",tourism:'zoo',website:'https://www.burgerszoo.nl','addr:city':'Arnhem','addr:street':'Antoon van Hooffplein','addr:housenumber':'1',opening_hours:'Mo-Su 09:00-18:00'}},
-  { type:'node',id:12,lat:51.5349,lon:5.1162, tags:{name:'Beekse Bergen',tourism:'zoo',website:'https://www.beeksebergen.nl','addr:city':'Hilvarenbeek','addr:street':'Beekse Bergen','addr:housenumber':'1',opening_hours:'Mo-Fr 10:00-17:30; Sa-Su 09:30-19:00'}},
-  { type:'node',id:13,lat:52.7797,lon:6.9009, tags:{name:'Wildlands Adventure Zoo',tourism:'zoo',website:'https://www.wildlands.nl','addr:city':'Emmen','addr:street':'Raatakkers','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00'}},
-  { type:'node',id:14,lat:52.1584,lon:5.3841, tags:{name:'Dierenpark Amersfoort',tourism:'zoo',website:'https://www.dierenparkamersfoort.nl','addr:city':'Amersfoort','addr:street':'Barchman Wuytierslaan','addr:housenumber':'224',opening_hours:'Mo-Su 09:00-18:00'}},
-  { type:'node',id:15,lat:50.8613,lon:6.0403, tags:{name:'GaiaZOO',tourism:'zoo',website:'https://www.gaiazoo.nl','addr:city':'Kerkrade','addr:street':'Gaiaboulevard','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00'}},
-  { type:'node',id:16,lat:52.3484,lon:5.6249, tags:{name:'Dolfinarium',tourism:'zoo',website:'https://www.dolfinarium.nl','addr:city':'Harderwijk','addr:street':'Zuiderzeeboulevard','addr:housenumber':'22',opening_hours:'Mo-Su 10:00-17:00'}},
-  { type:'node',id:17,lat:52.0174,lon:5.8804, tags:{name:'Apenheul',tourism:'zoo',website:'https://www.apenheul.nl','addr:city':'Apeldoorn','addr:street':'J.C. Wilslaan','addr:housenumber':'21',opening_hours:'Mo-Su 09:30-17:00 (Apr-Oct)'}},
-  { type:'node',id:18,lat:52.7778,lon:6.9003, tags:{name:'Dierenpark Emmen',tourism:'zoo',website:'https://www.dierenparkemmen.nl','addr:city':'Emmen',opening_hours:'Mo-Su 10:00-17:00'}},
-  { type:'node',id:134,lat:51.9270,lon:4.4490, tags:{name:'Diergaarde Blijdorp',tourism:'zoo',website:'https://www.diergaardeblijdorp.nl','addr:city':'Rotterdam','addr:street':'Blijdorplaan','addr:housenumber':'8',opening_hours:'Mo-Su 09:00-18:00'}},
-  { type:'node',id:135,lat:51.9600,lon:5.5700, tags:{name:'Ouwehands Dierenpark',tourism:'zoo',website:'https://www.ouwehand.nl','addr:city':'Rhenen','addr:street':'Grebbeweg','addr:housenumber':'111',opening_hours:'Mo-Su 09:00-18:00'}},
-  { type:'node',id:136,lat:52.1200,lon:4.6500, tags:{name:'Avifauna Bird Park',tourism:'zoo',website:'https://www.avifauna.nl','addr:city':'Alphen aan den Rijn','addr:street':'Hoorn','addr:housenumber':'65',opening_hours:'Mo-Su 09:00-18:00'}},
+  { type:'node',id:10,lat:52.3663,lon:4.9158, tags:{nameZh:'阿提斯动物园',name:'Artis',tourism:'zoo',website:'https://www.artis.nl','addr:city':'Amsterdam','addr:street':'Plantage Kerklaan','addr:housenumber':'38-40',opening_hours:'Mar-Oct: Mo-Su 09:00-18:00; Nov-Feb: 09:00-17:00'}},
+  { type:'node',id:11,lat:51.9751,lon:5.9003, tags:{nameZh:'布尔格斯动物园',name:"Burgers' Zoo",tourism:'zoo',website:'https://www.burgerszoo.nl','addr:city':'Arnhem','addr:street':'Antoon van Hooffplein','addr:housenumber':'1',opening_hours:'Mo-Su 09:00-18:00'}},
+  { type:'node',id:12,lat:51.5349,lon:5.1162, tags:{nameZh:'贝克赛贝亨野生动物园',name:'Beekse Bergen',tourism:'zoo',website:'https://www.beeksebergen.nl','addr:city':'Hilvarenbeek','addr:street':'Beekse Bergen','addr:housenumber':'1',opening_hours:'Mo-Fr 10:00-17:30; Sa-Su 09:30-19:00'}},
+  { type:'node',id:13,lat:52.7797,lon:6.9009, tags:{nameZh:'荒野冒险动物园',name:'Wildlands Adventure Zoo',tourism:'zoo',website:'https://www.wildlands.nl','addr:city':'Emmen','addr:street':'Raatakkers','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:14,lat:52.1584,lon:5.3841, tags:{nameZh:'阿默斯福特动物园',name:'Dierenpark Amersfoort',tourism:'zoo',website:'https://www.dierenparkamersfoort.nl','addr:city':'Amersfoort','addr:street':'Barchman Wuytierslaan','addr:housenumber':'224',opening_hours:'Mo-Su 09:00-18:00'}},
+  { type:'node',id:15,lat:50.8613,lon:6.0403, tags:{nameZh:'盖亚动物园',name:'GaiaZOO',tourism:'zoo',website:'https://www.gaiazoo.nl','addr:city':'Kerkrade','addr:street':'Gaiaboulevard','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:16,lat:52.3484,lon:5.6249, tags:{nameZh:'海豚馆',name:'Dolfinarium',tourism:'zoo',website:'https://www.dolfinarium.nl','addr:city':'Harderwijk','addr:street':'Zuiderzeeboulevard','addr:housenumber':'22',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:17,lat:52.0174,lon:5.8804, tags:{nameZh:'猿猴乐园',name:'Apenheul',tourism:'zoo',website:'https://www.apenheul.nl','addr:city':'Apeldoorn','addr:street':'J.C. Wilslaan','addr:housenumber':'21',opening_hours:'Mo-Su 09:30-17:00 (Apr-Oct)'}},
+  { type:'node',id:18,lat:52.7778,lon:6.9003, tags:{nameZh:'埃门动物园',name:'Dierenpark Emmen',tourism:'zoo',website:'https://www.dierenparkemmen.nl','addr:city':'Emmen',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:134,lat:51.9270,lon:4.4490, tags:{nameZh:'布莱多普动物园',name:'Diergaarde Blijdorp',tourism:'zoo',website:'https://www.diergaardeblijdorp.nl','addr:city':'Rotterdam','addr:street':'Blijdorplaan','addr:housenumber':'8',opening_hours:'Mo-Su 09:00-18:00'}},
+  { type:'node',id:135,lat:51.9600,lon:5.5700, tags:{nameZh:'欧文汉斯动物园',name:'Ouwehands Dierenpark',tourism:'zoo',website:'https://www.ouwehand.nl','addr:city':'Rhenen','addr:street':'Grebbeweg','addr:housenumber':'111',opening_hours:'Mo-Su 09:00-18:00'}},
+  { type:'node',id:136,lat:52.1200,lon:4.6500, tags:{nameZh:'百鸟园',name:'Avifauna Bird Park',tourism:'zoo',website:'https://www.avifauna.nl','addr:city':'Alphen aan den Rijn','addr:street':'Hoorn','addr:housenumber':'65',opening_hours:'Mo-Su 09:00-18:00'}},
   { type:'node',id:137,lat:51.6900,lon:5.9700, tags:{name:'Stadsboerderij Gennep',tourism:'children_farm','addr:city':'Gennep',opening_hours:'Mo-Su 09:00-17:00'}},
   // Aquariums
-  { type:'node',id:20,lat:52.1043,lon:4.2753, tags:{name:'Sea Life Scheveningen',tourism:'aquarium',website:'https://www.visitsealife.com/scheveningen','addr:city':'Den Haag','addr:street':'Strandweg','addr:housenumber':'13',opening_hours:'Mo-Su 10:00-17:00'}},
-  { type:'node',id:21,lat:52.3698,lon:4.9033, tags:{name:'Sea Life Amsterdam',tourism:'aquarium',website:'https://www.visitsealife.com/amsterdam','addr:city':'Amsterdam',opening_hours:'Mo-Su 10:00-17:00'}},
-  { type:'node',id:22,lat:51.9103,lon:4.4697, tags:{name:'Oceanium Rotterdam',tourism:'aquarium',website:'https://www.rotterdamzoo.nl','addr:city':'Rotterdam','addr:street':'Blijdorplaan','addr:housenumber':'8',opening_hours:'Mo-Su 09:00-18:00'}},
-  { type:'node',id:23,lat:52.3500,lon:5.6200, tags:{name:'Dolfinarium Harderwijk',tourism:'aquarium',website:'https://www.dolfinarium.nl','addr:city':'Harderwijk','addr:street':'Zuiderzeeboulevard','addr:housenumber':'22',opening_hours:'Mo-Su 10:00-17:00'}},
-  { type:'node',id:24,lat:53.0900,lon:4.7500, tags:{name:'Ecomare',tourism:'aquarium',website:'https://www.ecomare.nl','addr:city':'De Koog, Texel','addr:street':'Ruijslaan','addr:housenumber':'92',opening_hours:'Mo-Su 10:00-17:00'}},
-  { type:'node',id:25,lat:52.0000,lon:5.9200, tags:{name:"Burgers' Ocean",tourism:'aquarium',website:'https://www.burgerszoo.nl','addr:city':'Arnhem','addr:street':'Antoon van Hooffplein','addr:housenumber':'1',opening_hours:'Mo-Su 09:00-18:00'}},
-  { type:'node',id:26,lat:53.1700,lon:5.8500, tags:{name:'AquaZoo Friesland',tourism:'aquarium',website:'https://www.aquazoo.nl','addr:city':'Leeuwarden','addr:street':'De Groene Ster','addr:housenumber':'2',opening_hours:'Mo-Su 10:00-17:00'}},
-  { type:'node',id:27,lat:53.3900,lon:6.4600, tags:{name:'Zeehondencentrum Pieterburen',tourism:'aquarium',website:'https://www.zeehondencentrum.nl','addr:city':'Pieterburen','addr:street':'Hoofdstraat','addr:housenumber':'94a',opening_hours:'Mo-Su 10:00-17:00'}},
-  { type:'node',id:28,lat:51.8200,lon:3.8600, tags:{name:'A Seal Stellendam',tourism:'aquarium',website:'https://www.aseal.nl','addr:city':'Stellendam',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:20,lat:52.1043,lon:4.2753, tags:{nameZh:'斯海弗宁恩海洋生物馆',name:'Sea Life Scheveningen',tourism:'aquarium',website:'https://www.visitsealife.com/scheveningen','addr:city':'Den Haag','addr:street':'Strandweg','addr:housenumber':'13',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:21,lat:52.3698,lon:4.9033, tags:{nameZh:'阿姆斯特丹海洋生物馆',name:'Sea Life Amsterdam',tourism:'aquarium',website:'https://www.visitsealife.com/amsterdam','addr:city':'Amsterdam',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:22,lat:51.9103,lon:4.4697, tags:{nameZh:'鹿特丹海洋馆',name:'Oceanium Rotterdam',tourism:'aquarium',website:'https://www.rotterdamzoo.nl','addr:city':'Rotterdam','addr:street':'Blijdorplaan','addr:housenumber':'8',opening_hours:'Mo-Su 09:00-18:00'}},
+  { type:'node',id:24,lat:53.0900,lon:4.7500, tags:{nameZh:'生态海洋馆',name:'Ecomare',tourism:'aquarium',website:'https://www.ecomare.nl','addr:city':'De Koog, Texel','addr:street':'Ruijslaan','addr:housenumber':'92',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:25,lat:52.0000,lon:5.9200, tags:{nameZh:'布尔格斯海洋馆',name:"Burgers' Ocean",tourism:'aquarium',website:'https://www.burgerszoo.nl','addr:city':'Arnhem','addr:street':'Antoon van Hooffplein','addr:housenumber':'1',opening_hours:'Mo-Su 09:00-18:00'}},
+  { type:'node',id:26,lat:53.1700,lon:5.8500, tags:{nameZh:'弗里斯兰水族馆',name:'AquaZoo Friesland',tourism:'aquarium',website:'https://www.aquazoo.nl','addr:city':'Leeuwarden','addr:street':'De Groene Ster','addr:housenumber':'2',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:27,lat:53.3900,lon:6.4600, tags:{nameZh:'彼得布伦海豹中心',name:'Zeehondencentrum Pieterburen',tourism:'aquarium',website:'https://www.zeehondencentrum.nl','addr:city':'Pieterburen','addr:street':'Hoofdstraat','addr:housenumber':'94a',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:28,lat:51.8200,lon:3.8600, tags:{nameZh:'海豹救助站',name:'A Seal Stellendam',tourism:'aquarium',website:'https://www.aseal.nl','addr:city':'Stellendam',opening_hours:'Mo-Su 10:00-17:00'}},
   // Museums
-  { type:'node',id:30,lat:52.3744,lon:4.9122, tags:{name:'NEMO Science Museum',tourism:'museum',website:'https://www.nemosciencemuseum.nl','addr:city':'Amsterdam','addr:street':'Oosterdok','addr:housenumber':'2',opening_hours:'Tu-Su 10:00-17:30 (Mo closed, except holidays)'}},
-  { type:'node',id:31,lat:52.3600,lon:4.8852, tags:{name:'Rijksmuseum',tourism:'museum',website:'https://www.rijksmuseum.nl','addr:city':'Amsterdam','addr:street':'Museumstraat','addr:housenumber':'1',opening_hours:'Mo-Su 09:00-17:00'}},
-  { type:'node',id:32,lat:52.3584,lon:4.8811, tags:{name:'Van Gogh Museum',tourism:'museum',website:'https://www.vangoghmuseum.nl','addr:city':'Amsterdam','addr:street':'Museumplein','addr:housenumber':'6',opening_hours:'Mo-Su 09:00-17:00'}},
-  { type:'node',id:33,lat:52.3752,lon:4.8840, tags:{name:'Anne Frank House',tourism:'museum',website:'https://www.annefrank.org','addr:city':'Amsterdam','addr:street':'Prinsengracht','addr:housenumber':'263-267',opening_hours:'Mo-Su 09:00-22:00'}},
-  { type:'node',id:34,lat:52.1584,lon:4.4819, tags:{name:'Naturalis Biodiversity Center',tourism:'museum',website:'https://www.naturalis.nl','addr:city':'Leiden','addr:street':'Darwinweg','addr:housenumber':'2',opening_hours:'Mo-Su 10:00-17:00'}},
-  { type:'node',id:35,lat:52.0813,lon:4.3148, tags:{name:'Mauritshuis',tourism:'museum',website:'https://www.mauritshuis.nl','addr:city':'Den Haag','addr:street':'Plein','addr:housenumber':'29',opening_hours:'Mo 13:00-18:00; Tu-Su 10:00-18:00; Th 10:00-20:00'}},
-  { type:'node',id:36,lat:53.2107,lon:6.5617, tags:{name:'Groninger Museum',tourism:'museum',website:'https://www.groningermuseum.nl','addr:city':'Groningen','addr:street':'Museumeiland','addr:housenumber':'1',opening_hours:'Tu-Su 10:00-17:00'}},
-  { type:'node',id:37,lat:52.7018,lon:5.2887, tags:{name:'Zuiderzeemuseum',tourism:'museum',website:'https://www.zuiderzeemuseum.nl','addr:city':'Enkhuizen','addr:street':'Wierdijk','addr:housenumber':'12-22',opening_hours:'Mo-Su 10:00-17:00'}},
-  { type:'node',id:38,lat:51.9892,lon:5.8904, tags:{name:'Nederlands Openluchtmuseum',tourism:'museum',website:'https://www.openluchtmuseum.nl','addr:city':'Arnhem','addr:street':'Hoeferlaan','addr:housenumber':'4',opening_hours:'Mo-Su 10:00-17:00'}},
-  { type:'node',id:39,lat:52.3752,lon:4.9165, tags:{name:'Scheepvaartmuseum',tourism:'museum',website:'https://www.hetscheepvaartmuseum.nl','addr:city':'Amsterdam','addr:street':'Kattenburgerplein','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00'}},
-  { type:'node',id:40,lat:52.2571,lon:6.1607, tags:{name:'Speelgoedmuseum Deventer',tourism:'museum',website:'https://www.speelgoedmuseum.nl','addr:city':'Deventer','addr:street':'Brink','addr:housenumber':'47',opening_hours:'Tu-Su 10:00-17:00'}},
-  { type:'node',id:41,lat:50.8484,lon:5.7049, tags:{name:'Bonnefantenmuseum',tourism:'museum',website:'https://www.bonnefanten.nl','addr:city':'Maastricht','addr:street':'Avenue Ceramique','addr:housenumber':'250',opening_hours:'Tu-Su 11:00-17:00'}},
-  { type:'node',id:42,lat:52.3580,lon:4.9188, tags:{name:'Tropenmuseum',tourism:'museum',website:'https://www.tropenmuseum.nl','addr:city':'Amsterdam','addr:street':'Linnaeusstraat','addr:housenumber':'2',opening_hours:'Tu-Su 10:00-17:00'}},
-  { type:'node',id:43,lat:52.0749,lon:4.3148, tags:{name:'Gemeentemuseum Den Haag',tourism:'museum',website:'https://www.gemeentemuseum.nl','addr:city':'Den Haag','addr:street':'Stadhouderslaan','addr:housenumber':'41',opening_hours:'Tu-Su 10:00-17:00'}},
-  { type:'node',id:138,lat:52.1700,lon:4.4600, tags:{name:'Corpus Journey through the Human Body',tourism:'museum',website:'https://www.corpusexperience.nl','addr:city':'Oegstgeest','addr:street':'Willem Einthovenstraat','addr:housenumber':'1',opening_hours:'Tu-Su 10:00-17:00 (last entry 15:00)'}},
-  { type:'node',id:139,lat:52.0850,lon:5.1150, tags:{name:'Spoorwegmuseum',tourism:'museum',website:'https://www.spoorwegmuseum.nl','addr:city':'Utrecht','addr:street':'Maliebaanstation',opening_hours:'Tu-Su 10:00-17:00'}},
-  { type:'node',id:140,lat:52.3660,lon:4.9160, tags:{name:'Micropia',tourism:'museum',website:'https://www.micropia.nl','addr:city':'Amsterdam','addr:street':'Plantage Kerklaan','addr:housenumber':'38-40',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:30,lat:52.3744,lon:4.9122, tags:{nameZh:'NEMO科学博物馆',name:'NEMO Science Museum',tourism:'museum',website:'https://www.nemosciencemuseum.nl','addr:city':'Amsterdam','addr:street':'Oosterdok','addr:housenumber':'2',opening_hours:'Tu-Su 10:00-17:30 (Mo closed, except holidays)'}},
+  { type:'node',id:31,lat:52.3600,lon:4.8852, tags:{nameZh:'国家博物馆',name:'Rijksmuseum',tourism:'museum',website:'https://www.rijksmuseum.nl','addr:city':'Amsterdam','addr:street':'Museumstraat','addr:housenumber':'1',opening_hours:'Mo-Su 09:00-17:00'}},
+  { type:'node',id:32,lat:52.3584,lon:4.8811, tags:{nameZh:'梵高美术馆',name:'Van Gogh Museum',tourism:'museum',website:'https://www.vangoghmuseum.nl','addr:city':'Amsterdam','addr:street':'Museumplein','addr:housenumber':'6',opening_hours:'Mo-Su 09:00-17:00'}},
+  { type:'node',id:33,lat:52.3752,lon:4.8840, tags:{nameZh:'安妮之家',name:'Anne Frank House',tourism:'museum',website:'https://www.annefrank.org','addr:city':'Amsterdam','addr:street':'Prinsengracht','addr:housenumber':'263-267',opening_hours:'Mo-Su 09:00-22:00'}},
+  { type:'node',id:34,lat:52.1584,lon:4.4819, tags:{nameZh:'自然生物多样性中心',name:'Naturalis Biodiversity Center',tourism:'museum',website:'https://www.naturalis.nl','addr:city':'Leiden','addr:street':'Darwinweg','addr:housenumber':'2',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:35,lat:52.0813,lon:4.3148, tags:{nameZh:'莫瑞泰斯皇家美术馆',name:'Mauritshuis',tourism:'museum',website:'https://www.mauritshuis.nl','addr:city':'Den Haag','addr:street':'Plein','addr:housenumber':'29',opening_hours:'Mo 13:00-18:00; Tu-Su 10:00-18:00; Th 10:00-20:00'}},
+  { type:'node',id:36,lat:53.2107,lon:6.5617, tags:{nameZh:'格罗宁根博物馆',name:'Groninger Museum',tourism:'museum',website:'https://www.groningermuseum.nl','addr:city':'Groningen','addr:street':'Museumeiland','addr:housenumber':'1',opening_hours:'Tu-Su 10:00-17:00'}},
+  { type:'node',id:37,lat:52.7018,lon:5.2887, tags:{nameZh:'须德海博物馆',name:'Zuiderzeemuseum',tourism:'museum',website:'https://www.zuiderzeemuseum.nl','addr:city':'Enkhuizen','addr:street':'Wierdijk','addr:housenumber':'12-22',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:38,lat:51.9892,lon:5.8904, tags:{nameZh:'荷兰露天博物馆',name:'Nederlands Openluchtmuseum',tourism:'museum',website:'https://www.openluchtmuseum.nl','addr:city':'Arnhem','addr:street':'Hoeferlaan','addr:housenumber':'4',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:39,lat:52.3752,lon:4.9165, tags:{nameZh:'航海博物馆',name:'Scheepvaartmuseum',tourism:'museum',website:'https://www.hetscheepvaartmuseum.nl','addr:city':'Amsterdam','addr:street':'Kattenburgerplein','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:40,lat:52.2571,lon:6.1607, tags:{nameZh:'玩具博物馆',name:'Speelgoedmuseum Deventer',tourism:'museum',website:'https://www.speelgoedmuseum.nl','addr:city':'Deventer','addr:street':'Brink','addr:housenumber':'47',opening_hours:'Tu-Su 10:00-17:00'}},
+  { type:'node',id:41,lat:50.8484,lon:5.7049, tags:{nameZh:'博纳范登博物馆',name:'Bonnefantenmuseum',tourism:'museum',website:'https://www.bonnefanten.nl','addr:city':'Maastricht','addr:street':'Avenue Ceramique','addr:housenumber':'250',opening_hours:'Tu-Su 11:00-17:00'}},
+  { type:'node',id:42,lat:52.3580,lon:4.9188, tags:{nameZh:'热带博物馆',name:'Tropenmuseum',tourism:'museum',website:'https://www.tropenmuseum.nl','addr:city':'Amsterdam','addr:street':'Linnaeusstraat','addr:housenumber':'2',opening_hours:'Tu-Su 10:00-17:00'}},
+  { type:'node',id:43,lat:52.0749,lon:4.3148, tags:{nameZh:'海牙市立博物馆',name:'Gemeentemuseum Den Haag',tourism:'museum',website:'https://www.gemeentemuseum.nl','addr:city':'Den Haag','addr:street':'Stadhouderslaan','addr:housenumber':'41',opening_hours:'Tu-Su 10:00-17:00'}},
+  { type:'node',id:138,lat:52.1700,lon:4.4600, tags:{nameZh:'人体之旅',name:'Corpus Journey through the Human Body',tourism:'museum',website:'https://www.corpusexperience.nl','addr:city':'Oegstgeest','addr:street':'Willem Einthovenstraat','addr:housenumber':'1',opening_hours:'Tu-Su 10:00-17:00 (last entry 15:00)'}},
+  { type:'node',id:139,lat:52.0850,lon:5.1150, tags:{nameZh:'铁路博物馆',name:'Spoorwegmuseum',tourism:'museum',website:'https://www.spoorwegmuseum.nl','addr:city':'Utrecht','addr:street':'Maliebaanstation',opening_hours:'Tu-Su 10:00-17:00'}},
+  { type:'node',id:140,lat:52.3660,lon:4.9160, tags:{nameZh:'微生物博物馆',name:'Micropia',tourism:'museum',website:'https://www.micropia.nl','addr:city':'Amsterdam','addr:street':'Plantage Kerklaan','addr:housenumber':'38-40',opening_hours:'Mo-Su 10:00-17:00'}},
   { type:'node',id:141,lat:52.3800,lon:4.6300, tags:{name:'Het Dolhuys - Museum of the Mind',tourism:'museum','addr:city':'Haarlem','addr:street':'Schotersingel','addr:housenumber':'2',opening_hours:'Tu-Su 11:00-17:00'}},
-  { type:'node',id:142,lat:52.2200,lon:4.4200, tags:{name:'Space Expo',tourism:'museum',website:'https://www.space-expo.nl','addr:city':'Noordwijk','addr:street':'Keplerlaan','addr:housenumber':'3',opening_hours:'Tu-Su 10:00-17:00'}},
+  { type:'node',id:142,lat:52.2200,lon:4.4200, tags:{nameZh:'太空博览馆',name:'Space Expo',tourism:'museum',website:'https://www.space-expo.nl','addr:city':'Noordwijk','addr:street':'Keplerlaan','addr:housenumber':'3',opening_hours:'Tu-Su 10:00-17:00'}},
   { type:'node',id:143,lat:52.3700,lon:4.9000, tags:{name:'Ontdekhoek',tourism:'museum','addr:city':'Amsterdam'}},
-  { type:'node',id:144,lat:51.6200,lon:3.9300, tags:{name:'Watersnoodmuseum',tourism:'museum',website:'https://www.watersnoodmuseum.nl','addr:city':'Ouwerkerk','addr:street':'Weg van de Buitenlandse Pers','addr:housenumber':'5',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:144,lat:51.6200,lon:3.9300, tags:{nameZh:'洪水博物馆',name:'Watersnoodmuseum',tourism:'museum',website:'https://www.watersnoodmuseum.nl','addr:city':'Ouwerkerk','addr:street':'Weg van de Buitenlandse Pers','addr:housenumber':'5',opening_hours:'Mo-Su 10:00-17:00'}},
   { type:'node',id:145,lat:51.9100,lon:4.4900, tags:{name:'Mariniersmuseum',tourism:'museum',website:'https://www.mariniersmuseum.nl','addr:city':'Rotterdam','addr:street':'Wijnhaven','addr:housenumber':'7-13',opening_hours:'Tu-Su 10:00-17:00'}},
   // Attractions & Nature
-  { type:'node',id:50,lat:52.0978,lon:4.3003, tags:{name:'Madurodam',tourism:'attraction',website:'https://www.madurodam.nl','addr:city':'Den Haag','addr:street':'George Maduroplein','addr:housenumber':'1',opening_hours:'Mo-Su 11:00-17:00'}},
-  { type:'node',id:51,lat:52.2705,lon:4.5466, tags:{name:'Keukenhof',tourism:'attraction',website:'https://www.keukenhof.nl','addr:city':'Lisse','addr:street':'Stationsweg','addr:housenumber':'166A',opening_hours:'Mar-May: Mo-Su 08:00-19:30'}},
-  { type:'node',id:52,lat:52.4745,lon:4.8122, tags:{name:'Zaanse Schans',tourism:'attraction',website:'https://www.zaanseschans.nl','addr:city':'Zaandam','addr:street':'Schansend','addr:housenumber':'7',opening_hours:'Mo-Su 09:00-17:00'}},
-  { type:'node',id:53,lat:52.7335,lon:6.0819, tags:{name:'Giethoorn',tourism:'attraction','addr:city':'Giethoorn'}},
-  { type:'node',id:54,lat:52.3664,lon:4.9085, tags:{name:'Hortus Botanicus Amsterdam',tourism:'attraction',website:'https://www.dehortus.nl','addr:city':'Amsterdam','addr:street':'Plantage Middenlaan','addr:housenumber':'2A',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:50,lat:52.0978,lon:4.3003, tags:{nameZh:'马杜罗丹小人国',name:'Madurodam',tourism:'attraction',website:'https://www.madurodam.nl','addr:city':'Den Haag','addr:street':'George Maduroplein','addr:housenumber':'1',opening_hours:'Mo-Su 11:00-17:00'}},
+  { type:'node',id:51,lat:52.2705,lon:4.5466, tags:{nameZh:'库肯霍夫花园',name:'Keukenhof',tourism:'attraction',website:'https://www.keukenhof.nl','addr:city':'Lisse','addr:street':'Stationsweg','addr:housenumber':'166A',opening_hours:'Mar-May: Mo-Su 08:00-19:30'}},
+  { type:'node',id:52,lat:52.4745,lon:4.8122, tags:{nameZh:'桑斯安斯风车村',name:'Zaanse Schans',tourism:'attraction',website:'https://www.zaanseschans.nl','addr:city':'Zaandam','addr:street':'Schansend','addr:housenumber':'7',opening_hours:'Mo-Su 09:00-17:00'}},
+  { type:'node',id:53,lat:52.7335,lon:6.0819, tags:{nameZh:'羊角村',name:'Giethoorn',tourism:'attraction','addr:city':'Giethoorn'}},
+  { type:'node',id:54,lat:52.3664,lon:4.9085, tags:{nameZh:'阿姆斯特丹植物园',name:'Hortus Botanicus Amsterdam',tourism:'attraction',website:'https://www.dehortus.nl','addr:city':'Amsterdam','addr:street':'Plantage Middenlaan','addr:housenumber':'2A',opening_hours:'Mo-Su 10:00-17:00'}},
   { type:'node',id:55,lat:52.1612,lon:4.4678, tags:{name:'Hortus Botanicus Leiden',tourism:'attraction',website:'https://www.hortusleiden.nl','addr:city':'Leiden','addr:street':'Rapenburg','addr:housenumber':'73',opening_hours:'Tu-Su 10:00-17:00'}},
   // Nature Reserves
-  { type:'node',id:60,lat:52.0848,lon:5.8319, tags:{name:'Nationaal Park De Hoge Veluwe',leisure:'nature_reserve',website:'https://www.hogeveluwe.nl','addr:city':'Otterlo','addr:street':'Houtkampweg','addr:housenumber':'9',opening_hours:'Mo-Su 08:00-20:00 (seasonal)'}},
+  { type:'node',id:60,lat:52.0848,lon:5.8319, tags:{nameZh:'高费吕韦国家公园',name:'Nationaal Park De Hoge Veluwe',leisure:'nature_reserve',website:'https://www.hogeveluwe.nl','addr:city':'Otterlo','addr:street':'Houtkampweg','addr:housenumber':'9',opening_hours:'Mo-Su 08:00-20:00 (seasonal)'}},
   { type:'node',id:61,lat:51.4557,lon:5.8647, tags:{name:'Nationaal Park De Groote Peel',leisure:'nature_reserve','addr:city':'Ospel'}},
   { type:'node',id:62,lat:52.4966,lon:4.7043, tags:{name:'Amsterdamse Waterleidingduinen',leisure:'nature_reserve','addr:city':'Vogelenzang'}},
   { type:'node',id:146,lat:52.7900,lon:6.4200, tags:{name:'Nationaal Park Dwingelderveld',leisure:'nature_reserve','addr:city':'Dwingeloo'}},
   { type:'node',id:147,lat:52.0800,lon:5.3000, tags:{name:'Nationaal Park Utrechtse Heuvelrug',leisure:'nature_reserve','addr:city':'Utrechtse Heuvelrug'}},
   { type:'node',id:148,lat:53.4900,lon:6.2000, tags:{name:'Nationaal Park Schiermonnikoog',leisure:'nature_reserve','addr:city':'Schiermonnikoog'}},
   { type:'node',id:149,lat:53.3600,lon:6.2100, tags:{name:'Nationaal Park Lauwersmeer',leisure:'nature_reserve','addr:city':'Lauwersoog'}},
-  { type:'node',id:150,lat:51.7400,lon:4.8200, tags:{name:'Nationaal Park De Biesbosch',leisure:'nature_reserve',website:'https://www.np-debiesbosch.nl','addr:city':'Werkendam'}},
+  { type:'node',id:150,lat:51.7400,lon:4.8200, tags:{nameZh:'比斯博斯国家公园',name:'Nationaal Park De Biesbosch',leisure:'nature_reserve',website:'https://www.np-debiesbosch.nl','addr:city':'Werkendam'}},
   { type:'node',id:151,lat:51.9400,lon:4.5200, tags:{name:'Kralingse Bos',leisure:'nature_reserve','addr:city':'Rotterdam'}},
   // Beaches
   { type:'node',id:70,lat:52.1055,lon:4.2731, tags:{name:'Scheveningen Strand',natural:'beach','addr:city':'Den Haag'}},
@@ -1892,26 +2051,26 @@ const STATIC_NL_VENUES = [
   { type:'node',id:156,lat:52.0700,lon:4.2200, tags:{name:'Kijkduin',natural:'beach','addr:city':'Den Haag'}},
   { type:'node',id:157,lat:51.9800,lon:4.1200, tags:{name:'Hoek van Holland',natural:'beach','addr:city':'Hoek van Holland'}},
   // Historic / Castles
-  { type:'node',id:80,lat:52.3337,lon:5.0739, tags:{name:'Muiderslot',historic:'castle',website:'https://www.muiderslot.nl','addr:city':'Muiden','addr:street':'Herengracht','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00'}},
-  { type:'node',id:81,lat:52.1022,lon:5.0069, tags:{name:'Kasteel De Haar',historic:'castle',website:'https://www.kasteeldehaar.nl','addr:city':'Haarzuilens','addr:street':'Kasteellaan','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00'}},
-  { type:'node',id:82,lat:50.9214,lon:5.9283, tags:{name:'Kasteel Hoensbroek',historic:'castle',website:'https://www.kasteelhoensbroek.nl','addr:city':'Hoensbroek','addr:street':'Klinkertstraat','addr:housenumber':'118',opening_hours:'Mo-Su 10:00-17:00'}},
-  { type:'node',id:83,lat:51.7894,lon:5.0168, tags:{name:'Slot Loevestein',historic:'castle',website:'https://www.loevestein.nl','addr:city':'Poederoijen','addr:street':'Loevestein','addr:housenumber':'1',opening_hours:'Tu-Su 11:00-17:00 (seasonal)'}},
-  { type:'node',id:84,lat:52.8380,lon:6.8656, tags:{name:'Hunebedcentrum',historic:'monument',website:'https://www.hunebedcentrum.eu','addr:city':'Borger','addr:street':'Bronnegerstraat','addr:housenumber':'12',opening_hours:'Mo-Su 10:00-17:00'}},
-  { type:'node',id:158,lat:52.1300,lon:4.6200, tags:{name:'Archeon',historic:'archaeological_site',website:'https://www.archeon.nl','addr:city':'Alphen aan den Rijn','addr:street':'Archeonlaan','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:80,lat:52.3337,lon:5.0739, tags:{nameZh:'穆伊登城堡',name:'Muiderslot',historic:'castle',website:'https://www.muiderslot.nl','addr:city':'Muiden','addr:street':'Herengracht','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:81,lat:52.1022,lon:5.0069, tags:{nameZh:'德哈尔城堡',name:'Kasteel De Haar',historic:'castle',website:'https://www.kasteeldehaar.nl','addr:city':'Haarzuilens','addr:street':'Kasteellaan','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:82,lat:50.9214,lon:5.9283, tags:{nameZh:'洪斯布鲁克城堡',name:'Kasteel Hoensbroek',historic:'castle',website:'https://www.kasteelhoensbroek.nl','addr:city':'Hoensbroek','addr:street':'Klinkertstraat','addr:housenumber':'118',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:83,lat:51.7894,lon:5.0168, tags:{nameZh:'洛夫斯坦城堡',name:'Slot Loevestein',historic:'castle',website:'https://www.loevestein.nl','addr:city':'Poederoijen','addr:street':'Loevestein','addr:housenumber':'1',opening_hours:'Tu-Su 11:00-17:00 (seasonal)'}},
+  { type:'node',id:84,lat:52.8380,lon:6.8656, tags:{nameZh:'巨石墓中心',name:'Hunebedcentrum',historic:'monument',website:'https://www.hunebedcentrum.eu','addr:city':'Borger','addr:street':'Bronnegerstraat','addr:housenumber':'12',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:158,lat:52.1300,lon:4.6200, tags:{nameZh:'考古主题公园',name:'Archeon',historic:'archaeological_site',website:'https://www.archeon.nl','addr:city':'Alphen aan den Rijn','addr:street':'Archeonlaan','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
   { type:'node',id:159,lat:51.9700,lon:5.7900, tags:{name:'Kasteel Doorwerth',historic:'castle',website:'https://www.glk.nl','addr:city':'Doorwerth'}},
-  { type:'node',id:160,lat:53.0100,lon:7.1900, tags:{name:'Fort Bourtange',historic:'fort',website:'https://www.vestingbourtange.nl','addr:city':'Bourtange'}},
+  { type:'node',id:160,lat:53.0100,lon:7.1900, tags:{nameZh:'布尔坦赫星形要塞',name:'Fort Bourtange',historic:'fort',website:'https://www.vestingbourtange.nl','addr:city':'Bourtange'}},
   { type:'node',id:161,lat:51.7600,lon:5.2200, tags:{name:'Kasteel Ammersoyen',historic:'castle',website:'https://www.glk.nl','addr:city':'Ammerzoden'}},
   // Windmills
-  { type:'node',id:90,lat:51.8834,lon:4.6333, tags:{name:'Kinderdijk Molens',man_made:'windmill',website:'https://www.kinderdijk.nl','addr:city':'Kinderdijk','addr:street':'Nederwaard','addr:housenumber':'1B',opening_hours:'Mo-Su 09:00-17:30'}},
+  { type:'node',id:90,lat:51.8834,lon:4.6333, tags:{nameZh:'小孩堤防风车群',name:'Kinderdijk Molens',man_made:'windmill',website:'https://www.kinderdijk.nl','addr:city':'Kinderdijk','addr:street':'Nederwaard','addr:housenumber':'1B',opening_hours:'Mo-Su 09:00-17:30'}},
   { type:'node',id:91,lat:52.1612,lon:4.4891, tags:{name:'Molen de Valk',man_made:'windmill',website:'https://www.molendevalk.nl','addr:city':'Leiden','addr:street':'2e Binnenvestgracht','addr:housenumber':'1',opening_hours:'Tu-Sa 10:00-17:00; Su 13:00-17:00'}},
   // Sports
-  { type:'node',id:100,lat:50.8936,lon:6.0314, tags:{name:'SnowWorld Landgraaf',leisure:'ice_rink',website:'https://www.snowworld.com','addr:city':'Landgraaf','addr:street':'Witte Wereld','addr:housenumber':'1',opening_hours:'Mo-Su 09:00-23:00'}},
+  { type:'node',id:100,lat:50.8936,lon:6.0314, tags:{nameZh:'雪世界兰格拉夫',name:'SnowWorld Landgraaf',leisure:'ice_rink',website:'https://www.snowworld.com','addr:city':'Landgraaf','addr:street':'Witte Wereld','addr:housenumber':'1',opening_hours:'Mo-Su 09:00-23:00'}},
   { type:'node',id:101,lat:52.3906,lon:4.8374, tags:{name:'Jaap Eden IJsbaan',leisure:'ice_rink',website:'https://www.jaapeden.nl','addr:city':'Amsterdam','addr:street':'Radioweg','addr:housenumber':'64',opening_hours:'Mo-Su 09:00-22:00 (seasonal)'}},
   { type:'node',id:162,lat:52.0600,lon:4.3700, tags:{name:'De Uithof',leisure:'sports_centre',website:'https://www.deuithof.nl','addr:city':'Den Haag'}},
   { type:'node',id:163,lat:51.4300,lon:5.4700, tags:{name:'Zwembad De Tongelreep',leisure:'swimming_pool','addr:city':'Eindhoven'}},
   { type:'node',id:164,lat:52.0100,lon:4.7100, tags:{name:'GZC Donk',leisure:'swimming_pool','addr:city':'Gouda'}},
   { type:'node',id:165,lat:53.2100,lon:6.5800, tags:{name:'Bjoeks Klimmuur',leisure:'sports_centre','addr:city':'Groningen'}},
-  { type:'node',id:166,lat:52.0500,lon:4.4800, tags:{name:'SnowWorld Zoetermeer',leisure:'ice_rink',website:'https://www.snowworld.com','addr:city':'Zoetermeer','addr:street':'Buytenparklaan','addr:housenumber':'20',opening_hours:'Mo-Su 09:00-23:00'}},
+  { type:'node',id:166,lat:52.0500,lon:4.4800, tags:{nameZh:'雪世界祖特梅尔',name:'SnowWorld Zoetermeer',leisure:'ice_rink',website:'https://www.snowworld.com','addr:city':'Zoetermeer','addr:street':'Buytenparklaan','addr:housenumber':'20',opening_hours:'Mo-Su 09:00-23:00'}},
   // Visitor Centres
   { type:'node',id:110,lat:52.2705,lon:4.5479, tags:{name:'Keukenhof Visitor Centre',tourism:'visitor_centre','addr:city':'Lisse'}},
   { type:'node',id:111,lat:53.1923,lon:5.4020, tags:{name:'Friesland Bezoekerscentrum',tourism:'visitor_centre','addr:city':'Leeuwarden'}},
@@ -1922,8 +2081,8 @@ const STATIC_NL_VENUES = [
   { type:'node',id:167,lat:51.6508,lon:5.0474, tags:{name:'Efteling Theater',amenity:'theatre',website:'https://www.efteling.com','addr:city':'Kaatsheuvel'}},
   { type:'node',id:168,lat:52.0900,lon:5.1100, tags:{name:'TivoliVredenburg',amenity:'theatre',website:'https://www.tivolivredenburg.nl','addr:city':'Utrecht','addr:street':'Vredenburgkade','addr:housenumber':'11',opening_hours:'Mo-Su varies'}},
   { type:'node',id:169,lat:52.3100,lon:4.9400, tags:{name:'Pathé Arena',amenity:'cinema',website:'https://www.pathe.nl','addr:city':'Amsterdam'}},
-  { type:'node',id:170,lat:52.0900,lon:4.2900, tags:{name:'Omniversum IMAX',amenity:'cinema',website:'https://www.omniversum.nl','addr:city':'Den Haag','addr:street':'President Kennedylaan','addr:housenumber':'5',opening_hours:'Mo-Su varies'}},
-  { type:'node',id:171,lat:52.3840,lon:4.9010, tags:{name:'Filmmuseum Eye',amenity:'cinema',website:'https://www.eyefilm.nl','addr:city':'Amsterdam','addr:street':'IJpromenade','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-21:00'}},
+  { type:'node',id:170,lat:52.0900,lon:4.2900, tags:{nameZh:'全景IMAX影院',name:'Omniversum IMAX',amenity:'cinema',website:'https://www.omniversum.nl','addr:city':'Den Haag','addr:street':'President Kennedylaan','addr:housenumber':'5',opening_hours:'Mo-Su varies'}},
+  { type:'node',id:171,lat:52.3840,lon:4.9010, tags:{nameZh:'Eye电影博物馆',name:'Filmmuseum Eye',amenity:'cinema',website:'https://www.eyefilm.nl','addr:city':'Amsterdam','addr:street':'IJpromenade','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-21:00'}},
   // ── Indoor Playgrounds: Monkey Town ──
   { type:'node',id:300,lat:52.3700,lon:4.8100, tags:{name:'Monkey Town Amsterdam West',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Amsterdam'}},
   { type:'node',id:301,lat:52.4000,lon:4.9400, tags:{name:'Monkey Town Amsterdam Noord',leisure:'indoor_playground',website:'https://monkeytown.eu',opening_hours:'Mo-Su 09:00-18:00','addr:city':'Amsterdam'}},
@@ -1995,7 +2154,7 @@ const STATIC_NL_VENUES = [
   { type:'node',id:452,lat:51.8100,lon:4.6700, tags:{name:'Fun Valley',leisure:'indoor_playground',website:'https://www.funvalleymaastricht.nl','addr:city':'Dordrecht'}},
   { type:'node',id:453,lat:52.5100,lon:6.0900, tags:{name:'Speelparadijs de Uitvinderij',leisure:'indoor_playground','addr:city':'Zwolle'}},
   // ── Outdoor Playgrounds ──
-  { type:'node',id:200,lat:52.3539,lon:4.5894, tags:{name:'Linnaeushof',leisure:'playground',website:'https://www.linnaeushof.nl','addr:city':'Bennebroek','addr:street':'Rijksstraatweg','addr:housenumber':'4',opening_hours:'Mo-Su 10:00-18:00 (Apr-Oct)'}},
+  { type:'node',id:200,lat:52.3539,lon:4.5894, tags:{nameZh:'林内斯霍夫户外游乐场',name:'Linnaeushof',leisure:'playground',website:'https://www.linnaeushof.nl','addr:city':'Bennebroek','addr:street':'Rijksstraatweg','addr:housenumber':'4',opening_hours:'Mo-Su 10:00-18:00 (Apr-Oct)'}},
   { type:'node',id:211,lat:52.0500,lon:4.3200, tags:{name:'Speeltuin Zuiderpark',leisure:'playground','addr:city':'Den Haag'}},
   { type:'node',id:209,lat:51.5900,lon:4.7800, tags:{name:'Speel & Klim Bos',leisure:'playground','addr:city':'Breda'}},
   // ── Children's Farms (Kinderboerderij) ──
@@ -2017,7 +2176,6 @@ const STATIC_NL_VENUES = [
   { type:'node',id:515,lat:51.7000,lon:5.3200, tags:{name:"Boerderij 't Geertje",tourism:'children_farm',website:'https://www.boerderijgeertje.nl','addr:city':'Zoeterwoude'}},
   { type:'node',id:516,lat:52.3600,lon:4.9200, tags:{name:'Kinderboerderij Westerpark',tourism:'children_farm','addr:city':'Amsterdam'}},
   { type:'node',id:517,lat:53.2200,lon:6.5800, tags:{name:'Stadsboerderij De Wierde',tourism:'children_farm','addr:city':'Groningen'}},
-  { type:'node',id:518,lat:51.4500,lon:5.4700, tags:{name:'Kinderboerderij Genneper Parken',tourism:'children_farm','addr:city':'Eindhoven'}},
   { type:'node',id:519,lat:52.5100,lon:6.1000, tags:{name:'Kinderboerderij Zwolle',tourism:'children_farm','addr:city':'Zwolle'}},
   { type:'node',id:520,lat:52.3800,lon:4.6400, tags:{name:'Kinderboerderij Haarlem',tourism:'children_farm','addr:city':'Haarlem'}},
   // Miniature Golf
@@ -2029,19 +2187,19 @@ const STATIC_NL_VENUES = [
   { type:'node',id:602,lat:52.375,lon:4.9004, tags:{name:'New King',nameZh:'新京',amenity:'chinese_restaurant','addr:city':'Amsterdam','addr:street':'Zeedijk','addr:housenumber':'115-117',opening_hours:'Mo-Su 11:00-22:30'}},
   { type:'node',id:603,lat:52.3747,lon:4.8998, tags:{name:'China Sichuan Restaurant',nameZh:'四川饭店',amenity:'chinese_restaurant',website:'https://sichuan.amsterdam','addr:city':'Amsterdam','addr:street':'Zeedijk','addr:housenumber':'103H',opening_hours:'Tu-Su 12:00-23:00'}},
   { type:'node',id:604,lat:52.3744,lon:4.8993, tags:{name:'Wing Kee',nameZh:'荣记',amenity:'chinese_restaurant','addr:city':'Amsterdam','addr:street':'Zeedijk','addr:housenumber':'76-78',opening_hours:'Mo-Su 12:00-22:00'}},
-  { type:'node',id:605,lat:52.3753,lon:4.9011, tags:{name:'A-Fusion',amenity:'chinese_restaurant',website:'https://a-fusion.nl','addr:city':'Amsterdam','addr:street':'Zeedijk','addr:housenumber':'130',opening_hours:'Mo-Th 12:30-22:30; Fr-Sa 12:30-23:00; Su 12:30-22:00'}},
+  { type:'node',id:605,lat:52.3753,lon:4.9011, tags:{nameZh:'亚洲融合',name:'A-Fusion',amenity:'chinese_restaurant',website:'https://a-fusion.nl','addr:city':'Amsterdam','addr:street':'Zeedijk','addr:housenumber':'130',opening_hours:'Mo-Th 12:30-22:30; Fr-Sa 12:30-23:00; Su 12:30-22:00'}},
   { type:'node',id:606,lat:52.373,lon:4.8974, tags:{name:'Oriental City',nameZh:'东方城',amenity:'chinese_restaurant',website:'https://www.oriental-city.com','addr:city':'Amsterdam','addr:street':'Oudezijds Voorburgwal','addr:housenumber':'177-179',opening_hours:'Mo-Th 11:30-22:00; Fr-Sa 11:30-22:30; Su 11:30-22:00'}},
   { type:'node',id:607,lat:52.3785,lon:4.902, tags:{name:'Sea Palace',nameZh:'海上皇宫',amenity:'chinese_restaurant',website:'https://seapalace.nl','addr:city':'Amsterdam','addr:street':'Oosterdokskade','addr:housenumber':'8',opening_hours:'Mo-Su 12:00-22:00'}},
   { type:'node',id:608,lat:52.3707,lon:4.8935, tags:{name:'FuLu Mandarijn',nameZh:'福禄满',amenity:'chinese_restaurant',website:'https://fulumandarijn.com','addr:city':'Amsterdam','addr:street':'Rokin','addr:housenumber':'26',opening_hours:'Mo-Th 11:30-22:00; Fr-Sa 11:30-22:30; Su 11:30-22:00'}},
   { type:'node',id:609,lat:52.3616,lon:4.9281, tags:{name:'Fook Sing',nameZh:'福星',amenity:'chinese_restaurant',website:'http://www.restaurantfooksing.nl','addr:city':'Amsterdam','addr:street':'Molukkenstraat','addr:housenumber':'155',opening_hours:'We-Mo 16:30-22:00'}},
   { type:'node',id:610,lat:52.364,lon:4.886, tags:{name:'Full Moon Garden',nameZh:'月满楼',amenity:'chinese_restaurant',website:'https://fullmoongarden.nl','addr:city':'Amsterdam','addr:street':'Leidsestraat','addr:housenumber':'95',opening_hours:'Mo-Su 12:00-01:00'}},
   { type:'node',id:611,lat:51.9195,lon:4.4703, tags:{name:'China Town Dim Sum',nameZh:'唐人街点心',amenity:'chinese_restaurant',website:'https://chinatowndimsum.nl','addr:city':'Rotterdam','addr:street':'Westersingel','addr:housenumber':'1a',opening_hours:'Mo,Th-Su 11:30-22:30'}},
-  { type:'node',id:612,lat:51.9222,lon:4.4746, tags:{name:'Asian Glories',amenity:'chinese_restaurant',website:'https://www.asianglories.nl','addr:city':'Rotterdam','addr:street':'Leeuwenstraat','addr:housenumber':'15',opening_hours:'We-Su 12:00-22:00'}},
+  { type:'node',id:612,lat:51.9222,lon:4.4746, tags:{nameZh:'亚洲荣耀',name:'Asian Glories',amenity:'chinese_restaurant',website:'https://www.asianglories.nl','addr:city':'Rotterdam','addr:street':'Leeuwenstraat','addr:housenumber':'15',opening_hours:'We-Su 12:00-22:00'}},
   { type:'node',id:613,lat:51.92,lon:4.4712, tags:{name:'Tai Wu',nameZh:'大湖',amenity:'chinese_restaurant',website:'https://tai-wu.nl','addr:city':'Rotterdam','addr:street':'Mauritsweg','addr:housenumber':'24-26',opening_hours:'Mo-Sa 12:00-02:00; Su 12:00-01:00'}},
   { type:'node',id:614,lat:51.9177,lon:4.4729, tags:{name:"Xi'an Delicious Foods",nameZh:'西安美食',amenity:'chinese_restaurant',website:'https://www.xiandeliciousfoods-rotterdam.nl','addr:city':'Rotterdam','addr:street':'Karel Doormanstraat','addr:housenumber':'449A',opening_hours:'Mo-Th 11:30-21:30; Fr-Su 11:30-22:00'}},
   { type:'node',id:615,lat:51.9216,lon:4.4805, tags:{name:'Sansan Sichuan',nameZh:'叁叁',amenity:'chinese_restaurant',website:'https://www.sansan33.nl','addr:city':'Rotterdam','addr:street':'Hang','addr:housenumber':'33',opening_hours:'We-Th 12:00-22:00; Fr-Su 12:00-22:30'}},
   { type:'node',id:616,lat:51.9224,lon:4.4691, tags:{name:'Restaurant Beijing',nameZh:'北京饭店',amenity:'chinese_restaurant','addr:city':'Rotterdam','addr:street':'West-Kruiskade','addr:housenumber':'7b',opening_hours:'Mo-Sa 09:00-05:00'}},
-  { type:'node',id:617,lat:51.922,lon:4.4695, tags:{name:'Kiem Foei',amenity:'chinese_restaurant',website:'https://kiemfoei.nl','addr:city':'Rotterdam','addr:street':'West-Kruiskade','addr:housenumber':'29b',opening_hours:'Tu-Su 12:00-21:30'}},
+  { type:'node',id:617,lat:51.922,lon:4.4695, tags:{nameZh:'谦辉',name:'Kiem Foei',amenity:'chinese_restaurant',website:'https://kiemfoei.nl','addr:city':'Rotterdam','addr:street':'West-Kruiskade','addr:housenumber':'29b',opening_hours:'Tu-Su 12:00-21:30'}},
   { type:'node',id:618,lat:52.076,lon:4.3148, tags:{name:'Full Moon City',nameZh:'月满城',amenity:'chinese_restaurant',website:'https://fullmooncity.nl','addr:city':'Den Haag','addr:street':'Achter Raamstraat','addr:housenumber':'75',opening_hours:'Mo-Su 11:30-01:00'}},
   { type:'node',id:619,lat:52.0752,lon:4.3168, tags:{name:'Kee Lun Palace',nameZh:'奇麟阁',amenity:'chinese_restaurant','addr:city':'Den Haag','addr:street':'Wagenstraat','addr:housenumber':'95-99',opening_hours:'Mo-Su 11:00-22:00'}},
   { type:'node',id:620,lat:52.0759,lon:4.3143, tags:{name:'Fat Kee',nameZh:'发记',amenity:'chinese_restaurant',website:'https://www.fatkee-restaurant.nl','addr:city':'Den Haag','addr:street':'Gedempte Gracht','addr:housenumber':'23',opening_hours:'Mo-Su 12:00-01:00'}},
@@ -2051,39 +2209,39 @@ const STATIC_NL_VENUES = [
   { type:'node',id:624,lat:52.0787,lon:4.3146, tags:{name:"Xi'an Delicious Foods",nameZh:'西安美食',amenity:'chinese_restaurant',website:'https://xianfoods.nl','addr:city':'Den Haag','addr:street':'Korte Poten','addr:housenumber':'18',opening_hours:'Mo-Sa 11:30-21:30; Su 12:00-21:30'}},
   { type:'node',id:625,lat:52.0748,lon:4.3131, tags:{name:'Ming Kee',nameZh:'明记',amenity:'chinese_restaurant',website:'https://mingkeefastfood.nl','addr:city':'Den Haag','addr:street':'Gedempte Gracht','addr:housenumber':'405b',opening_hours:'Mo-Su 11:00-22:00'}},
   { type:'node',id:626,lat:52.0896,lon:5.1098, tags:{name:'Tai Soen',nameZh:'大宋',amenity:'chinese_restaurant',website:'https://www.taisoen.nl','addr:city':'Utrecht','addr:street':'Godebaldkwartier','addr:housenumber':'275',opening_hours:'Mo-Su 12:00-22:00'}},
-  { type:'node',id:627,lat:52.0873,lon:5.1016, tags:{name:'Jasmijn & Ik',amenity:'chinese_restaurant','addr:city':'Utrecht','addr:street':'Kanaalstraat','addr:housenumber':'219',opening_hours:'We-Su 17:00-00:00'}},
+  { type:'node',id:627,lat:52.0873,lon:5.1016, tags:{nameZh:'茉莉与我',name:'Jasmijn & Ik',amenity:'chinese_restaurant','addr:city':'Utrecht','addr:street':'Kanaalstraat','addr:housenumber':'219',opening_hours:'We-Su 17:00-00:00'}},
   { type:'node',id:628,lat:52.0738,lon:5.084, tags:{name:'Lok Fu',nameZh:'乐富',amenity:'chinese_restaurant',website:'https://www.lokfuutrecht.nl','addr:city':'Utrecht','addr:street':'Vasco da Gamalaan','addr:housenumber':'9',opening_hours:'Tu-Su 14:00-21:30'}},
   { type:'node',id:629,lat:51.4411,lon:5.4781, tags:{name:'Restaurant Kam Po',nameZh:'金宝',amenity:'chinese_restaurant',website:'https://restaurantkampo.nl','addr:city':'Eindhoven','addr:street':'Kruisstraat','addr:housenumber':'163A',opening_hours:'Mo-Tu,Th-Su 11:00-22:00'}},
   { type:'node',id:630,lat:51.4555,lon:5.4717, tags:{name:'Lung Hing',nameZh:'龙兴',amenity:'chinese_restaurant','addr:city':'Eindhoven','addr:street':'Antwerpenlaan','addr:housenumber':'16',opening_hours:'Mo-Su 12:00-22:00'}},
   { type:'node',id:631,lat:51.4413,lon:5.4787, tags:{name:'Chen Jia Yan',nameZh:'陈家宴',amenity:'chinese_restaurant',website:'https://www.chenjiayan.nl','addr:city':'Eindhoven','addr:street':'Nieuwe Emmasingel','addr:housenumber':'32',opening_hours:'We-Su 17:00-22:00'}},
-  { type:'node',id:632,lat:53.2227,lon:6.5584, tags:{name:'Nieuw Lee Garden',amenity:'chinese_restaurant','addr:city':'Groningen','addr:street':'Nieuwe Ebbingestraat','addr:housenumber':'48',opening_hours:'Tu-Su 12:00-22:00'}},
-  { type:'node',id:633,lat:53.2331,lon:6.5377, tags:{name:'Shufu Cuisine',amenity:'chinese_restaurant',website:'https://shufucuisine.nl','addr:city':'Groningen','addr:street':'Noorddijkerweg','addr:housenumber':'31',opening_hours:'Mo,We-Su 16:00-22:00'}},
+  { type:'node',id:632,lat:53.2227,lon:6.5584, tags:{nameZh:'新利花园',name:'Nieuw Lee Garden',amenity:'chinese_restaurant','addr:city':'Groningen','addr:street':'Nieuwe Ebbingestraat','addr:housenumber':'48',opening_hours:'Tu-Su 12:00-22:00'}},
+  { type:'node',id:633,lat:53.2331,lon:6.5377, tags:{nameZh:'舒府',name:'Shufu Cuisine',amenity:'chinese_restaurant',website:'https://shufucuisine.nl','addr:city':'Groningen','addr:street':'Noorddijkerweg','addr:housenumber':'31',opening_hours:'Mo,We-Su 16:00-22:00'}},
   { type:'node',id:634,lat:53.2177,lon:6.5302, tags:{name:'Tian Tian Le',nameZh:'天天乐',amenity:'chinese_restaurant',website:'https://www.tiantianle.nl','addr:city':'Groningen','addr:street':'Friesestraatweg','addr:housenumber':'434',opening_hours:'Mo-Th 16:00-20:30; Fr-Su 12:00-21:30'}},
   { type:'node',id:635,lat:50.8499,lon:5.7035, tags:{name:'Wen Chow',nameZh:'文州',amenity:'chinese_restaurant',website:'https://www.wenchow.nl','addr:city':'Maastricht','addr:street':'Spoorweglaan','addr:housenumber':'5',opening_hours:'Mo-Tu,Th-Su 12:00-22:30'}},
   { type:'node',id:636,lat:50.8531,lon:5.6888, tags:{name:'Yong Kee',nameZh:'容记',amenity:'chinese_restaurant',website:'https://yongkee.nu','addr:city':'Maastricht','addr:street':'Boschstraat','addr:housenumber':'58',opening_hours:'Mo-Su 12:00-22:00'}},
-  { type:'node',id:637,lat:50.8487,lon:5.6883, tags:{name:'La Chine',amenity:'chinese_restaurant',website:'https://www.lachine.nl','addr:city':'Maastricht','addr:street':'Markt','addr:housenumber':'33',opening_hours:'Mo-Su 12:00-22:00'}},
+  { type:'node',id:637,lat:50.8487,lon:5.6883, tags:{nameZh:'中国风',name:'La Chine',amenity:'chinese_restaurant',website:'https://www.lachine.nl','addr:city':'Maastricht','addr:street':'Markt','addr:housenumber':'33',opening_hours:'Mo-Su 12:00-22:00'}},
   { type:'node',id:638,lat:51.9689,lon:5.895, tags:{name:'Kwong Chow',nameZh:'广州',amenity:'chinese_restaurant',website:'https://kwongchowarnhem.nl','addr:city':'Arnhem','addr:street':'Steenstraat','addr:housenumber':'83d',opening_hours:'Mo-Th,Sa-Su 12:00-22:00'}},
-  { type:'node',id:639,lat:51.984,lon:5.91, tags:{name:'China City Arnhem',amenity:'chinese_restaurant',website:'https://chineesarnhem.nl','addr:city':'Arnhem','addr:street':'Hanzestraat','addr:housenumber':'1-7',opening_hours:'Mo-Su 12:00-22:00'}},
-  { type:'node',id:640,lat:51.5901,lon:4.7728, tags:{name:'Gantau Village',amenity:'chinese_restaurant',website:'https://gantauvillage.nl','addr:city':'Breda','addr:street':'Boschstraat','addr:housenumber':'19',opening_hours:'Tu-Su 12:00-22:00'}},
-  { type:'node',id:641,lat:51.5745,lon:4.7957, tags:{name:'Restaurant Palace',amenity:'chinese_restaurant',website:'https://palacebreda.nl','addr:city':'Breda','addr:street':'Tilburgseweg','addr:housenumber':'222',opening_hours:'Mo-Su 12:00-22:00'}},
-  { type:'node',id:642,lat:52.1611,lon:4.4888, tags:{name:'Asian Palace',amenity:'chinese_restaurant',website:'https://www.asianpalace-leiden.nl','addr:city':'Leiden','addr:street':'Steenstraat','addr:housenumber':'55',opening_hours:'We-Su 12:00-22:00'}},
-  { type:'node',id:643,lat:52.1023,lon:4.4638, tags:{name:'Restaurant Alexander',amenity:'chinese_restaurant','addr:city':'Leiden','addr:street':'Alexandrine Tinneplein','addr:housenumber':'96',opening_hours:'Mo-Su 12:00-22:00'}},
-  { type:'node',id:644,lat:52.3044,lon:4.8604, tags:{name:'Amber Garden',amenity:'chinese_restaurant',website:'https://www.ambergarden.nl','addr:city':'Amstelveen','addr:street':'Van Heuven Goedhartlaan','addr:housenumber':'15',opening_hours:'Mo-We 16:30-22:00; Th-Su 12:00-22:00'}},
+  { type:'node',id:639,lat:51.984,lon:5.91, tags:{nameZh:'中国城',name:'China City Arnhem',amenity:'chinese_restaurant',website:'https://chineesarnhem.nl','addr:city':'Arnhem','addr:street':'Hanzestraat','addr:housenumber':'1-7',opening_hours:'Mo-Su 12:00-22:00'}},
+  { type:'node',id:640,lat:51.5901,lon:4.7728, tags:{nameZh:'银滩村',name:'Gantau Village',amenity:'chinese_restaurant',website:'https://gantauvillage.nl','addr:city':'Breda','addr:street':'Boschstraat','addr:housenumber':'19',opening_hours:'Tu-Su 12:00-22:00'}},
+  { type:'node',id:641,lat:51.5745,lon:4.7957, tags:{nameZh:'宫殿餐厅',name:'Restaurant Palace',amenity:'chinese_restaurant',website:'https://palacebreda.nl','addr:city':'Breda','addr:street':'Tilburgseweg','addr:housenumber':'222',opening_hours:'Mo-Su 12:00-22:00'}},
+  { type:'node',id:642,lat:52.1611,lon:4.4888, tags:{nameZh:'亚洲宫',name:'Asian Palace',amenity:'chinese_restaurant',website:'https://www.asianpalace-leiden.nl','addr:city':'Leiden','addr:street':'Steenstraat','addr:housenumber':'55',opening_hours:'We-Su 12:00-22:00'}},
+  { type:'node',id:643,lat:52.1023,lon:4.4638, tags:{nameZh:'亚历山大',name:'Restaurant Alexander',amenity:'chinese_restaurant','addr:city':'Leiden','addr:street':'Alexandrine Tinneplein','addr:housenumber':'96',opening_hours:'Mo-Su 12:00-22:00'}},
+  { type:'node',id:644,lat:52.3044,lon:4.8604, tags:{nameZh:'琥珀花园',name:'Amber Garden',amenity:'chinese_restaurant',website:'https://www.ambergarden.nl','addr:city':'Amstelveen','addr:street':'Van Heuven Goedhartlaan','addr:housenumber':'15',opening_hours:'Mo-We 16:30-22:00; Th-Su 12:00-22:00'}},
   { type:'node',id:645,lat:52.3032,lon:4.862, tags:{name:'Royal San Kong',nameZh:'新三江',amenity:'chinese_restaurant','addr:city':'Amstelveen','addr:street':'Dorpsstraat','addr:housenumber':'57',opening_hours:'Mo-Su 12:00-22:00'}},
   { type:'node',id:646,lat:52.3497,lon:4.8945, tags:{name:"Yuan's Hot Pot",nameZh:'袁记串串香',amenity:'chinese_restaurant',website:'https://www.yuanhotpot.com','addr:city':'Amsterdam','addr:street':'Rijnstraat','addr:housenumber':'51',opening_hours:'Mo-Su 12:00-22:30'}},
   // Buffet & All-You-Can-Eat Restaurants
-  { type:'node',id:700,lat:52.3012,lon:4.8578, tags:{name:'Fussia Amstelveen',amenity:'buffet_restaurant',website:'https://fussia.nl/','addr:city':'Amstelveen','addr:street':'Dr. Willem Dreesweg','addr:housenumber':'1',opening_hours:'Mo-Su 12:00-22:00'}},
-  { type:'node',id:701,lat:52.3539,lon:4.8923, tags:{name:'Blue Dragon Asian Fusion',amenity:'buffet_restaurant',website:'https://www.bluedragon.love/','addr:city':'Amsterdam','addr:street':'Marie Heinekenplein','addr:housenumber':'4',opening_hours:'Mo-Su 12:00-22:30'}},
+  { type:'node',id:700,lat:52.3012,lon:4.8578, tags:{nameZh:'福喜亚',name:'Fussia Amstelveen',amenity:'buffet_restaurant',website:'https://fussia.nl/','addr:city':'Amstelveen','addr:street':'Dr. Willem Dreesweg','addr:housenumber':'1',opening_hours:'Mo-Su 12:00-22:00'}},
+  { type:'node',id:701,lat:52.3539,lon:4.8923, tags:{nameZh:'蓝龙',name:'Blue Dragon Asian Fusion',amenity:'buffet_restaurant',website:'https://www.bluedragon.love/','addr:city':'Amsterdam','addr:street':'Marie Heinekenplein','addr:housenumber':'4',opening_hours:'Mo-Su 12:00-22:30'}},
   { type:'node',id:702,lat:52.3685,lon:4.9339, tags:{name:'Chengdu Hotpot + BBQ',nameZh:'成都火锅',amenity:'buffet_restaurant',website:'https://chengdu.nu/','addr:city':'Amsterdam','addr:street':'Bogortuin','addr:housenumber':'2',opening_hours:'We-Mo 17:00-22:00'}},
   { type:'node',id:703,lat:52.3132,lon:4.9481, tags:{name:'Wereldrestaurant A2',amenity:'buffet_restaurant',website:'https://a2wereldrestaurant.com/','addr:city':'Amsterdam','addr:street':'Sijsjesbergweg','addr:housenumber':'16',opening_hours:'Tu-Fr 17:00-22:00; Sa-Su 16:30-22:00'}},
   { type:'node',id:704,lat:52.3924,lon:4.8256, tags:{name:"A'DAMS Wereldkeuken",amenity:'buffet_restaurant',website:'https://adamswereldkeuken.nl/','addr:city':'Amsterdam','addr:street':'Sierenborch','addr:housenumber':'10D',opening_hours:'Tu-Su 16:30-22:00'}},
-  { type:'node',id:705,lat:52.4385,lon:4.8277, tags:{name:'Crystal Wok',amenity:'buffet_restaurant',website:'https://crystalwok.nl/','addr:city':'Zaandam','addr:street':'Dam','addr:housenumber':'62',opening_hours:'Tu-Su 16:00-22:00'}},
+  { type:'node',id:705,lat:52.4385,lon:4.8277, tags:{nameZh:'水晶锅',name:'Crystal Wok',amenity:'buffet_restaurant',website:'https://crystalwok.nl/','addr:city':'Zaandam','addr:street':'Dam','addr:housenumber':'62',opening_hours:'Tu-Su 16:00-22:00'}},
   { type:'node',id:706,lat:52.4616,lon:4.7842, tags:{name:'FoodTopia Wormerveer',amenity:'buffet_restaurant',website:'https://foodtopiawormerveer.nl/','addr:city':'Wormerveer','addr:street':'Samsonweg','addr:housenumber':'13C',opening_hours:'We-Su 16:30-22:00'}},
   { type:'node',id:707,lat:52.3026,lon:4.688, tags:{name:'Wereldrestaurant Enjoy',amenity:'buffet_restaurant',website:'https://wereldrestaurantenjoy.nl/','addr:city':'Hoofddorp','addr:street':'Marktplein','addr:housenumber':'13',opening_hours:'Tu-Su 16:30-22:00'}},
-  { type:'node',id:708,lat:52.3064,lon:4.6961, tags:{name:'Hollywok',amenity:'buffet_restaurant',website:'https://hollywok.nl/','addr:city':'Hoofddorp','addr:street':'Arnolduspark','addr:housenumber':'10A',opening_hours:'Tu-Su 16:00-22:00'}},
-  { type:'node',id:709,lat:52.3804,lon:4.6291, tags:{name:'Jin Lai Wereldrestaurant',amenity:'buffet_restaurant',website:'https://www.jinlai.nl/','addr:city':'Haarlem','addr:street':'Prins Bernhardlaan','addr:housenumber':'2',opening_hours:'Tu-Su 16:30-22:00'}},
-  { type:'node',id:710,lat:51.869,lon:4.5239, tags:{name:'Restaurant Cathay',amenity:'buffet_restaurant',website:'https://restaurantcathay.nl/','addr:city':'Rotterdam','addr:street':'Martin Luther Kingweg','addr:housenumber':'7',opening_hours:'Mo-Su 16:00-22:00'}},
-  { type:'node',id:711,lat:51.9067,lon:4.4631, tags:{name:'De Chinese Boot',amenity:'buffet_restaurant',website:'https://www.dechineseboot.nl/','addr:city':'Rotterdam','addr:street':'Parkhaven','addr:housenumber':'21',opening_hours:'Mo-Su 17:00-22:00'}},
+  { type:'node',id:708,lat:52.3064,lon:4.6961, tags:{nameZh:'好莱锅',name:'Hollywok',amenity:'buffet_restaurant',website:'https://hollywok.nl/','addr:city':'Hoofddorp','addr:street':'Arnolduspark','addr:housenumber':'10A',opening_hours:'Tu-Su 16:00-22:00'}},
+  { type:'node',id:709,lat:52.3804,lon:4.6291, tags:{nameZh:'金来',name:'Jin Lai Wereldrestaurant',amenity:'buffet_restaurant',website:'https://www.jinlai.nl/','addr:city':'Haarlem','addr:street':'Prins Bernhardlaan','addr:housenumber':'2',opening_hours:'Tu-Su 16:30-22:00'}},
+  { type:'node',id:710,lat:51.869,lon:4.5239, tags:{nameZh:'国泰',name:'Restaurant Cathay',amenity:'buffet_restaurant',website:'https://restaurantcathay.nl/','addr:city':'Rotterdam','addr:street':'Martin Luther Kingweg','addr:housenumber':'7',opening_hours:'Mo-Su 16:00-22:00'}},
+  { type:'node',id:711,lat:51.9067,lon:4.4631, tags:{nameZh:'中国船',name:'De Chinese Boot',amenity:'buffet_restaurant',website:'https://www.dechineseboot.nl/','addr:city':'Rotterdam','addr:street':'Parkhaven','addr:housenumber':'21',opening_hours:'Mo-Su 17:00-22:00'}},
   { type:'node',id:712,lat:51.9164,lon:4.4811, tags:{name:'SHABU SHABU Rotterdam',amenity:'buffet_restaurant',website:'https://shabushabu.nl/','addr:city':'Rotterdam','addr:street':'Westblaak','addr:housenumber':'82',opening_hours:'Mo-Su 12:00-22:00'}},
   { type:'node',id:713,lat:51.9281,lon:4.5337, tags:{name:'SHABU SHABU Alexandrium',amenity:'buffet_restaurant',website:'https://shabushabu.nl/','addr:city':'Rotterdam','addr:street':'Watermanweg','addr:housenumber':'309',opening_hours:'Mo-Su 12:00-22:00'}},
   { type:'node',id:714,lat:51.8851,lon:4.4898, tags:{name:'SHABU SHABU Rotterdam Zuid',amenity:'buffet_restaurant',website:'https://shabushabu.nl/','addr:city':'Rotterdam','addr:street':'Cor Kieboomplein','addr:housenumber':'90',opening_hours:'Mo-Su 12:00-22:00'}},
@@ -2099,32 +2257,30 @@ const STATIC_NL_VENUES = [
   { type:'node',id:724,lat:52.0571,lon:4.4899, tags:{name:'SHABU SHABU Zoetermeer',amenity:'buffet_restaurant',website:'https://shabushabu.nl/','addr:city':'Zoetermeer','addr:street':'Denemarkenlaan','addr:housenumber':'83',opening_hours:'Mo-Su 12:00-22:00'}},
   { type:'node',id:725,lat:52.0552,lon:4.4713, tags:{name:'Eten & Zo Zoetermeer',amenity:'buffet_restaurant',website:'https://etenenzozoetermeer.nl/','addr:city':'Zoetermeer','addr:street':'Amerikaweg','addr:housenumber':'1',opening_hours:'Tu-Su 16:30-22:00'}},
   { type:'node',id:726,lat:52.1597,lon:4.4906, tags:{name:'SHABU SHABU Leiden',amenity:'buffet_restaurant',website:'https://shabushabu.nl/','addr:city':'Leiden','addr:street':'Steenstraat','addr:housenumber':'45-47',opening_hours:'Mo-Su 12:00-22:00'}},
-  { type:'node',id:727,lat:52.0799,lon:5.054, tags:{name:'FoodExplore',amenity:'buffet_restaurant',website:'https://www.foodexplore.nl/','addr:city':'Utrecht','addr:street':'Hertogswetering','addr:housenumber':'195',opening_hours:'Mo-Th 16:30-22:00; Fr-Sa 16:30-22:30; Su 16:30-22:00'}},
-  { type:'node',id:728,lat:51.4384,lon:5.4649, tags:{name:'Wiro Wok Wereldkeuken',amenity:'buffet_restaurant',website:'https://www.wiro.nl/','addr:city':'Eindhoven','addr:street':'St. Wirostraat','addr:housenumber':'2',opening_hours:'Tu-Su 16:00-22:00'}},
-  { type:'node',id:729,lat:51.4633,lon:5.4562, tags:{name:'Mr. Au by Sun On',amenity:'buffet_restaurant',website:'https://mrau.nl/','addr:city':'Eindhoven','addr:street':'Elckerlyclaan','addr:housenumber':'83',opening_hours:'Tu-Su 16:00-22:00'}},
-  { type:'node',id:730,lat:53.2218,lon:6.5474, tags:{name:'Taste and Flavor',amenity:'buffet_restaurant',website:'https://www.tasteandflavor.nl/','addr:city':'Groningen','addr:street':'Reitdiephaven','addr:housenumber':'161',opening_hours:'Tu-Su 16:30-22:00'}},
+  { type:'node',id:727,lat:52.0799,lon:5.054, tags:{nameZh:'食探',name:'FoodExplore',amenity:'buffet_restaurant',website:'https://www.foodexplore.nl/','addr:city':'Utrecht','addr:street':'Hertogswetering','addr:housenumber':'195',opening_hours:'Mo-Th 16:30-22:00; Fr-Sa 16:30-22:30; Su 16:30-22:00'}},
+  { type:'node',id:728,lat:51.4384,lon:5.4649, tags:{nameZh:'味罗',name:'Wiro Wok Wereldkeuken',amenity:'buffet_restaurant',website:'https://www.wiro.nl/','addr:city':'Eindhoven','addr:street':'St. Wirostraat','addr:housenumber':'2',opening_hours:'Tu-Su 16:00-22:00'}},
+  { type:'node',id:729,lat:51.4633,lon:5.4562, tags:{nameZh:'孙安',name:'Mr. Au by Sun On',amenity:'buffet_restaurant',website:'https://mrau.nl/','addr:city':'Eindhoven','addr:street':'Elckerlyclaan','addr:housenumber':'83',opening_hours:'Tu-Su 16:00-22:00'}},
+  { type:'node',id:730,lat:53.2218,lon:6.5474, tags:{nameZh:'品味',name:'Taste and Flavor',amenity:'buffet_restaurant',website:'https://www.tasteandflavor.nl/','addr:city':'Groningen','addr:street':'Reitdiephaven','addr:housenumber':'161',opening_hours:'Tu-Su 16:30-22:00'}},
   { type:'node',id:731,lat:53.2051,lon:6.5547, tags:{name:'Ni Hao Stadsparkpaviljoen',nameZh:'你好',amenity:'buffet_restaurant',website:'https://www.nihaorestaurants.com/','addr:city':'Groningen','addr:street':'Paviljoenlaan','addr:housenumber':'3',opening_hours:'Tu-Su 17:00-22:00'}},
-  { type:'node',id:732,lat:53.213,lon:6.5255, tags:{name:'Shufu Cuisine',amenity:'buffet_restaurant',website:'https://shufucuisine.nl/','addr:city':'Groningen','addr:street':'Noorddijkerweg','addr:housenumber':'31',opening_hours:'We-Su 17:00-22:00'}},
   { type:'node',id:733,lat:51.5717,lon:4.745, tags:{name:'Wereldrestaurant Breepark',amenity:'buffet_restaurant',website:'https://wereldrestaurantbreepark.nl/','addr:city':'Breda','addr:street':'Bavelseparklaan','addr:housenumber':'11',opening_hours:'Tu-Su 16:30-22:00'}},
-  { type:'node',id:734,lat:51.5713,lon:5.0645, tags:{name:'Familie Wok',amenity:'buffet_restaurant',website:'https://familiewok.nl/','addr:city':'Tilburg','addr:street':'Kalverstraat','addr:housenumber':'75',opening_hours:'Tu-Su 16:00-22:00'}},
+  { type:'node',id:734,lat:51.5713,lon:5.0645, tags:{nameZh:'家庭锅',name:'Familie Wok',amenity:'buffet_restaurant',website:'https://familiewok.nl/','addr:city':'Tilburg','addr:street':'Kalverstraat','addr:housenumber':'75',opening_hours:'Tu-Su 16:00-22:00'}},
   { type:'node',id:735,lat:51.7105,lon:5.3942, tags:{name:'Restaurant Xie Xie',nameZh:'谢谢',amenity:'buffet_restaurant',website:'https://restaurantxiexie.nl/','addr:city':'Nuland','addr:street':'Rijksweg','addr:housenumber':'29',opening_hours:'Tu-Su 16:30-22:00'}},
-  { type:'node',id:736,lat:51.6736,lon:5.3969, tags:{name:'Paradijs Berlicum',amenity:'buffet_restaurant',website:'http://www.paradijsberlicum.nl/','addr:city':'Berlicum','addr:street':'Kerkwijk','addr:housenumber':'77',opening_hours:'Tu-Su 16:00-22:00'}},
-  { type:'node',id:737,lat:51.9638,lon:5.875, tags:{name:'Wereldrestaurant Atlantis',amenity:'buffet_restaurant',website:'https://www.atlantisarnhem.nl/','addr:city':'Arnhem','addr:street':'Hollandweg','addr:housenumber':'6-8',opening_hours:'Tu-Su 16:00-22:00'}},
+  { type:'node',id:736,lat:51.6736,lon:5.3969, tags:{nameZh:'天堂',name:'Paradijs Berlicum',amenity:'buffet_restaurant',website:'http://www.paradijsberlicum.nl/','addr:city':'Berlicum','addr:street':'Kerkwijk','addr:housenumber':'77',opening_hours:'Tu-Su 16:00-22:00'}},
+  { type:'node',id:737,lat:51.9638,lon:5.875, tags:{nameZh:'亚特兰蒂斯',name:'Wereldrestaurant Atlantis',amenity:'buffet_restaurant',website:'https://www.atlantisarnhem.nl/','addr:city':'Arnhem','addr:street':'Hollandweg','addr:housenumber':'6-8',opening_hours:'Tu-Su 16:00-22:00'}},
   { type:'node',id:738,lat:51.9837,lon:5.9089, tags:{name:'SUMO Arnhem',amenity:'buffet_restaurant',website:'https://www.restaurantsumo.com/','addr:city':'Arnhem','addr:street':'Jansplein','addr:housenumber':'52B',opening_hours:'Mo-Su 12:00-22:00'}},
-  { type:'node',id:739,lat:51.9173,lon:5.8376, tags:{name:'Fine Food Village',amenity:'buffet_restaurant',website:'https://finefoodvillage.nl/','addr:city':'Elst','addr:street':'Valburgseweg','addr:housenumber':'37',opening_hours:'Tu-Su 16:00-22:00'}},
-  { type:'node',id:740,lat:52.0429,lon:5.3862, tags:{name:'Eastern Plaza',amenity:'buffet_restaurant',website:'https://easternplaza.nl/','addr:city':'Elst','addr:street':'Veenendaalsestraatweg','addr:housenumber':'6',opening_hours:'Tu-Su 16:00-22:00'}},
+  { type:'node',id:739,lat:51.9173,lon:5.8376, tags:{nameZh:'美食村',name:'Fine Food Village',amenity:'buffet_restaurant',website:'https://finefoodvillage.nl/','addr:city':'Elst','addr:street':'Valburgseweg','addr:housenumber':'37',opening_hours:'Tu-Su 16:00-22:00'}},
+  { type:'node',id:740,lat:52.0429,lon:5.3862, tags:{nameZh:'东方广场',name:'Eastern Plaza',amenity:'buffet_restaurant',website:'https://easternplaza.nl/','addr:city':'Elst','addr:street':'Veenendaalsestraatweg','addr:housenumber':'6',opening_hours:'Tu-Su 16:00-22:00'}},
   { type:'node',id:741,lat:51.8452,lon:5.8625, tags:{name:'SUMO Nijmegen',amenity:'buffet_restaurant',website:'https://www.restaurantsumo.com/','addr:city':'Nijmegen','addr:street':'Molenstraat','addr:housenumber':'57',opening_hours:'Mo-Su 12:00-22:00'}},
-  { type:'node',id:742,lat:51.8047,lon:4.6723, tags:{name:'China City Dordrecht',amenity:'buffet_restaurant',website:'https://china-city.nl/','addr:city':'Dordrecht','addr:street':'Krispijnseweg','addr:housenumber':'12',opening_hours:'Tu-Su 16:00-22:00'}},
   { type:'node',id:743,lat:52.3802,lon:5.2225, tags:{name:'Gouden Huis Almere',nameZh:'金屋',amenity:'buffet_restaurant',website:'https://www.goudenhuisalmere.nl/','addr:city':'Almere','addr:street':'Palmpolstraat','addr:housenumber':'1',opening_hours:'Tu-Su 16:00-22:00'}},
   { type:'node',id:744,lat:52.1748,lon:5.375, tags:{name:'SHABU SHABU Amersfoort',amenity:'buffet_restaurant',website:'https://shabushabu.nl/','addr:city':'Amersfoort','addr:street':'Wiekenweg','addr:housenumber':'8',opening_hours:'Mo-Su 12:00-22:00'}},
-  { type:'node',id:745,lat:52.18,lon:5.3582, tags:{name:'China Palace Amersfoort',amenity:'buffet_restaurant',website:'https://chinapalace.nl/','addr:city':'Amersfoort','addr:street':'De Beurs','addr:housenumber':'53',opening_hours:'Tu-Su 12:00-22:00'}},
+  { type:'node',id:745,lat:52.18,lon:5.3582, tags:{nameZh:'中国宫',name:'China Palace Amersfoort',amenity:'buffet_restaurant',website:'https://chinapalace.nl/','addr:city':'Amersfoort','addr:street':'De Beurs','addr:housenumber':'53',opening_hours:'Tu-Su 12:00-22:00'}},
   { type:'node',id:746,lat:52.2108,lon:5.9615, tags:{name:'SHABU SHABU Apeldoorn',amenity:'buffet_restaurant',website:'https://shabushabu.nl/','addr:city':'Apeldoorn','addr:street':'Marktplein','addr:housenumber':'40',opening_hours:'Mo-Su 12:00-22:00'}},
   { type:'node',id:747,lat:52.1319,lon:4.6608, tags:{name:'SHABU SHABU Alphen a/d Rijn',amenity:'buffet_restaurant',website:'https://shabushabu.nl/','addr:city':'Alphen aan den Rijn','addr:street':'Baronie','addr:housenumber':'233-239',opening_hours:'Mo-Su 12:00-22:00'}},
   { type:'node',id:748,lat:52.0358,lon:5.6595, tags:{name:'SHABU SHABU Ede',amenity:'buffet_restaurant',website:'https://shabushabu.nl/','addr:city':'Ede','addr:street':'Laan der Verenigde Naties','addr:housenumber':'163',opening_hours:'Mo-Su 12:00-22:00'}},
-  { type:'node',id:749,lat:52.5009,lon:6.0865, tags:{name:'China Palace Zwolle',amenity:'buffet_restaurant',website:'https://chinapalacezwolle.nl/','addr:city':'Zwolle','addr:street':'Van der Capellenstraat','addr:housenumber':'252',opening_hours:'Tu-Su 12:00-22:00'}},
+  { type:'node',id:749,lat:52.5009,lon:6.0865, tags:{nameZh:'中国宫',name:'China Palace Zwolle',amenity:'buffet_restaurant',website:'https://chinapalacezwolle.nl/','addr:city':'Zwolle','addr:street':'Van der Capellenstraat','addr:housenumber':'252',opening_hours:'Tu-Su 12:00-22:00'}},
   { type:'node',id:750,lat:52.5265,lon:6.0635, tags:{name:'Eten & Zo Zwolle',amenity:'buffet_restaurant',website:'https://etenenzozwolle.nl/','addr:city':'Zwolle','addr:street':'Boerendanserdijk','addr:housenumber':'41',opening_hours:'Tu-Su 16:30-22:00'}},
-  { type:'node',id:751,lat:52.2282,lon:6.8486, tags:{name:'Sensazia Enschede',amenity:'buffet_restaurant',website:'https://www.sensazia.nl/','addr:city':'Enschede','addr:street':'Colosseum','addr:housenumber':'80',opening_hours:'Tu-Su 16:00-22:00'}},
-  { type:'node',id:752,lat:53.0054,lon:6.5593, tags:{name:'Jasmijn Garden',amenity:'buffet_restaurant',website:'https://www.jasmijngarden.nl/','addr:city':'Assen','addr:street':'Martin Luther Kingweg','addr:housenumber':'11A',opening_hours:'Tu-Su 16:00-22:00'}},
+  { type:'node',id:751,lat:52.2282,lon:6.8486, tags:{nameZh:'森萨齐亚',name:'Sensazia Enschede',amenity:'buffet_restaurant',website:'https://www.sensazia.nl/','addr:city':'Enschede','addr:street':'Colosseum','addr:housenumber':'80',opening_hours:'Tu-Su 16:00-22:00'}},
+  { type:'node',id:752,lat:53.0054,lon:6.5593, tags:{nameZh:'茉莉花园',name:'Jasmijn Garden',amenity:'buffet_restaurant',website:'https://www.jasmijngarden.nl/','addr:city':'Assen','addr:street':'Martin Luther Kingweg','addr:housenumber':'11A',opening_hours:'Tu-Su 16:00-22:00'}},
   { type:'node',id:753,lat:52.2337,lon:5.4654, tags:{name:'Zomertuin De Wereldkeuken',amenity:'buffet_restaurant',website:'https://zomertuindewereldkeuken.nl/','addr:city':'Nijkerkerveen','addr:street':'Amersfoortseweg','addr:housenumber':'138',opening_hours:'We-Su 16:30-22:00'}},
 
   // ══════════════════════════════════════════════════════════════
@@ -2133,11 +2289,7 @@ const STATIC_NL_VENUES = [
 
   // ── FRIESLAND ──────────────────────────────────────────────────
   // Indoor Playgrounds
-  { type:'node',id:800,lat:53.0328,lon:5.6606, tags:{name:'Ballorig Sneek',leisure:'indoor_playground',website:'https://www.ballorig.nl/sneek','addr:city':'Sneek','addr:street':'Alexanderstraat','addr:housenumber':'10A',opening_hours:'Mo-Fr 09:00-18:00; Sa-Su 10:00-18:00'}},
-  { type:'node',id:801,lat:52.9564,lon:5.9233, tags:{name:'Ballorig Heerenveen',leisure:'indoor_playground',website:'https://www.ballorig.nl/heerenveen','addr:city':'Heerenveen','addr:street':'Pim Mulierlaan','addr:housenumber':'51',opening_hours:'Mo-Su 09:00-18:00'}},
-  { type:'node',id:802,lat:53.1100,lon:6.0950, tags:{name:'Ballorig Drachten',leisure:'indoor_playground',website:'https://www.ballorig.nl/drachten','addr:city':'Drachten','addr:street':'Dopplerlaan','addr:housenumber':'26a',opening_hours:'Mo-Su 09:00-18:00'}},
   { type:'node',id:803,lat:53.1945,lon:5.5400, tags:{name:'Monkey Town Franeker',leisure:'indoor_playground',website:'https://monkeytown.eu/nl/franeker','addr:city':'Franeker','addr:street':'Burg. J. Dijkstraweg','addr:housenumber':'3',opening_hours:'We-Su 10:00-18:00'}},
-  { type:'node',id:804,lat:53.2012,lon:5.7981, tags:{name:'Monkey Town Leeuwarden',leisure:'indoor_playground',website:'https://monkeytown.eu/nl/leeuwarden','addr:city':'Leeuwarden','addr:street':'Snekertrekweg','addr:housenumber':'39',opening_hours:'Mo-Su 09:30-17:00'}},
   { type:'node',id:805,lat:52.8825,lon:5.9953, tags:{name:'Monkey Town Wolvega',leisure:'indoor_playground',website:'https://monkeytown.eu/nl/wolvega','addr:city':'Wolvega','addr:street':'Grindweg','addr:housenumber':'124',opening_hours:'We-Su 10:00-18:00'}},
   // Children's Farms
   { type:'node',id:806,lat:53.0350,lon:5.6550, tags:{name:'Kinderboerderij Sneek',tourism:'children_farm',website:'https://www.kinderboerderijsneek.nl/','addr:city':'Sneek','addr:street':'Hardest','addr:housenumber':'11b',opening_hours:'Tu-Su 10:00-17:00'}},
@@ -2151,11 +2303,8 @@ const STATIC_NL_VENUES = [
 
   // ── DRENTHE ────────────────────────────────────────────────────
   // Indoor Playgrounds
-  { type:'node',id:812,lat:53.0020,lon:6.5560, tags:{name:'Ballorig Assen',leisure:'indoor_playground',website:'https://www.ballorig.nl/assen','addr:city':'Assen','addr:street':'Zuidenveld','addr:housenumber':'133',opening_hours:'Mo-Su 09:00-18:00'}},
-  { type:'node',id:813,lat:52.7797,lon:6.8900, tags:{name:'Ballorig Emmen',leisure:'indoor_playground',website:'https://www.ballorig.nl/emmen','addr:city':'Emmen','addr:street':'Oosterbracht','addr:housenumber':'11',opening_hours:'Mo-Su 09:00-18:00'}},
   // Museums & Attractions
-  { type:'node',id:814,lat:52.8750,lon:6.6120, tags:{name:'Museumdorp Orvelte',tourism:'museum',website:'https://orvelte.net/','addr:city':'Orvelte','addr:street':'Flintenweg','addr:housenumber':'8',opening_hours:'Mo-Su 10:00-17:00'}},
-  { type:'node',id:815,lat:52.8390,lon:6.8690, tags:{name:'Hunebedcentrum Borger',historic:'monument',website:'https://www.hunebedcentrum.eu','addr:city':'Borger','addr:street':'Bronnegerstraat','addr:housenumber':'12',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:814,lat:52.8750,lon:6.6120, tags:{nameZh:'奥尔韦尔特博物馆村',name:'Museumdorp Orvelte',tourism:'museum',website:'https://orvelte.net/','addr:city':'Orvelte','addr:street':'Flintenweg','addr:housenumber':'8',opening_hours:'Mo-Su 10:00-17:00'}},
   // Nature
   { type:'node',id:816,lat:52.8800,lon:6.3700, tags:{name:'Nationaal Park Drents-Friese Wold',leisure:'nature_reserve','addr:city':'Dwingeloo'}},
   { type:'node',id:817,lat:52.7300,lon:6.6000, tags:{name:'Kinderboerderij Hoogeveen',tourism:'children_farm','addr:city':'Hoogeveen'}},
@@ -2172,18 +2321,14 @@ const STATIC_NL_VENUES = [
   { type:'node',id:824,lat:52.5750,lon:6.6170, tags:{name:'Hardenberg Stadspark',leisure:'park','addr:city':'Hardenberg'}},
   // Chinese Restaurants
   { type:'node',id:825,lat:52.2590,lon:6.1680, tags:{name:'De Zomertuin Deventer',amenity:'chinese_restaurant',website:'https://de-zomertuin.nl/','addr:city':'Deventer',opening_hours:'Tu-Su 16:00-22:00'}},
-  { type:'node',id:826,lat:52.5450,lon:5.9200, tags:{name:'Giethoorn',tourism:'visitor_centre','addr:city':'Giethoorn',website:'https://www.giethoorn.nl'}},
 
   // ── GELDERLAND (outside Arnhem/Nijmegen) ──────────────────────
   // Indoor Playgrounds
-  { type:'node',id:827,lat:51.9630,lon:6.2920, tags:{name:'Monkey Town Doetinchem',leisure:'indoor_playground',website:'https://monkeytown.eu/nl/doetinchem','addr:city':'Doetinchem','addr:street':'Edisonstraat','addr:housenumber':'1',opening_hours:'Mo-Su 09:30-18:00'}},
-  { type:'node',id:828,lat:52.0358,lon:5.6595, tags:{name:'Monkey Town Ede',leisure:'indoor_playground',website:'https://monkeytown.eu/nl/ede','addr:city':'Ede','addr:street':'Vening Meineszstraat','addr:housenumber':'4',opening_hours:'Mo-Su 09:30-18:00'}},
   { type:'node',id:829,lat:51.8840,lon:5.4280, tags:{name:'Monkey Town Tiel',leisure:'indoor_playground',website:'https://monkeytown.eu/nl/tiel','addr:city':'Tiel','addr:street':'Koelenhofstraat','addr:housenumber':'7',opening_hours:'Mo-Su 09:30-18:00'}},
   { type:'node',id:830,lat:52.1400,lon:5.6000, tags:{name:'Monkey Town Voorthuizen',leisure:'indoor_playground',website:'https://monkeytown.eu/nl/voorthuizen','addr:city':'Voorthuizen','addr:street':'Apeldoornsestraat','addr:housenumber':'46',opening_hours:'Mo-Su 09:30-18:00'}},
   { type:'node',id:831,lat:51.9610,lon:6.8580, tags:{name:'MegaPret Lievelde',leisure:'indoor_playground',website:'https://megapret.nl/','addr:city':'Lievelde',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
   // Veluwe Area Attractions
   { type:'node',id:832,lat:52.1000,lon:5.8200, tags:{name:'Kijk en Luistermuseum',tourism:'museum',website:'https://www.kijkenluistermuseum.nl','addr:city':'Bennekom'}},
-  { type:'node',id:833,lat:52.1350,lon:5.5900, tags:{name:'Barneveld Pluimveemuseum',tourism:'museum','addr:city':'Barneveld',website:'https://www.pluimveemuseum.nl'}},
   { type:'node',id:834,lat:52.0700,lon:6.8700, tags:{name:'Speelpark Zwolle Winterswijk',leisure:'park','addr:city':'Winterswijk'}},
   { type:'node',id:835,lat:51.9600,lon:5.0800, tags:{name:'Kinderboerderij Culemborg',tourism:'children_farm','addr:city':'Culemborg'}},
   // Castles
@@ -2192,15 +2337,14 @@ const STATIC_NL_VENUES = [
   // ── ZEELAND ────────────────────────────────────────────────────
   // Indoor Playgrounds
   { type:'node',id:837,lat:51.4400,lon:3.5700, tags:{name:'Ballorig Vlissingen',leisure:'indoor_playground',website:'https://www.ballorig.nl/vlissingen','addr:city':'Vlissingen','addr:street':'President Rooseveltlaan','addr:housenumber':'731b',opening_hours:'We-Su 09:00-18:00'}},
-  { type:'node',id:838,lat:51.4950,lon:3.6150, tags:{name:'Monkey Town Middelburg',leisure:'indoor_playground',website:'https://monkeytown.eu/nl/middelburg','addr:city':'Middelburg','addr:street':'Podium','addr:housenumber':'3',opening_hours:'Mo-Su 09:30-18:00'}},
   { type:'node',id:839,lat:51.4740,lon:3.8320, tags:{name:"Klok'uus Speelboerderij",leisure:'indoor_playground',website:'https://klokuus.com/','addr:city':"'s-Heer Arendskerke",'addr:street':'Wissekerkseweg','addr:housenumber':'6',opening_hours:'We 10:00-20:00; Fr-Sa 10:00-21:30'}},
   // Museums
-  { type:'node',id:840,lat:51.4430,lon:3.5750, tags:{name:'Maritiem MuZEEum',tourism:'museum',website:'https://www.muzeeum.nl','addr:city':'Vlissingen','addr:street':'Nieuwendijk','addr:housenumber':'11',opening_hours:'Tu-Su 10:00-17:00'}},
-  { type:'node',id:841,lat:51.4990,lon:3.6140, tags:{name:'Zeeuws Museum',tourism:'museum',website:'https://www.zeeuwsmuseum.nl','addr:city':'Middelburg','addr:street':'Abdij',opening_hours:'Tu-Su 11:00-17:00'}},
-  { type:'node',id:842,lat:51.5820,lon:3.5700, tags:{name:'Terra Maris',tourism:'museum',website:'https://www.terramaris.nl','addr:city':'Oostkapelle','addr:street':'Duinvlietweg','addr:housenumber':'6',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:840,lat:51.4430,lon:3.5750, tags:{nameZh:'海事博物馆',name:'Maritiem MuZEEum',tourism:'museum',website:'https://www.muzeeum.nl','addr:city':'Vlissingen','addr:street':'Nieuwendijk','addr:housenumber':'11',opening_hours:'Tu-Su 10:00-17:00'}},
+  { type:'node',id:841,lat:51.4990,lon:3.6140, tags:{nameZh:'泽兰博物馆',name:'Zeeuws Museum',tourism:'museum',website:'https://www.zeeuwsmuseum.nl','addr:city':'Middelburg','addr:street':'Abdij',opening_hours:'Tu-Su 11:00-17:00'}},
+  { type:'node',id:842,lat:51.5820,lon:3.5700, tags:{nameZh:'大地之海博物馆',name:'Terra Maris',tourism:'museum',website:'https://www.terramaris.nl','addr:city':'Oostkapelle','addr:street':'Duinvlietweg','addr:housenumber':'6',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
   // Attractions
-  { type:'node',id:843,lat:51.5000,lon:3.6000, tags:{name:'Mini Mundi Middelburg',tourism:'theme_park',website:'https://www.minimundi.nl','addr:city':'Middelburg','addr:street':'Podium','addr:housenumber':'35',opening_hours:'Mo-Su 10:00-18:00 (seasonal)'}},
-  { type:'node',id:844,lat:51.5040,lon:3.8750, tags:{name:'Stoomtrein Goes-Borsele',tourism:'attraction',website:'https://www.destoomtrein.nl','addr:city':'Goes','addr:street':'Albert Plesmanweg','addr:housenumber':'23',opening_hours:'Apr-Oct 10:00-17:30'}},
+  { type:'node',id:843,lat:51.5000,lon:3.6000, tags:{nameZh:'迷你世界',name:'Mini Mundi Middelburg',tourism:'theme_park',website:'https://www.minimundi.nl','addr:city':'Middelburg','addr:street':'Podium','addr:housenumber':'35',opening_hours:'Mo-Su 10:00-18:00 (seasonal)'}},
+  { type:'node',id:844,lat:51.5040,lon:3.8750, tags:{nameZh:'蒸汽火车',name:'Stoomtrein Goes-Borsele',tourism:'attraction',website:'https://www.destoomtrein.nl','addr:city':'Goes','addr:street':'Albert Plesmanweg','addr:housenumber':'23',opening_hours:'Apr-Oct 10:00-17:30'}},
   // Beaches
   { type:'node',id:845,lat:51.5950,lon:3.5100, tags:{name:'Vrouwenpolder Strand',natural:'beach','addr:city':'Vrouwenpolder'}},
   { type:'node',id:846,lat:51.3700,lon:3.8400, tags:{name:'Breskens Strand',natural:'beach','addr:city':'Breskens'}},
@@ -2211,12 +2355,10 @@ const STATIC_NL_VENUES = [
 
   // ── LIMBURG (outside Maastricht) ──────────────────────────────
   // Indoor Playgrounds
-  { type:'node',id:850,lat:51.1900,lon:5.9870, tags:{name:'Ballorig Roermond',leisure:'indoor_playground',website:'https://www.ballorig.nl/roermond','addr:city':'Roermond','addr:street':'Elmpterweg','addr:housenumber':'48',opening_hours:'Mo-Su 09:00-18:00'}},
   { type:'node',id:851,lat:51.2530,lon:5.7100, tags:{name:'KidsPlaza Weert',leisure:'indoor_playground',website:'https://kids-plaza.nl/binnenspeeltuin/weert/','addr:city':'Weert','addr:street':'Geurtsvenweg','addr:housenumber':'2a',opening_hours:'Mo-Su 09:30-18:00'}},
   { type:'node',id:852,lat:50.8880,lon:5.9780, tags:{name:'Kinderstad Heerlen',leisure:'indoor_playground',website:'https://www.kinderstadlimburg.nl','addr:city':'Heerlen','addr:street':'Parallelweg','addr:housenumber':'4',opening_hours:'Mo-Su 10:00-18:00'}},
   // Zoos & Animals
-  { type:'node',id:853,lat:50.8580,lon:6.0550, tags:{name:'GaiaZOO',tourism:'zoo',website:'https://www.gaiazoo.nl','addr:city':'Kerkrade','addr:street':'Dentgenbachweg','addr:housenumber':'105',opening_hours:'Mo-Su 10:00-18:00'}},
-  { type:'node',id:854,lat:50.9020,lon:5.9730, tags:{name:'Mondo Verde',tourism:'theme_park',website:'https://www.wereldtuinenmondoverde.nl','addr:city':'Landgraaf','addr:street':'Groene Wereld','addr:housenumber':'10',opening_hours:'Mo-Su 10:00-18:00 (seasonal)'}},
+  { type:'node',id:854,lat:50.9020,lon:5.9730, tags:{nameZh:'绿色世界',name:'Mondo Verde',tourism:'theme_park',website:'https://www.wereldtuinenmondoverde.nl','addr:city':'Landgraaf','addr:street':'Groene Wereld','addr:housenumber':'10',opening_hours:'Mo-Su 10:00-18:00 (seasonal)'}},
   // Children's Farms
   { type:'node',id:855,lat:51.3730,lon:6.1730, tags:{name:'Kinderboerderij Hagerhof',tourism:'children_farm',website:'https://kinderboerderijhagerhof.nl/','addr:city':'Venlo','addr:street':'Hagerlei','addr:housenumber':'1',opening_hours:'Tu-Su 10:00-17:00'}},
   // Chinese Restaurants
@@ -2231,9 +2373,7 @@ const STATIC_NL_VENUES = [
   // Indoor Playgrounds
   { type:'node',id:861,lat:51.4740,lon:5.6610, tags:{name:'Monkey Town Helmond',leisure:'indoor_playground',website:'https://monkeytown.eu/nl','addr:city':'Helmond',opening_hours:'Mo-Su 09:30-18:00'}},
   { type:'node',id:862,lat:51.4380,lon:5.0600, tags:{name:'Monkey Town Waalwijk',leisure:'indoor_playground',website:'https://monkeytown.eu/nl/waalwijk','addr:city':'Waalwijk','addr:street':'Bachlaan','addr:housenumber':'10',opening_hours:'Mo-Su 09:30-18:00'}},
-  { type:'node',id:863,lat:51.4880,lon:4.2930, tags:{name:'Monkey Town Bergen op Zoom',leisure:'indoor_playground',website:'https://monkeytown.eu/nl/bergen_op_zoom','addr:city':'Halsteren','addr:street':'Langstraat','addr:housenumber':'5',opening_hours:'Mo-Su 09:30-18:00'}},
   { type:'node',id:864,lat:51.5100,lon:5.3700, tags:{name:'Monkey Town Veghel',leisure:'indoor_playground',website:'https://monkeytown.eu/nl/veghel','addr:city':'Veghel','addr:street':'Prins Willem Alexander Sportpark','addr:housenumber':'21',opening_hours:'Mo-Su 09:30-18:00'}},
-  { type:'node',id:865,lat:51.4540,lon:5.4720, tags:{name:'Monkey Town Valkenswaard',leisure:'indoor_playground',website:'https://monkeytown.eu/nl/valkenswaard','addr:city':'Valkenswaard','addr:street':'Past. Heerkensdreef','addr:housenumber':'15',opening_hours:'Mo-Su 09:30-18:00'}},
   // Children's Farms
   { type:'node',id:866,lat:51.4740,lon:5.6560, tags:{name:'Kinderboerderij De Veldhoeve',tourism:'children_farm',website:'https://nieuw.kinderboerderijdeveldhoeve.nl/','addr:city':'Helmond','addr:street':'Breitnerlaan','addr:housenumber':'19',opening_hours:'Mo-Su 13:00-16:00'}},
   { type:'node',id:867,lat:51.5300,lon:4.4500, tags:{name:'Kinderboerderij Minnebeek',tourism:'children_farm',website:'https://www.groenhuysen.nl/kinderboerderij-minnebeek','addr:city':'Roosendaal','addr:street':'Ambrozijnberg','addr:housenumber':'202',opening_hours:'Mo-Fr 08:00-17:00'}},
@@ -2247,8 +2387,8 @@ const STATIC_NL_VENUES = [
 
   // ── FLEVOLAND ─────────────────────────────────────────────────
   // Museums & Attractions
-  { type:'node',id:873,lat:52.5080,lon:5.4750, tags:{name:'Batavialand',tourism:'museum',website:'https://www.batavialand.nl','addr:city':'Lelystad','addr:street':'Oostvaardersdijk','addr:housenumber':'01-09',opening_hours:'Tu-Su 10:00-17:00'}},
-  { type:'node',id:874,lat:52.4600,lon:5.5270, tags:{name:'Aviodrome',tourism:'museum',website:'https://www.aviodrome.nl','addr:city':'Lelystad','addr:street':'Pelikaanweg','addr:housenumber':'50',opening_hours:'Tu-Su 10:00-17:00'}},
+  { type:'node',id:873,lat:52.5080,lon:5.4750, tags:{nameZh:'巴达维亚博物馆',name:'Batavialand',tourism:'museum',website:'https://www.batavialand.nl','addr:city':'Lelystad','addr:street':'Oostvaardersdijk','addr:housenumber':'01-09',opening_hours:'Tu-Su 10:00-17:00'}},
+  { type:'node',id:874,lat:52.4600,lon:5.5270, tags:{nameZh:'航空博物馆',name:'Aviodrome',tourism:'museum',website:'https://www.aviodrome.nl','addr:city':'Lelystad','addr:street':'Pelikaanweg','addr:housenumber':'50',opening_hours:'Tu-Su 10:00-17:00'}},
   { type:'node',id:875,lat:52.4800,lon:5.4200, tags:{name:'Natuurpark Lelystad',leisure:'nature_reserve',website:'https://www.flevo-landschap.nl','addr:city':'Lelystad','addr:street':'Vlotgrasweg','addr:housenumber':'11',opening_hours:'Mo-Su sunrise-sunset'}},
   { type:'node',id:876,lat:52.5270,lon:5.7200, tags:{name:'Mechanisch Museum Dronten',tourism:'museum','addr:city':'Dronten'}},
   // Indoor Playgrounds
@@ -2265,20 +2405,17 @@ const STATIC_NL_VENUES = [
   { type:'node',id:882,lat:52.0820,lon:4.8830, tags:{name:'Stadsboerderij Kukele-Boe',tourism:'children_farm','addr:city':'Woerden','addr:street':'Kievitsstraat','addr:housenumber':'40',opening_hours:'Mo-Su 09:00-17:00'}},
   { type:'node',id:883,lat:52.0300,lon:5.0900, tags:{name:'Kinderboerderij IJsselstee',tourism:'children_farm',website:'https://www.natuurkwartier.nl','addr:city':'Nieuwegein','addr:street':'Geinoord','addr:housenumber':'12',opening_hours:'Mo-Su 10:00-17:00'}},
   // Museums
-  { type:'node',id:884,lat:52.1560,lon:5.3870, tags:{name:'Apenheul',tourism:'zoo',website:'https://www.apenheul.nl','addr:city':'Apeldoorn',opening_hours:'Mo-Su 09:30-17:00 (seasonal)'}},
-  { type:'node',id:885,lat:52.0370,lon:5.5700, tags:{name:'Kijk en Luistermuseum Bennekom',tourism:'museum','addr:city':'Bennekom'}},
   // Nature
   { type:'node',id:886,lat:52.1140,lon:5.6700, tags:{name:'Veenendaal Stadspark',leisure:'park','addr:city':'Veenendaal'}},
 
   // ── NOORD-HOLLAND (outside Amsterdam) ─────────────────────────
   // Indoor Playgrounds
-  { type:'node',id:887,lat:52.6420,lon:5.0630, tags:{name:'Ballorig Hoorn',leisure:'indoor_playground',website:'https://www.ballorig.nl/hoorn','addr:city':'Zwaag','addr:street':'Wogmergouw','addr:housenumber':'4',opening_hours:'Mo-Su 09:00-18:00'}},
   { type:'node',id:888,lat:52.3370,lon:5.1670, tags:{name:'Monkey Town Bussum',leisure:'indoor_playground',website:'https://monkeytown.eu/nl/bussum','addr:city':'Bussum','addr:street':'Zanderijweg','addr:housenumber':'10-12',opening_hours:'Mo-Su 09:30-18:00'}},
   // Museums
-  { type:'node',id:889,lat:52.6320,lon:4.7530, tags:{name:'Hollands Kaasmuseum',tourism:'museum',website:'https://kaasmuseum.nl','addr:city':'Alkmaar','addr:street':'Waagplein','addr:housenumber':'2',opening_hours:'Mo-Sa 10:00-16:00; Su 12:00-16:00'}},
-  { type:'node',id:890,lat:52.9560,lon:4.7600, tags:{name:'Marinemuseum',tourism:'museum',website:'https://www.marinemuseum.nl','addr:city':'Den Helder','addr:street':'Hoofdgracht','addr:housenumber':'3',opening_hours:'Tu-Su 10:00-17:00'}},
-  { type:'node',id:891,lat:52.6440,lon:5.0600, tags:{name:'Museum Stoomtram Hoorn-Medemblik',tourism:'museum',website:'https://www.stoomtram.nl','addr:city':'Hoorn','addr:street':'Van Dedemstraat','addr:housenumber':'8',opening_hours:'Apr-Oct Tu-Su 10:00-17:00'}},
-  { type:'node',id:892,lat:52.6430,lon:5.0580, tags:{name:'Westfries Museum',tourism:'museum',website:'https://westfriesmuseum.nl','addr:city':'Hoorn','addr:street':'Roode Steen','addr:housenumber':'1',opening_hours:'Tu-Su 11:00-17:00'}},
+  { type:'node',id:889,lat:52.6320,lon:4.7530, tags:{nameZh:'荷兰奶酪博物馆',name:'Hollands Kaasmuseum',tourism:'museum',website:'https://kaasmuseum.nl','addr:city':'Alkmaar','addr:street':'Waagplein','addr:housenumber':'2',opening_hours:'Mo-Sa 10:00-16:00; Su 12:00-16:00'}},
+  { type:'node',id:890,lat:52.9560,lon:4.7600, tags:{nameZh:'海军博物馆',name:'Marinemuseum',tourism:'museum',website:'https://www.marinemuseum.nl','addr:city':'Den Helder','addr:street':'Hoofdgracht','addr:housenumber':'3',opening_hours:'Tu-Su 10:00-17:00'}},
+  { type:'node',id:891,lat:52.6440,lon:5.0600, tags:{nameZh:'蒸汽电车博物馆',name:'Museum Stoomtram Hoorn-Medemblik',tourism:'museum',website:'https://www.stoomtram.nl','addr:city':'Hoorn','addr:street':'Van Dedemstraat','addr:housenumber':'8',opening_hours:'Apr-Oct Tu-Su 10:00-17:00'}},
+  { type:'node',id:892,lat:52.6430,lon:5.0580, tags:{nameZh:'西弗里斯博物馆',name:'Westfries Museum',tourism:'museum',website:'https://westfriesmuseum.nl','addr:city':'Hoorn','addr:street':'Roode Steen','addr:housenumber':'1',opening_hours:'Tu-Su 11:00-17:00'}},
   // Nature & Beaches
   { type:'node',id:893,lat:52.4830,lon:5.0530, tags:{name:'Purmerend Stadspark',leisure:'park','addr:city':'Purmerend'}},
   { type:'node',id:894,lat:52.9700,lon:4.7500, tags:{name:'Den Helder Strand Huisduinen',natural:'beach','addr:city':'Den Helder'}},
@@ -2286,15 +2423,13 @@ const STATIC_NL_VENUES = [
   { type:'node',id:895,lat:52.6340,lon:4.7510, tags:{name:'Showboat Alkmaar',nameZh:'秀船',amenity:'buffet_restaurant',website:'https://showboat-alkmaar.nl/','addr:city':'Alkmaar','addr:street':'Muiderwaard','addr:housenumber':'400',opening_hours:'Fr-Su 17:00-21:00'}},
   { type:'node',id:896,lat:52.9530,lon:4.7560, tags:{name:'De Chinese Muur Den Helder',nameZh:'中国长城',amenity:'buffet_restaurant',website:'https://chinesemuurdenhelder.nl/','addr:city':'Den Helder','addr:street':'Beatrixstraat','addr:housenumber':'36-38',opening_hours:'Tu-Su 16:00-22:00'}},
   // Volendam/Marken area
-  { type:'node',id:897,lat:52.4940,lon:5.0670, tags:{name:'Volendam Centrum',tourism:'visitor_centre','addr:city':'Volendam'}},
-  { type:'node',id:898,lat:52.4590,lon:5.1040, tags:{name:'Marken Vuurtoren',tourism:'attraction','addr:city':'Marken'}},
+  { type:'node',id:897,lat:52.4940,lon:5.0670, tags:{nameZh:'沃伦丹',name:'Volendam Centrum',tourism:'visitor_centre','addr:city':'Volendam'}},
+  { type:'node',id:898,lat:52.4590,lon:5.1040, tags:{nameZh:'马肯灯塔',name:'Marken Vuurtoren',tourism:'attraction','addr:city':'Marken'}},
 
   // ── ZUID-HOLLAND (outside Rotterdam/Den Haag) ─────────────────
   // Indoor Playgrounds
-  { type:'node',id:899,lat:51.8180,lon:4.6670, tags:{name:'Monkey Town Sliedrecht',leisure:'indoor_playground',website:'https://monkeytown.eu/nl/sliedrecht','addr:city':'Sliedrecht','addr:street':'Leeghwaterstraat','addr:housenumber':'65',opening_hours:'Mo-Su 09:30-18:00'}},
   // Museums & Attractions
   { type:'node',id:900,lat:51.8130,lon:4.6690, tags:{name:'Nationaal Park De Biesbosch Bezoekerscentrum',tourism:'visitor_centre',website:'https://www.np-debiesbosch.nl','addr:city':'Dordrecht'}},
-  { type:'node',id:901,lat:51.8700,lon:4.9800, tags:{name:'Kinderdijk Molens',historic:'windmill',website:'https://www.kinderdijk.nl','addr:city':'Kinderdijk',opening_hours:'Mo-Su 09:00-17:30'}},
   // Chinese Restaurants
   { type:'node',id:902,lat:51.8080,lon:4.6730, tags:{name:'China City Dordrecht',nameZh:'中国城',amenity:'buffet_restaurant',website:'https://china-city.nl/','addr:city':'Dordrecht','addr:street':'Krispijnseweg','addr:housenumber':'12',opening_hours:'Tu-Su 12:00-22:00'}},
   { type:'node',id:903,lat:52.0180,lon:4.7110, tags:{name:'Rose Garden Gouda',nameZh:'玫瑰花园',amenity:'buffet_restaurant',website:'https://www.rosegardengouda.nl/','addr:city':'Gouda','addr:street':'Van Hogendorpplein','addr:housenumber':'11-17',opening_hours:'Tu-Su 16:00-22:00'}},
@@ -2307,39 +2442,32 @@ const STATIC_NL_VENUES = [
 
   // ── GRONINGEN (bonus: also underrepresented) ──────────────────
   { type:'node',id:908,lat:53.2040,lon:6.9510, tags:{name:'Kinderboerderij Stadspark',tourism:'children_farm','addr:city':'Groningen'}},
-  { type:'node',id:909,lat:53.3470,lon:6.5060, tags:{name:'Zeehondencentrum Pieterburen',tourism:'aquarium',website:'https://www.zeehondencentrum.nl','addr:city':'Pieterburen'}},
 
   // ══════════════════════════════════════════════════════════════
   // EXTRA VENUES — More rural coverage (IDs 910+)
   // ══════════════════════════════════════════════════════════════
 
   // ── FRIESLAND (extra) ──────────────────────────────────────────
-  { type:'node',id:910,lat:53.1750,lon:5.4100, tags:{name:'Planetarium Franeker',tourism:'museum',website:'https://www.royaleijsinga.nl','addr:city':'Franeker','addr:street':'Eise Eisingastraat','addr:housenumber':'3',opening_hours:'Tu-Su 10:00-17:00'}},
+  { type:'node',id:910,lat:53.1750,lon:5.4100, tags:{nameZh:'弗拉内克天文馆',name:'Planetarium Franeker',tourism:'museum',website:'https://www.royaleijsinga.nl','addr:city':'Franeker','addr:street':'Eise Eisingastraat','addr:housenumber':'3',opening_hours:'Tu-Su 10:00-17:00'}},
   { type:'node',id:911,lat:53.1720,lon:5.0850, tags:{name:'Harlingen Haven',tourism:'visitor_centre','addr:city':'Harlingen'}},
   { type:'node',id:912,lat:53.2560,lon:5.5800, tags:{name:'Fries Scheepvaartmuseum',tourism:'museum',website:'https://www.friesscheepvaartmuseum.nl','addr:city':'Sneek',opening_hours:'Tu-Su 10:00-17:00'}},
-  { type:'node',id:913,lat:53.2000,lon:5.7900, tags:{name:'Aquazoo Leeuwarden',tourism:'aquarium',website:'https://www.aquazoo.nl','addr:city':'Leeuwarden',opening_hours:'Mo-Su 10:00-17:00'}},
   { type:'node',id:914,lat:53.3600,lon:5.2200, tags:{name:'Terschelling Wrakkenmuseum',tourism:'museum','addr:city':'Terschelling'}},
   { type:'node',id:915,lat:52.9700,lon:5.6600, tags:{name:'Sneekermeer Strand',natural:'beach','addr:city':'Sneek'}},
 
   // ── DRENTHE (extra) ────────────────────────────────────────────
   { type:'node',id:916,lat:52.7800,lon:6.8700, tags:{name:'Rensenpark Emmen',leisure:'park',website:'https://www.rensenpark.nl','addr:city':'Emmen'}},
-  { type:'node',id:917,lat:52.9600,lon:6.5500, tags:{name:'Drents Museum',tourism:'museum',website:'https://www.drentsmuseum.nl','addr:city':'Assen',opening_hours:'Tu-Su 10:00-17:00'}},
+  { type:'node',id:917,lat:52.9600,lon:6.5500, tags:{nameZh:'德伦特博物馆',name:'Drents Museum',tourism:'museum',website:'https://www.drentsmuseum.nl','addr:city':'Assen',opening_hours:'Tu-Su 10:00-17:00'}},
   { type:'node',id:918,lat:52.8200,lon:6.4700, tags:{name:'Speelstad Oranje',leisure:'indoor_playground','addr:city':'Oranje',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
   { type:'node',id:919,lat:52.6950,lon:6.4700, tags:{name:'Meppel Stadspark',leisure:'park','addr:city':'Meppel'}},
 
   // ── OVERIJSSEL (extra) ─────────────────────────────────────────
   { type:'node',id:920,lat:52.5150,lon:5.9250, tags:{name:'Fundatie Zwolle',tourism:'museum',website:'https://www.museumdefundatie.nl','addr:city':'Zwolle',opening_hours:'Tu-Su 11:00-17:00'}},
-  { type:'node',id:921,lat:52.2550,lon:6.1600, tags:{name:'Speelgoedmuseum Deventer',tourism:'museum',website:'https://www.speelgoedmuseumdeventer.nl','addr:city':'Deventer',opening_hours:'Tu-Su 10:00-17:00'}},
   { type:'node',id:922,lat:52.3500,lon:6.6600, tags:{name:'Kinderboerderij Almelo',tourism:'children_farm','addr:city':'Almelo'}},
   { type:'node',id:923,lat:52.5600,lon:6.6200, tags:{name:'Kasteel Gramsbergen',historic:'castle','addr:city':'Hardenberg'}},
-  { type:'node',id:924,lat:52.5100,lon:6.0900, tags:{name:'Monkey Town Zwolle',leisure:'indoor_playground',website:'https://monkeytown.eu/nl','addr:city':'Zwolle',opening_hours:'Mo-Su 09:30-18:00'}},
 
   // ── GELDERLAND (extra) ────────────────────────────────────────
-  { type:'node',id:925,lat:52.0600,lon:6.2000, tags:{name:'Nederlands Openluchtmuseum',tourism:'museum',website:'https://www.openluchtmuseum.nl','addr:city':'Arnhem',opening_hours:'Mo-Su 10:00-17:00'}},
   { type:'node',id:926,lat:52.0380,lon:5.6660, tags:{name:'Pluimveemuseum Barneveld',tourism:'museum',website:'https://www.pluimveemuseum.nl','addr:city':'Barneveld',opening_hours:'Tu-Sa 10:00-17:00'}},
   { type:'node',id:927,lat:51.8900,lon:5.0300, tags:{name:'Fort Everdingen',historic:'fort','addr:city':'Culemborg'}},
-  { type:'node',id:928,lat:52.1700,lon:5.9700, tags:{name:'Apenheul Apeldoorn',tourism:'zoo',website:'https://www.apenheul.nl','addr:city':'Apeldoorn',opening_hours:'Apr-Oct 09:30-17:00'}},
-  { type:'node',id:929,lat:52.2300,lon:6.8500, tags:{name:'Speelpark De Waarbeek',tourism:'theme_park',website:'https://www.dewaarbeek.nl','addr:city':'Hengelo',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
   { type:'node',id:930,lat:51.9700,lon:5.8900, tags:{name:'Kinderboerderij Wageningen',tourism:'children_farm','addr:city':'Wageningen'}},
   { type:'node',id:931,lat:51.8840,lon:5.4400, tags:{name:'Flipje & Streekmuseum Tiel',tourism:'museum',website:'https://www.flipje-streekmuseum.nl','addr:city':'Tiel',opening_hours:'Tu-Su 11:00-17:00'}},
 
@@ -2347,14 +2475,14 @@ const STATIC_NL_VENUES = [
   { type:'node',id:932,lat:51.5100,lon:3.8600, tags:{name:'Kinderboerderij Goes',tourism:'children_farm','addr:city':'Goes'}},
   { type:'node',id:933,lat:51.3370,lon:3.8260, tags:{name:'Kinderboerderij Terneuzen',tourism:'children_farm','addr:city':'Terneuzen'}},
   { type:'node',id:934,lat:51.5000,lon:3.6100, tags:{name:'Abdij Middelburg',historic:'monument',website:'https://www.abdijtorenmiddelburg.nl','addr:city':'Middelburg'}},
-  { type:'node',id:935,lat:51.6100,lon:3.6900, tags:{name:'Deltapark Neeltje Jans',tourism:'attraction',website:'https://www.neeltjejans.nl','addr:city':'Vrouwenpolder',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:935,lat:51.6100,lon:3.6900, tags:{nameZh:'三角洲乐园',name:'Deltapark Neeltje Jans',tourism:'attraction',website:'https://www.neeltjejans.nl','addr:city':'Vrouwenpolder',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
   { type:'node',id:936,lat:51.5600,lon:3.4900, tags:{name:'Domburg Badpaviljoen',tourism:'attraction','addr:city':'Domburg'}},
 
   // ── LIMBURG (extra) ────────────────────────────────────────────
   { type:'node',id:937,lat:51.4400,lon:6.0200, tags:{name:'Missiemuseum Steyl',tourism:'museum','addr:city':'Steyl',opening_hours:'Tu-Su 10:00-17:00'}},
-  { type:'node',id:938,lat:51.1930,lon:5.9870, tags:{name:'Designer Outlet Roermond',tourism:'attraction',website:'https://www.mcarthurglen.com/nl/roermond','addr:city':'Roermond',opening_hours:'Mo-Su 10:00-20:00'}},
-  { type:'node',id:939,lat:50.8400,lon:5.8300, tags:{name:'Columbus Amusement Park',tourism:'theme_park','addr:city':'Valkenburg',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
-  { type:'node',id:940,lat:50.8700,lon:5.8300, tags:{name:'Gemeentegrot Valkenburg',historic:'monument',website:'https://www.gemeentegrot.nl','addr:city':'Valkenburg',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:938,lat:51.1930,lon:5.9870, tags:{nameZh:'鲁尔蒙德奥特莱斯',name:'Designer Outlet Roermond',tourism:'attraction',website:'https://www.mcarthurglen.com/nl/roermond','addr:city':'Roermond',opening_hours:'Mo-Su 10:00-20:00'}},
+  { type:'node',id:939,lat:50.8400,lon:5.8300, tags:{nameZh:'哥伦布游乐园',name:'Columbus Amusement Park',tourism:'theme_park','addr:city':'Valkenburg',opening_hours:'Mo-Su 10:00-17:00 (seasonal)'}},
+  { type:'node',id:940,lat:50.8700,lon:5.8300, tags:{nameZh:'法尔肯堡溶洞',name:'Gemeentegrot Valkenburg',historic:'monument',website:'https://www.gemeentegrot.nl','addr:city':'Valkenburg',opening_hours:'Mo-Su 10:00-17:00'}},
   { type:'node',id:941,lat:51.0050,lon:5.8500, tags:{name:'Kinderboerderij De Gijselaar',tourism:'children_farm','addr:city':'Sittard'}},
   { type:'node',id:942,lat:51.2500,lon:5.7000, tags:{name:'Kinderboerderij Weert',tourism:'children_farm','addr:city':'Weert'}},
 
@@ -2362,7 +2490,6 @@ const STATIC_NL_VENUES = [
   { type:'node',id:943,lat:51.5700,lon:5.0800, tags:{name:'De Efteling Bosrijk',leisure:'nature_reserve','addr:city':'Kaatsheuvel'}},
   { type:'node',id:944,lat:51.5900,lon:5.0600, tags:{name:'Nationaal Park Loonse en Drunense Duinen',leisure:'nature_reserve','addr:city':'Waalwijk'}},
   { type:'node',id:945,lat:51.4600,lon:5.4800, tags:{name:'Kinderboerderij Genneper Hoeve',tourism:'children_farm',website:'https://www.genneperhoeveeindhoven.nl','addr:city':'Eindhoven'}},
-  { type:'node',id:946,lat:51.5600,lon:5.0900, tags:{name:'Monkey Town Tilburg',leisure:'indoor_playground',website:'https://monkeytown.eu/nl','addr:city':'Tilburg',opening_hours:'Mo-Su 09:30-18:00'}},
   { type:'node',id:947,lat:51.6900,lon:5.3200, tags:{name:'Museum Jan Cunen Oss',tourism:'museum',website:'https://www.museumjancunen.nl','addr:city':'Oss',opening_hours:'Tu-Su 11:00-17:00'}},
   { type:'node',id:948,lat:51.5900,lon:4.4700, tags:{name:'Fort de Roovere',historic:'fort','addr:city':'Halsteren'}},
 
@@ -2372,7 +2499,6 @@ const STATIC_NL_VENUES = [
   { type:'node',id:951,lat:52.3450,lon:5.5400, tags:{name:'Zeewolde Harderbos',leisure:'nature_reserve','addr:city':'Zeewolde'}},
 
   // ── UTRECHT (extra) ────────────────────────────────────────────
-  { type:'node',id:952,lat:52.1550,lon:5.3750, tags:{name:'DierenPark Amersfoort',tourism:'zoo',website:'https://www.dierenparkamersfoort.nl','addr:city':'Amersfoort',opening_hours:'Mo-Su 09:00-18:00'}},
   { type:'node',id:953,lat:52.0900,lon:5.1200, tags:{name:'Slot Zeist',historic:'castle','addr:city':'Zeist'}},
   { type:'node',id:954,lat:52.0900,lon:5.2200, tags:{name:'Kinderboerderij De Brinkhorst',tourism:'children_farm','addr:city':'Amersfoort'}},
   { type:'node',id:955,lat:52.1200,lon:5.0800, tags:{name:'Soestduinen Bos',leisure:'nature_reserve','addr:city':'Soest'}},
@@ -2380,15 +2506,12 @@ const STATIC_NL_VENUES = [
 
   // ── NOORD-HOLLAND (extra) ──────────────────────────────────────
   { type:'node',id:957,lat:52.7640,lon:4.7100, tags:{name:'Schagen Speelboerderij',tourism:'children_farm','addr:city':'Schagen'}},
-  { type:'node',id:958,lat:52.8870,lon:4.7590, tags:{name:'Marinemuseum Den Helder',tourism:'museum','addr:city':'Den Helder'}},
-  { type:'node',id:959,lat:52.7210,lon:5.0450, tags:{name:'Enkhuizen Zuiderzeemuseum',tourism:'museum',website:'https://www.zuiderzeemuseum.nl','addr:city':'Enkhuizen',opening_hours:'Mo-Su 10:00-17:00'}},
   { type:'node',id:960,lat:52.5100,lon:4.9700, tags:{name:'Volendam Museum',tourism:'museum','addr:city':'Volendam'}},
   { type:'node',id:961,lat:52.5060,lon:4.6400, tags:{name:'Heerhugowaard Kinderboerderij',tourism:'children_farm','addr:city':'Heerhugowaard'}},
-  { type:'node',id:962,lat:53.0800,lon:4.8100, tags:{name:'Texel Ecomare',tourism:'aquarium',website:'https://www.ecomare.nl','addr:city':'De Koog, Texel',opening_hours:'Mo-Su 10:00-17:00'}},
   { type:'node',id:963,lat:52.4800,lon:4.6500, tags:{name:'Kinderboerderij Uitgeest',tourism:'children_farm','addr:city':'Uitgeest'}},
 
   // ── ZUID-HOLLAND (extra) ──────────────────────────────────────
-  { type:'node',id:964,lat:51.8200,lon:4.6700, tags:{name:'Dordrechts Museum',tourism:'museum',website:'https://www.dordrechtsmuseum.nl','addr:city':'Dordrecht',opening_hours:'Tu-Su 11:00-17:00'}},
+  { type:'node',id:964,lat:51.8200,lon:4.6700, tags:{nameZh:'多德雷赫特博物馆',name:'Dordrechts Museum',tourism:'museum',website:'https://www.dordrechtsmuseum.nl','addr:city':'Dordrecht',opening_hours:'Tu-Su 11:00-17:00'}},
   { type:'node',id:965,lat:52.0180,lon:4.7070, tags:{name:'Gouda Stadhuis',historic:'monument','addr:city':'Gouda'}},
   { type:'node',id:966,lat:52.0200,lon:4.7100, tags:{name:'Gouda Kaasmarkt',tourism:'attraction','addr:city':'Gouda'}},
   { type:'node',id:967,lat:51.8300,lon:4.9800, tags:{name:'Gorinchem Kinderboerderij',tourism:'children_farm','addr:city':'Gorinchem'}},
@@ -2437,7 +2560,7 @@ const STATIC_NL_VENUES = [
 
   // ── Nature Reserves & Sports ──────────────────────────────────
   { type:'node',id:998,lat:52.3200,lon:5.5700, tags:{name:'Veluwe Hoge Veluwe Entree',leisure:'nature_reserve',website:'https://www.hogeveluwe.nl','addr:city':'Otterlo',opening_hours:'Mo-Su 08:00-sunset'}},
-  { type:'node',id:999,lat:51.7400,lon:4.8100, tags:{name:'Biesbosch MuseumEiland',tourism:'museum',website:'https://www.biesboschmuseumeiland.nl','addr:city':'Werkendam',opening_hours:'Tu-Su 10:00-17:00'}},
+  { type:'node',id:999,lat:51.7400,lon:4.8100, tags:{nameZh:'比斯博斯博物馆岛',name:'Biesbosch MuseumEiland',tourism:'museum',website:'https://www.biesboschmuseumeiland.nl','addr:city':'Werkendam',opening_hours:'Tu-Su 10:00-17:00'}},
 ];
 
 function loadStaticVenues() {
@@ -2780,6 +2903,95 @@ function chatShowVenue(lat, lon, name) {
 document.getElementById('chatInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); handleChatSend(); }
 });
+
+// ── FAVORITES ───────────────────────────────────
+function toggleFavorite(venueId, btnEl) {
+  const idx = state.favorites.indexOf(venueId);
+  if (idx >= 0) {
+    state.favorites.splice(idx, 1);
+    if (btnEl) { btnEl.classList.remove('favorited'); btnEl.textContent = '\u2661'; }
+  } else {
+    state.favorites.push(venueId);
+    if (btnEl) { btnEl.classList.add('favorited'); btnEl.textContent = '\u2764\uFE0F'; }
+  }
+  if (btnEl) {
+    btnEl.classList.remove('bounce');
+    void btnEl.offsetWidth;
+    btnEl.classList.add('bounce');
+  }
+  localStorage.setItem('kids-explorer-favorites', JSON.stringify(state.favorites));
+  buildFilterBar();
+  if (state.showFavoritesOnly) {
+    state.displayed = 0;
+    applyFilter();
+  }
+}
+
+function toggleFavoritesFilter() {
+  state.showFavoritesOnly = !state.showFavoritesOnly;
+  if (state.showFavoritesOnly) {
+    state.activeCategory = null;
+  }
+  state.displayed = 0;
+  applyFilter();
+  buildFilterBar();
+}
+
+// ── VENUE SEARCH FROM AUTOCOMPLETE ──────────────
+function searchVenueFromAutocomplete(lat, lon, venueId, venueName) {
+  autocompleteEl.classList.remove('open');
+  searchInput.value = venueName;
+  map.flyTo([lat, lon], 16, { duration: 1 });
+  const v = state.allVenues.find(x => x.id === venueId);
+  if (v) {
+    selectVenue(v.id);
+  } else {
+    L.popup()
+      .setLatLng([lat, lon])
+      .setContent(`<div class="popup-content"><div class="popup-name">${escapeHtml(venueName)}</div></div>`)
+      .openOn(map);
+  }
+}
+
+// ── GEOLOCATION (NEAR ME) ───────────────────────
+function activateNearMe() {
+  autocompleteEl.classList.remove('open');
+  const btn = document.getElementById('nearmeBtn');
+  if (!navigator.geolocation) {
+    showToast(T[LANG.current].nearMeError);
+    return;
+  }
+  btn.classList.add('active');
+  showToast(T[LANG.current].nearMeSearching, 2000);
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      state.userLocation = [lat, lon];
+      if (state.userLocationMarker) {
+        map.removeLayer(state.userLocationMarker);
+      }
+      state.userLocationMarker = L.circleMarker([lat, lon], {
+        radius: 10, color: '#4285F4', fillColor: '#4285F4',
+        fillOpacity: 0.5, weight: 3, opacity: 0.8,
+      }).addTo(map).bindPopup(LANG.current === 'zh' ? '📍 你的位置' : '📍 Your location');
+      state.displayed = 0;
+      applyFilter();
+      buildFilterBar();
+      map.flyTo([lat, lon], 11, { duration: 1 });
+      showToast(LANG.current === 'zh' ? '已按距离排序' : 'Sorted by distance', 2000);
+    },
+    (err) => {
+      btn.classList.remove('active');
+      if (err.code === 1) {
+        showToast(T[LANG.current].nearMePermDenied, 4000);
+      } else {
+        showToast(T[LANG.current].nearMeError);
+      }
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
 
 // ── INIT ─────────────────────────────────────────
 buildFilterBar();
