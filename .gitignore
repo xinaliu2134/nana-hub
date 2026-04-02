@@ -6,3 +6,4 @@
 .env.local
 node_modules/
 project.private.config.json
+**/utils/config.js
