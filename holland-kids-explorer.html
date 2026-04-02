@@ -12,7 +12,7 @@
   <meta property="og:url" content="https://xinaliu2134.github.io/nana-hub/holland-kids-explorer.html">
   <meta name="twitter:card" content="summary">
   <link rel="preload" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" as="script">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700&family=Noto+Sans+SC:wght@500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -929,10 +929,10 @@
   </div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" integrity="sha384-pmjIAcz2bAn0xukfxADbZIb3t8oRT9Sv0rvO+BR5Csr6Dhqq+nZs59P0pPKQJkEV" crossorigin="anonymous">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" integrity="sha384-wgw+aLYNQ7dlhK47ZPK7FRACiq7ROZwgFNg0m04avm4CaXS+Z9Y7nMu8yNjBKYC+" crossorigin="anonymous">
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" integrity="sha384-eXVCORTRlv4FUUgS/xmOyr66XBVraen8ATNLMESp92FKXLAMiKkerixTiBvXriZr" crossorigin="anonymous"></script>
 <style>
   .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
     background: rgba(224,90,30,.15) !important;
@@ -1268,11 +1268,14 @@ function renderAutocomplete(matches, q) {
   focusedIdx = -1;
   if (!matches.length) { autocompleteEl.classList.remove('open'); return; }
   autocompleteEl.innerHTML = matches.map(r => {
-    const highlighted = r.name.replace(
-      new RegExp(`(${q})`, 'gi'),
+    const safeQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const safeName = escapeHtml(r.name);
+    const highlighted = safeName.replace(
+      new RegExp(`(${safeQ})`, 'gi'),
       '<strong style="color:var(--primary)">$1</strong>'
     );
-    return `<div class="autocomplete-item" onclick="searchRegion('${r.name}')">
+    const escapedName = r.name.replace(/'/g, "\\'").replace(/[<>"]/g, '');
+    return `<div class="autocomplete-item" onclick="searchRegion('${escapedName}')">
       <span>${highlighted}</span>
       <span class="region-type">${r.type === 'province' ? 'Province 省' : 'City 城市'}</span>
     </div>`;
@@ -2273,11 +2276,17 @@ function sendQuickMsg(msg) {
   handleChatSend();
 }
 
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
 function addBotMessage(text) {
   const el = document.getElementById('chatMessages');
   const div = document.createElement('div');
   div.className = 'chat-msg bot';
-  div.innerHTML = text.replace(/\n/g, '<br>');
+  div.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
   el.appendChild(div);
   el.scrollTop = el.scrollHeight;
 }
