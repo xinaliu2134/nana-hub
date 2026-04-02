@@ -683,9 +683,6 @@
 
     /* ── RESPONSIVE ──────────────────────────────── */
     @media (max-width: 768px) {
-      .main { grid-template-columns: 1fr; grid-template-rows: 50vh 1fr; }
-      .map-wrapper { order: -1; }
-      .sidebar { border-right: none; border-top: 2px solid var(--border); }
       .header-search { max-width: 100%; }
       .logo-text { display: none; }
     }
@@ -890,6 +887,216 @@
       .chat-panel { width: calc(100vw - 24px); right: 12px; bottom: 12px; max-height: 70vh; }
       .chat-fab { bottom: 16px; right: 16px; width: 50px; height: 50px; font-size: 22px; }
     }
+
+    /* ── MOBILE BOTTOM SHEET ──────────────────────── */
+    @media (max-width: 768px) {
+      .main { grid-template-columns: 1fr; grid-template-rows: 1fr; position: relative; }
+      .map-wrapper { order: -1; grid-row: 1; grid-column: 1; }
+      .sidebar {
+        position: fixed; bottom: 0; left: 0; right: 0;
+        z-index: 800;
+        border-radius: 16px 16px 0 0;
+        border-right: none;
+        border-top: none;
+        box-shadow: 0 -4px 24px rgba(26,43,74,.18);
+        transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+        max-height: 90dvh;
+        will-change: transform;
+      }
+      .bottom-sheet-handle {
+        display: flex;
+        justify-content: center;
+        padding: 10px 0 4px;
+        cursor: grab;
+        flex-shrink: 0;
+      }
+      .bottom-sheet-handle::after {
+        content: '';
+        width: 36px; height: 4px;
+        background: var(--border);
+        border-radius: 2px;
+      }
+      .bottom-sheet-handle:active { cursor: grabbing; }
+    }
+    @media (min-width: 769px) {
+      .bottom-sheet-handle { display: none; }
+    }
+
+    /* ── VENUE DETAIL PANEL ──────────────────────── */
+    .venue-detail-panel {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: 400px;
+      background: var(--surface);
+      box-shadow: -4px 0 24px rgba(26,43,74,.18);
+      z-index: 900;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .venue-detail-panel.open { transform: translateX(0); }
+    .detail-panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 2px solid var(--border-light);
+      flex-shrink: 0;
+    }
+    .detail-panel-close {
+      background: none; border: none; cursor: pointer;
+      font-size: 22px; color: var(--text-secondary);
+      padding: 4px 8px; border-radius: 8px;
+      transition: background .15s;
+    }
+    .detail-panel-close:hover { background: var(--bg); }
+    .detail-panel-body {
+      flex: 1; overflow-y: auto; padding: 20px;
+    }
+    .detail-venue-icon {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      font-size: 28px;
+      margin-bottom: 16px;
+    }
+    .detail-venue-name {
+      font-size: 20px; font-weight: 700; color: var(--text);
+      line-height: 1.3; margin-bottom: 4px;
+    }
+    .detail-venue-name-zh {
+      font-size: 15px; color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+    .detail-category-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12px; font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+    .detail-info-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-light);
+      font-size: 14px; color: var(--text);
+    }
+    .detail-info-row .detail-icon {
+      font-size: 16px; flex-shrink: 0; width: 20px; text-align: center;
+      padding-top: 1px;
+    }
+    .detail-info-row a { color: var(--primary); text-decoration: none; }
+    .detail-info-row a:hover { text-decoration: underline; }
+    .detail-actions {
+      display: flex; flex-direction: column; gap: 10px;
+      margin-top: 20px;
+    }
+    .detail-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      font-size: 14px; font-weight: 600;
+      cursor: pointer; border: none;
+      text-decoration: none;
+      transition: background .15s, transform .1s;
+    }
+    .detail-btn:hover { transform: translateY(-1px); }
+    .detail-btn:active { transform: translateY(0); }
+    .detail-btn-website {
+      background: var(--primary); color: #fff;
+    }
+    .detail-btn-website:hover { background: var(--primary-dark); }
+    .detail-btn-navigate {
+      background: #4285F4; color: #fff;
+    }
+    .detail-btn-navigate:hover { background: #3367D6; }
+    .detail-btn-favorite {
+      background: var(--bg); color: var(--text);
+      border: 2px solid var(--border);
+    }
+    .detail-btn-favorite:hover { border-color: var(--primary); color: var(--primary); }
+    .detail-btn-favorite.favorited {
+      background: #FEE2E2; color: #DC2626; border-color: #FECACA;
+    }
+
+    @media (max-width: 768px) {
+      .venue-detail-panel {
+        width: 100%; top: auto; bottom: 0;
+        max-height: 90dvh;
+        border-radius: 16px 16px 0 0;
+        transform: translateY(100%);
+      }
+      .venue-detail-panel.open { transform: translateY(0); }
+    }
+
+    /* ── AGE FILTER PILLS ─────────────────────────── */
+    .age-filter-group {
+      display: flex; align-items: center; gap: 4px;
+      flex-shrink: 0;
+      margin-left: 4px;
+      padding-left: 8px;
+      border-left: 2px solid var(--border-light);
+    }
+    .age-pill {
+      display: flex; align-items: center; gap: 3px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 2px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 11px; font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: all .15s;
+      user-select: none;
+    }
+    .age-pill:hover { border-color: var(--primary); color: var(--primary); }
+    .age-pill.active {
+      background: #7C3AED; color: #fff;
+      border-color: #7C3AED;
+    }
+
+    /* ── WEATHER BADGE & BANNER ───────────────────── */
+    .weather-badge {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 12px; font-weight: 600;
+      color: rgba(255,255,255,.8);
+      background: rgba(255,255,255,.1);
+      border-radius: 8px;
+      padding: 4px 10px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .weather-banner {
+      background: linear-gradient(135deg, #1e3a5f, #2d5a8e);
+      color: #fff;
+      padding: 8px 20px;
+      display: flex; align-items: center; gap: 12px;
+      font-size: 13px; font-weight: 500;
+      flex-shrink: 0;
+      z-index: 99;
+    }
+    .weather-banner-text { flex: 1; }
+    .weather-banner-btn {
+      background: rgba(255,255,255,.2);
+      color: #fff;
+      border: none; border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 12px; font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+      white-space: nowrap;
+    }
+    .weather-banner-btn:hover { background: rgba(255,255,255,.3); }
+    .weather-banner-close {
+      background: none; border: none;
+      color: rgba(255,255,255,.6);
+      font-size: 18px; cursor: pointer;
+      padding: 2px 6px;
+      transition: color .15s;
+    }
+    .weather-banner-close:hover { color: #fff; }
   </style>
 </head>
 <body>
@@ -912,6 +1119,8 @@
   </div>
   <button class="nearme-btn" id="nearmeBtn" onclick="activateNearMe()" title="Near Me 我附近">📍</button>
 
+  <div class="weather-badge" id="weatherBadge" style="display:none;"></div>
+
   <div class="header-spacer"></div>
 
   <div class="lang-toggle">
@@ -919,6 +1128,13 @@
     <button class="lang-btn" data-lang="zh" onclick="setLang('zh')">中</button>
   </div>
 </header>
+
+<!-- ── WEATHER BANNER ──────────────────────────────── -->
+<div class="weather-banner" id="weatherBanner" style="display:none;">
+  <span class="weather-banner-text" id="weatherBannerText"></span>
+  <button class="weather-banner-btn" id="weatherBannerBtn" onclick="filterIndoorWeather()"></button>
+  <button class="weather-banner-close" onclick="dismissWeatherBanner()">&times;</button>
+</div>
 
 <!-- ── FILTER BAR ─────────────────────────────────── -->
 <div class="filter-bar" id="filterBar">
@@ -932,7 +1148,8 @@
   <div class="toast" id="toast"></div>
 
   <!-- Sidebar -->
-  <aside class="sidebar" style="position:relative;">
+  <aside class="sidebar" id="sidebarSheet" style="position:relative;">
+    <div class="bottom-sheet-handle" id="bottomSheetHandle"></div>
     <div class="sidebar-header">
       <div class="result-count" id="resultCount">
         <span id="resultCountText">Search a region to discover kids venues</span>
@@ -966,6 +1183,15 @@
     </div>
   </div>
 
+</div>
+
+<!-- ── VENUE DETAIL PANEL ────────────────────────── -->
+<div class="venue-detail-panel" id="venueDetailPanel">
+  <div class="detail-panel-header">
+    <span style="font-weight:700;font-size:15px;" id="detailPanelTitle">Venue Details</span>
+    <button class="detail-panel-close" onclick="closeDetailPanel()">&times;</button>
+  </div>
+  <div class="detail-panel-body" id="detailPanelBody"></div>
 </div>
 
 <!-- ── AI CHAT WIDGET ────────────────────────────── -->
@@ -1279,6 +1505,9 @@ function buildFilterBar() {
     chip.onclick = () => setFilter(cat.id);
     bar.appendChild(chip);
   });
+
+  // Rebuild age pills if the function exists (defined later in script)
+  if (typeof buildAgeFilterPills === 'function') buildAgeFilterPills();
 }
 
 function setFilter(catId) {
@@ -1313,6 +1542,14 @@ function applyFilter() {
     : [...state.allVenues];
   if (state.showFavoritesOnly) {
     list = list.filter(v => state.favorites.includes(v.id));
+  }
+  // Apply age filter if active
+  if (typeof activeAgeFilter !== 'undefined' && activeAgeFilter !== 'all') {
+    const ageRange = typeof AGE_FILTER_RANGES !== 'undefined'
+      ? AGE_FILTER_RANGES.find(a => a.id === activeAgeFilter) : null;
+    if (ageRange && ageRange.categories) {
+      list = list.filter(v => ageRange.categories.includes(v.category.id));
+    }
   }
   // If user location available, compute distances
   if (state.userLocation) {
@@ -1457,10 +1694,12 @@ function resetHome() {
   state.activeCardId = null;
   state.showFavoritesOnly = false;
   state.displayed = 0;
+  if (typeof activeAgeFilter !== 'undefined') activeAgeFilter = 'all';
   markersLayer.clearLayers();
   state.markers.clear();
   map.setView([52.35, 5.3], 8);
   showOverlay(false);
+  if (typeof closeDetailPanel === 'function') closeDetailPanel();
   loadStaticVenues();
 }
 
@@ -1473,6 +1712,7 @@ function fullReset() {
   state.activeCardId = null;
   state.currentRegion = '';
   state.showFavoritesOnly = false;
+  if (typeof activeAgeFilter !== 'undefined') activeAgeFilter = 'all';
   markersLayer.clearLayers();
   state.markers.clear();
   searchInput.value = '';
@@ -1484,6 +1724,7 @@ function fullReset() {
   document.getElementById('venueList').style.display = 'none';
   document.getElementById('venueList').innerHTML = '';
   document.getElementById('categorySummary').innerHTML = '';
+  closeDetailPanel();
   updateEmptyStateText();
   buildFilterBar();
 }
@@ -1928,6 +2169,14 @@ function setLang(lang) {
     renderCategorySummary();
   } else {
     document.getElementById('resultCountText').textContent = T[lang].resultLabel;
+  }
+  // Update weather banner text if visible
+  const wb = document.getElementById('weatherBanner');
+  if (wb && wb.style.display !== 'none') {
+    document.getElementById('weatherBannerText').textContent =
+      lang === 'zh' ? '🌧️ 下雨天？试试室内活动！' : '🌧️ Rainy? Try indoor activities!';
+    document.getElementById('weatherBannerBtn').textContent =
+      lang === 'zh' ? '查看室内场地' : 'Show indoor venues';
   }
 }
 
@@ -2561,6 +2810,121 @@ const STATIC_NL_VENUES = [
   // ── Nature Reserves & Sports ──────────────────────────────────
   { type:'node',id:998,lat:52.3200,lon:5.5700, tags:{name:'Veluwe Hoge Veluwe Entree',leisure:'nature_reserve',website:'https://www.hogeveluwe.nl','addr:city':'Otterlo',opening_hours:'Mo-Su 08:00-sunset'}},
   { type:'node',id:999,lat:51.7400,lon:4.8100, tags:{nameZh:'比斯博斯博物馆岛',name:'Biesbosch MuseumEiland',tourism:'museum',website:'https://www.biesboschmuseumeiland.nl','addr:city':'Werkendam',opening_hours:'Tu-Su 10:00-17:00'}},
+
+  // ── Outdoor Playgrounds (Speeltuinen) ─────────────────────────
+  // Noord-Holland
+  { type:'node',id:1000,lat:52.2272,lon:4.5740, tags:{nameZh:'林内斯霍夫 - 欧洲最大游乐场',name:'Linnaeushof',leisure:'playground',website:'https://www.linnaeushof.nl','addr:city':'Bennebroek','addr:street':'Rijksstraatweg','addr:housenumber':'4',opening_hours:'Mo-Su 10:00-18:00 (Apr-Oct)'}},
+  { type:'node',id:1001,lat:52.3086,lon:5.1672, tags:{nameZh:'莱姆坑游乐场',name:'Speeltuin De Leemkuil',leisure:'playground',website:'https://www.speeltuindeleemkuil.nl','addr:city':'Hilversum','addr:street':'Lijsterweg','addr:housenumber':'25',opening_hours:'Mo-Su 10:00-18:00 (seasonal)'}},
+  { type:'node',id:1002,lat:52.3750,lon:4.8900, tags:{nameZh:'冯德尔公园游乐场',name:'Vondelpark Speeltuin',leisure:'playground','addr:city':'Amsterdam','addr:street':'Vondelpark',opening_hours:'Mo-Su 09:00-sunset'}},
+  { type:'node',id:1003,lat:52.3590,lon:4.9410, tags:{name:'Speeltuin Artisplein',leisure:'playground','addr:city':'Amsterdam','addr:street':'Plantage Kerklaan',opening_hours:'Mo-Su 09:00-18:00'}},
+  { type:'node',id:1004,lat:52.6325,lon:4.7450, tags:{name:'Speeltuin De Rekere',leisure:'playground','addr:city':'Alkmaar','addr:street':'Rekerhout',opening_hours:'Mo-Su 10:00-18:00 (seasonal)'}},
+  { type:'node',id:1005,lat:52.4120,lon:4.6560, tags:{name:'Speeltuinvereniging Schalkwijk',leisure:'playground','addr:city':'Haarlem','addr:street':'Rivierenbuurt'}},
+  { type:'node',id:1006,lat:52.5130,lon:4.9660, tags:{name:'Speeltuinvereniging Zaandam-Zuid',leisure:'playground','addr:city':'Zaandam'}},
+  { type:'node',id:1007,lat:52.6700,lon:4.8100, tags:{name:'Speeltuin De Buitenplaats',leisure:'playground','addr:city':'Heerhugowaard'}},
+  // Zuid-Holland
+  { type:'node',id:1008,lat:52.0783,lon:4.2858, tags:{nameZh:'南公园冒险游乐场',name:'Avonturen Speeltuin Zuiderpark',leisure:'playground',website:'https://www.avonturenspeeltuin.nl','addr:city':'Den Haag','addr:street':'Zuiderpark',opening_hours:'Mo-Su 10:00-18:00 (seasonal)'}},
+  { type:'node',id:1009,lat:51.9194,lon:4.4890, tags:{nameZh:'鹿特丹天然游乐场',name:'Natuurspeeltuin De Speeldernis',leisure:'playground',website:'https://www.speeldernis.nl','addr:city':'Rotterdam','addr:street':'Westzeedijk','addr:housenumber':'400',opening_hours:'We-Su 10:00-17:00'}},
+  { type:'node',id:1010,lat:52.1600,lon:4.4970, tags:{name:'Cronesteyn Speeltuin',leisure:'playground','addr:city':'Leiden','addr:street':'Polderpark Cronesteyn',opening_hours:'Mo-Su 08:00-sunset'}},
+  { type:'node',id:1011,lat:51.8500,lon:4.2900, tags:{name:'Speeltuinvereniging Spijkenisse',leisure:'playground','addr:city':'Spijkenisse'}},
+  { type:'node',id:1012,lat:51.9300,lon:4.5700, tags:{name:'Speeltuin De Wereld',leisure:'playground','addr:city':'Rotterdam','addr:street':'Prinsenland'}},
+  { type:'node',id:1013,lat:52.0100,lon:4.3600, tags:{name:'Speeltuin Ockenburg',leisure:'playground','addr:city':'Den Haag','addr:street':'Monsterseweg'}},
+  { type:'node',id:1014,lat:52.0011,lon:4.3714, tags:{name:'Speeltuin Melis Stokepark',leisure:'playground','addr:city':'Den Haag'}},
+  { type:'node',id:1015,lat:51.9750,lon:4.1200, tags:{name:'Speeltuin Hoek van Holland',leisure:'playground','addr:city':'Hoek van Holland'}},
+  // Utrecht
+  { type:'node',id:1016,lat:52.0900,lon:5.1270, tags:{nameZh:'乌特勒支水上游乐场',name:'Waterspeeltuin Hoge Weide',leisure:'playground','addr:city':'Utrecht','addr:street':'Hoge Weide',opening_hours:'Mo-Su 10:00-18:00 (seasonal)'}},
+  { type:'node',id:1017,lat:52.0830,lon:5.1540, tags:{name:'Speeltuin Griftpark',leisure:'playground','addr:city':'Utrecht','addr:street':'Griftpark',opening_hours:'Mo-Su 08:00-sunset'}},
+  { type:'node',id:1018,lat:52.0530,lon:5.0960, tags:{name:'Speeltuinvereniging De Ballon',leisure:'playground','addr:city':'Utrecht','addr:street':'Laan van Nieuw-Guinea'}},
+  { type:'node',id:1019,lat:52.1650,lon:5.3900, tags:{name:'Speeltuin Soestdijk',leisure:'playground','addr:city':'Baarn'}},
+  { type:'node',id:1020,lat:52.2140,lon:5.1780, tags:{name:'Avonturenspeeltuin Hilversum',leisure:'playground','addr:city':'Hilversum'}},
+  // Noord-Brabant
+  { type:'node',id:1021,lat:51.4490,lon:5.4730, tags:{nameZh:'斯普林特儿童公园',name:'Speelpark De Splinter',leisure:'playground',website:'https://www.speelparkdesplinter.nl','addr:city':'Eindhoven','addr:street':'Karpendonkse Plas','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-18:00 (seasonal)'}},
+  { type:'node',id:1022,lat:51.5900,lon:5.0600, tags:{name:'Avonturenspeeltuin Tilburg',leisure:'playground','addr:city':'Tilburg','addr:street':'Oude Warande'}},
+  { type:'node',id:1023,lat:51.6900,lon:5.3000, tags:{name:'Speeltuin De Heksenketel',leisure:'playground','addr:city':"'s-Hertogenbosch",'addr:street':'Zuiderpark'}},
+  { type:'node',id:1024,lat:51.5880,lon:4.7760, tags:{name:'Speeltuin De Spoorzoeker',leisure:'playground','addr:city':'Breda','addr:street':'Valkenberg'}},
+  { type:'node',id:1025,lat:51.4350,lon:5.4900, tags:{name:'Speeltuin Philipsdorp',leisure:'playground','addr:city':'Eindhoven','addr:street':'Frederiklaan'}},
+  { type:'node',id:1026,lat:51.6500,lon:5.0500, tags:{name:'Speeltuin Waalwijk',leisure:'playground','addr:city':'Waalwijk'}},
+  // Gelderland
+  { type:'node',id:1027,lat:51.9850,lon:5.9180, tags:{nameZh:'桑斯贝克公园游乐场',name:'Speeltuin Sonsbeek',leisure:'playground','addr:city':'Arnhem','addr:street':'Sonsbeekpark',opening_hours:'Mo-Su 08:00-sunset'}},
+  { type:'node',id:1028,lat:52.2110,lon:5.9700, tags:{nameZh:'山林冒险游乐场',name:'Avonturen Speeltuin Berg & Bos',leisure:'playground',website:'https://www.bergenbos.nl','addr:city':'Apeldoorn','addr:street':'J.C. Wilslaan','addr:housenumber':'21',opening_hours:'Mo-Su 10:00-17:00'}},
+  { type:'node',id:1029,lat:51.9650,lon:5.8600, tags:{name:'Speeltuin Presikhaaf',leisure:'playground','addr:city':'Arnhem','addr:street':'Presikhaaf'}},
+  { type:'node',id:1030,lat:51.9600,lon:5.6600, tags:{name:'Speeltuin Wageningen',leisure:'playground','addr:city':'Wageningen','addr:street':'Torckpark'}},
+  { type:'node',id:1031,lat:52.0400,lon:6.1200, tags:{name:'Speeltuin Zutphen',leisure:'playground','addr:city':'Zutphen','addr:street':'Stadspark'}},
+  { type:'node',id:1032,lat:51.8700,lon:5.8700, tags:{name:'Speeltuin Goffertpark',leisure:'playground','addr:city':'Nijmegen','addr:street':'Goffertpark'}},
+  // Overijssel
+  { type:'node',id:1033,lat:52.5150,lon:6.0930, tags:{nameZh:'兹沃勒冒险游乐场',name:'Avonturenspeeltuin Zwolle',leisure:'playground','addr:city':'Zwolle','addr:street':'Park de Wezenlanden',opening_hours:'Mo-Su 10:00-18:00 (seasonal)'}},
+  { type:'node',id:1034,lat:52.2200,lon:6.8950, tags:{name:'Speeltuinvereniging Enschede',leisure:'playground','addr:city':'Enschede','addr:street':'Volkspark'}},
+  { type:'node',id:1035,lat:52.3600,lon:6.6600, tags:{name:'Speeltuin Almelo',leisure:'playground','addr:city':'Almelo'}},
+  { type:'node',id:1036,lat:52.4300,lon:6.2100, tags:{name:'Avonturenspeeltuin Dalfsen',leisure:'playground','addr:city':'Dalfsen'}},
+  // Friesland
+  { type:'node',id:1037,lat:53.2010,lon:5.7990, tags:{nameZh:'吕伐登冒险游乐场',name:'Speeltuin De Flecke',leisure:'playground','addr:city':'Leeuwarden','addr:street':'Camstraburen',opening_hours:'Mo-Su 10:00-18:00 (seasonal)'}},
+  { type:'node',id:1038,lat:53.1750,lon:5.4200, tags:{name:'Speeltuin Franeker',leisure:'playground','addr:city':'Franeker'}},
+  { type:'node',id:1039,lat:53.0100,lon:5.6500, tags:{name:'Speeltuin Sneek-West',leisure:'playground','addr:city':'Sneek'}},
+  // Groningen
+  { type:'node',id:1040,lat:53.2200,lon:6.5700, tags:{nameZh:'格罗宁根市立公园游乐场',name:'Speeltuin Stadspark Groningen',leisure:'playground','addr:city':'Groningen','addr:street':'Stadspark',opening_hours:'Mo-Su 08:00-sunset'}},
+  { type:'node',id:1041,lat:53.2530,lon:6.5300, tags:{name:'Speeltuin Paddepoel',leisure:'playground','addr:city':'Groningen','addr:street':'Paddepoel'}},
+  // Drenthe
+  { type:'node',id:1042,lat:52.9930,lon:6.5640, tags:{nameZh:'阿森彩色花园游乐场',name:'Speeltuin De Bonte Tuin',leisure:'playground','addr:city':'Assen','addr:street':'Asserbos',opening_hours:'Mo-Su 10:00-18:00 (seasonal)'}},
+  { type:'node',id:1043,lat:52.7600,lon:6.9000, tags:{name:'Speeltuin Emmen Centrum',leisure:'playground','addr:city':'Emmen'}},
+  // Flevoland
+  { type:'node',id:1044,lat:52.5200,lon:5.4780, tags:{nameZh:'阿尔梅勒冒险游乐场',name:'Avonturenspeeltuin Almere',leisure:'playground','addr:city':'Almere','addr:street':'Lumièrepark',opening_hours:'Mo-Su 10:00-18:00 (seasonal)'}},
+  { type:'node',id:1045,lat:52.3700,lon:5.2200, tags:{name:'Speeltuin Zeewolde',leisure:'playground','addr:city':'Zeewolde'}},
+  // Limburg
+  { type:'node',id:1046,lat:50.8510,lon:5.6920, tags:{nameZh:'马斯特里赫特市立公园游乐场',name:'Speeltuin Stadspark Maastricht',leisure:'playground','addr:city':'Maastricht','addr:street':'Stadspark',opening_hours:'Mo-Su 08:00-sunset'}},
+  { type:'node',id:1047,lat:51.4180,lon:5.4500, tags:{name:'Speeltuin Genneper Parken',leisure:'playground','addr:city':'Eindhoven','addr:street':'Genneper Parken'}},
+  { type:'node',id:1048,lat:51.1930,lon:5.9870, tags:{name:'Speeltuin Stadspark Roermond',leisure:'playground','addr:city':'Roermond','addr:street':'Stadspark'}},
+  { type:'node',id:1049,lat:50.8850,lon:5.9800, tags:{name:'Speeltuin Heerlen',leisure:'playground','addr:city':'Heerlen'}},
+  // Zeeland
+  { type:'node',id:1050,lat:51.5000,lon:3.6100, tags:{nameZh:'米德尔堡大型游乐场',name:'Speeltuin Molenwater Middelburg',leisure:'playground','addr:city':'Middelburg','addr:street':'Molenwater',opening_hours:'Mo-Su 09:00-18:00 (seasonal)'}},
+  { type:'node',id:1051,lat:51.4400,lon:3.5700, tags:{name:'Speeltuin Nollenbos Vlissingen',leisure:'playground','addr:city':'Vlissingen','addr:street':'Nollenbos'}},
+  { type:'node',id:1052,lat:51.6300,lon:3.8000, tags:{name:'Speeltuin Zierikzee',leisure:'playground','addr:city':'Zierikzee'}},
+  // Additional notable playgrounds
+  { type:'node',id:1053,lat:52.3700,lon:4.8730, tags:{nameZh:'西公园游乐场',name:'Speeltuin Westerpark',leisure:'playground','addr:city':'Amsterdam','addr:street':'Westerpark',opening_hours:'Mo-Su 09:00-sunset'}},
+  { type:'node',id:1054,lat:52.3320,lon:4.8670, tags:{name:'Speeltuin Beatrixpark',leisure:'playground','addr:city':'Amsterdam','addr:street':'Beatrixpark'}},
+  { type:'node',id:1055,lat:51.9250,lon:4.4700, tags:{nameZh:'弗罗森公园游乐场',name:'Speeltuin Het Vroesenpark',leisure:'playground','addr:city':'Rotterdam','addr:street':'Vroesenpark',opening_hours:'Mo-Su 09:00-sunset'}},
+  { type:'node',id:1056,lat:52.0850,lon:4.3100, tags:{name:'Speeltuin De Verademing',leisure:'playground','addr:city':'Den Haag','addr:street':'Haagse Bos'}},
+  { type:'node',id:1057,lat:51.8420,lon:5.8600, tags:{nameZh:'奈梅亨冒险游乐场',name:'Avonturenspeeltuin Nijmegen',leisure:'playground','addr:city':'Nijmegen','addr:street':'Kronenburgerpark',opening_hours:'Mo-Su 10:00-18:00 (seasonal)'}},
+  { type:'node',id:1058,lat:52.5100,lon:6.0900, tags:{name:'Speeltuin Stadshagen Zwolle',leisure:'playground','addr:city':'Zwolle','addr:street':'Stadshagen'}},
+  { type:'node',id:1059,lat:52.1530,lon:4.4860, tags:{name:'Speeltuin Merenwijk Leiden',leisure:'playground','addr:city':'Leiden'}},
+  { type:'node',id:1060,lat:52.0200,lon:4.3530, tags:{nameZh:'水上游乐场韦斯特布鲁克公园',name:'Waterspeeltuin Westbroekpark',leisure:'playground','addr:city':'Den Haag','addr:street':'Westbroekpark'}},
+  { type:'node',id:1061,lat:52.3400,lon:4.9500, tags:{name:'Speeltuin Oosterpark Amsterdam',leisure:'playground','addr:city':'Amsterdam','addr:street':'Oosterpark'}},
+  { type:'node',id:1062,lat:52.2960,lon:4.6800, tags:{name:'Speeltuin Haarlem-Noord',leisure:'playground','addr:city':'Haarlem'}},
+
+  // ── Swimming Pools & Water Parks (Zwembaden) ──────────────────
+  // Subtropical swimming paradises
+  { type:'node',id:1100,lat:52.1469,lon:4.3714, tags:{nameZh:'蒂基巴德水上乐园',name:'Tikibad (Duinrell)',leisure:'swimming_pool',website:'https://www.duinrell.nl/tikibad','addr:city':'Wassenaar','addr:street':'Duinrell','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-21:00'}},
+  { type:'node',id:1101,lat:51.4300,lon:5.4700, tags:{nameZh:'东格尔雷普游泳天堂',name:'Zwemparadijs De Tongelreep',leisure:'swimming_pool',website:'https://www.detongelreep.nl','addr:city':'Eindhoven','addr:street':'Antoon Coolenlaan','addr:housenumber':'1',opening_hours:'Mo-Su 07:00-22:00'}},
+  { type:'node',id:1102,lat:52.9933,lon:6.5640, tags:{nameZh:'彩色织者水上乐园',name:'De Bonte Wever',leisure:'swimming_pool',website:'https://www.debontewever.nl','addr:city':'Assen','addr:street':'Mercuriusweg','addr:housenumber':'1',opening_hours:'Mo-Su 10:00-22:00'}},
+  { type:'node',id:1103,lat:51.3900,lon:6.0750, tags:{nameZh:'阿库阿纳水上乐园',name:'Aquana',leisure:'swimming_pool',website:'https://www.aquana.nl','addr:city':'Kessel','addr:street':'Aan de Berk','addr:housenumber':'2',opening_hours:'Mo-Su 10:00-22:00'}},
+  { type:'node',id:1104,lat:52.2600,lon:5.5800, tags:{nameZh:'普腾森林游泳池',name:'Bosbad Putten',leisure:'swimming_pool',website:'https://www.bosbadputten.nl','addr:city':'Putten','addr:street':'Poolseweg','addr:housenumber':'5',opening_hours:'Mo-Su 10:00-18:00 (seasonal)'}},
+  { type:'node',id:1105,lat:52.3590,lon:4.9450, tags:{nameZh:'南浴场',name:'Het Zuiderbad',leisure:'swimming_pool',website:'https://www.amsterdam.nl/zuiderbad','addr:city':'Amsterdam','addr:street':'Hobbemastraat','addr:housenumber':'26',opening_hours:'Mo-Su 07:00-22:00'}},
+  { type:'node',id:1106,lat:51.9200,lon:4.4350, tags:{nameZh:'鹿特丹热带游泳天堂',name:'Tropicana Rotterdam',leisure:'swimming_pool','addr:city':'Rotterdam','addr:street':'Maasboulevard','addr:housenumber':'100',opening_hours:'Mo-Su 10:00-22:00'}},
+  { type:'node',id:1107,lat:53.2100,lon:6.5600, tags:{nameZh:'格罗宁根卡丁格游泳馆',name:'Kardinge Zwemstadion',leisure:'swimming_pool',website:'https://www.sportcentrumkardinge.nl','addr:city':'Groningen','addr:street':'Kardingeweg','addr:housenumber':'75',opening_hours:'Mo-Su 07:00-22:00'}},
+  { type:'node',id:1108,lat:52.5150,lon:6.1050, tags:{nameZh:'兹沃勒水上乐园',name:'Zwemparadijs De Vrolijkheid',leisure:'swimming_pool','addr:city':'Zwolle','addr:street':'Ceintuurbaan','addr:housenumber':'10',opening_hours:'Mo-Su 10:00-21:00'}},
+  { type:'node',id:1109,lat:52.0900,lon:5.0900, tags:{nameZh:'乌特勒支游泳池',name:'Zwembad De Kwakel',leisure:'swimming_pool','addr:city':'Utrecht','addr:street':'Paranadreef','addr:housenumber':'10',opening_hours:'Mo-Su 07:00-22:00'}},
+  // Outdoor pools (openlucht zwembaden)
+  { type:'node',id:1110,lat:52.3000,lon:4.8700, tags:{nameZh:'弗莱沃公园露天泳池',name:'Flevoparkbad',leisure:'swimming_pool','addr:city':'Amsterdam','addr:street':'Insulindeweg','addr:housenumber':'1002',opening_hours:'Mo-Su 07:00-20:00 (May-Sep)'}},
+  { type:'node',id:1111,lat:52.2200,lon:6.8900, tags:{name:'Buurserbeek Openluchtbad',leisure:'swimming_pool','addr:city':'Enschede',opening_hours:'Mo-Su 10:00-18:00 (May-Sep)'}},
+  { type:'node',id:1112,lat:52.0750,lon:4.3300, tags:{name:'Openluchtbad Zuiderpark',leisure:'swimming_pool','addr:city':'Den Haag','addr:street':'Zuiderpark',opening_hours:'Mo-Su 10:00-18:00 (May-Sep)'}},
+  { type:'node',id:1113,lat:52.1550,lon:4.4900, tags:{name:'De Vliet Zwembad',leisure:'swimming_pool','addr:city':'Leiden',opening_hours:'Mo-Su 07:00-21:00'}},
+  { type:'node',id:1114,lat:51.5850,lon:5.0550, tags:{name:'Stappegoor Zwembad',leisure:'swimming_pool','addr:city':'Tilburg',opening_hours:'Mo-Su 07:00-22:00'}},
+  { type:'node',id:1115,lat:52.3500,lon:4.8200, tags:{nameZh:'米兰达游泳池',name:'De Mirandabad',leisure:'swimming_pool',website:'https://www.amsterdam.nl/mirandabad','addr:city':'Amsterdam','addr:street':'De Mirandalaan','addr:housenumber':'9',opening_hours:'Mo-Su 07:00-22:00'}},
+  { type:'node',id:1116,lat:51.8430,lon:5.8590, tags:{nameZh:'奈梅亨露天游泳池',name:'Openluchtbad Goffertpark',leisure:'swimming_pool','addr:city':'Nijmegen','addr:street':'Goffertpark',opening_hours:'Mo-Su 10:00-19:00 (May-Sep)'}},
+  // Family water parks & regional pools
+  { type:'node',id:1117,lat:51.5800,lon:4.4900, tags:{nameZh:'霍文森林泳池',name:'Bosbad Hoeven',leisure:'swimming_pool',website:'https://www.bosbadhoeven.nl','addr:city':'Hoeven','addr:street':'Sint Janstraat','addr:housenumber':'2',opening_hours:'Mo-Su 10:00-18:00 (seasonal)'}},
+  { type:'node',id:1118,lat:52.0350,lon:5.5600, tags:{name:'Zwembad De Koornmolen',leisure:'swimming_pool','addr:city':'Veenendaal',opening_hours:'Mo-Su 07:00-22:00'}},
+  { type:'node',id:1119,lat:52.6800,lon:5.0600, tags:{name:'Zwembad De Waterhoorn',leisure:'swimming_pool','addr:city':'Hoorn',opening_hours:'Mo-Su 07:00-22:00'}},
+  { type:'node',id:1120,lat:53.1300,lon:5.8500, tags:{name:'Zwembad De Blauwe Golf',leisure:'swimming_pool','addr:city':'Heerenveen',opening_hours:'Mo-Su 07:00-22:00'}},
+  { type:'node',id:1121,lat:51.6900,lon:5.3100, tags:{name:'Zwembad De Stokvis',leisure:'swimming_pool','addr:city':"'s-Hertogenbosch",opening_hours:'Mo-Su 07:00-22:00'}},
+  { type:'node',id:1122,lat:50.8500,lon:5.7000, tags:{nameZh:'格塞尔特游泳池',name:'Geusseltbad',leisure:'swimming_pool','addr:city':'Maastricht','addr:street':'Geusseltweg','addr:housenumber':'4',opening_hours:'Mo-Su 07:00-22:00'}},
+  { type:'node',id:1123,lat:52.2150,lon:5.9700, tags:{name:'Zwembad De Molen',leisure:'swimming_pool','addr:city':'Apeldoorn',opening_hours:'Mo-Su 07:00-22:00'}},
+  { type:'node',id:1124,lat:51.4500,lon:3.5800, tags:{name:'Zwembad De Grote Ster',leisure:'swimming_pool','addr:city':'Vlissingen',opening_hours:'Mo-Su 07:00-22:00'}},
+  { type:'node',id:1125,lat:53.2400,lon:6.5400, tags:{name:'De Papiermolen Zwembad',leisure:'swimming_pool','addr:city':'Groningen','addr:street':'Papiermolenlaan',opening_hours:'Mo-Su 07:00-22:00'}},
+  { type:'node',id:1126,lat:52.2700,lon:6.7900, tags:{name:'Twentebad',leisure:'swimming_pool','addr:city':'Hengelo',opening_hours:'Mo-Su 07:00-22:00'}},
+  { type:'node',id:1127,lat:51.3700,lon:6.1700, tags:{name:'De Wisselslag Venlo',leisure:'swimming_pool','addr:city':'Venlo',opening_hours:'Mo-Su 07:00-22:00'}},
+  { type:'node',id:1128,lat:52.7600,lon:6.9000, tags:{name:'Aquarena Emmen',leisure:'swimming_pool',website:'https://www.aquarena-emmen.nl','addr:city':'Emmen',opening_hours:'Mo-Su 07:00-22:00'}},
+  { type:'node',id:1129,lat:52.3900,lon:4.6400, tags:{name:'Zwembad De Houtvaart',leisure:'swimming_pool','addr:city':'Haarlem',opening_hours:'Mo-Su 07:00-22:00'}},
+  { type:'node',id:1130,lat:52.4400,lon:5.4800, tags:{nameZh:'弗莱福兰水上乐园',name:'Aqua Mundo Almere',leisure:'swimming_pool','addr:city':'Almere',opening_hours:'Mo-Su 10:00-21:00'}},
+  { type:'node',id:1131,lat:51.5600,lon:5.0900, tags:{name:'Reeshof Zwembad',leisure:'swimming_pool','addr:city':'Tilburg',opening_hours:'Mo-Su 07:00-22:00'}},
 ];
 
 function loadStaticVenues() {
@@ -2993,10 +3357,300 @@ function activateNearMe() {
   );
 }
 
+// ── MOBILE BOTTOM SHEET ─────────────────────────
+(function initBottomSheet() {
+  const sidebar = document.getElementById('sidebarSheet');
+  const handle = document.getElementById('bottomSheetHandle');
+  if (!handle) return;
+
+  // Snap positions as % from bottom: collapsed shows ~2 cards, half=50%, full=90%
+  const SNAP_COLLAPSED = 25; // 25vh from bottom
+  const SNAP_HALF = 50;
+  const SNAP_FULL = 90;
+  let sheetPos = SNAP_COLLAPSED;
+  let startY = 0, startPos = 0, dragging = false;
+
+  function isMobile() { return window.innerWidth <= 768; }
+
+  function setSheetPosition(pct) {
+    if (!isMobile()) { sidebar.style.transform = ''; sidebar.style.height = ''; return; }
+    sheetPos = pct;
+    const h = Math.min(pct, 90);
+    sidebar.style.height = h + 'dvh';
+    sidebar.style.transform = 'translateY(0)';
+  }
+
+  handle.addEventListener('touchstart', (e) => {
+    if (!isMobile()) return;
+    dragging = true;
+    startY = e.touches[0].clientY;
+    startPos = sheetPos;
+    sidebar.style.transition = 'none';
+  }, { passive: true });
+
+  handle.addEventListener('touchmove', (e) => {
+    if (!dragging || !isMobile()) return;
+    const dy = startY - e.touches[0].clientY;
+    const dvh = (dy / window.innerHeight) * 100;
+    const newPos = Math.max(10, Math.min(90, startPos + dvh));
+    sidebar.style.height = newPos + 'dvh';
+  }, { passive: true });
+
+  handle.addEventListener('touchend', (e) => {
+    if (!dragging || !isMobile()) return;
+    dragging = false;
+    sidebar.style.transition = 'height 0.3s cubic-bezier(.4,0,.2,1)';
+    const currentH = parseFloat(sidebar.style.height) || SNAP_COLLAPSED;
+    // Snap to closest
+    const snaps = [SNAP_COLLAPSED, SNAP_HALF, SNAP_FULL];
+    let closest = snaps[0];
+    let minDist = Math.abs(currentH - snaps[0]);
+    for (const s of snaps) {
+      const d = Math.abs(currentH - s);
+      if (d < minDist) { minDist = d; closest = s; }
+    }
+    setSheetPosition(closest);
+  });
+
+  // Initialize on mobile
+  function initMobileSheet() {
+    if (isMobile()) {
+      sidebar.style.transition = 'height 0.3s cubic-bezier(.4,0,.2,1)';
+      setSheetPosition(SNAP_COLLAPSED);
+    } else {
+      sidebar.style.transform = '';
+      sidebar.style.height = '';
+      sidebar.style.transition = '';
+    }
+  }
+  window.addEventListener('resize', initMobileSheet);
+  initMobileSheet();
+})();
+
+// ── VENUE DETAIL PANEL ──────────────────────────
+function openDetailPanel(venueId) {
+  const v = state.allVenues.find(x => x.id === venueId);
+  if (!v) return;
+  const panel = document.getElementById('venueDetailPanel');
+  const body = document.getElementById('detailPanelBody');
+  const titleEl = document.getElementById('detailPanelTitle');
+  const isZh = LANG.current === 'zh';
+  titleEl.textContent = isZh ? '场地详情' : 'Venue Details';
+  const isFav = state.favorites.includes(v.id);
+
+  let html = '';
+  html += `<div class="detail-venue-icon" style="background:${v.category.bg}">${v.category.emoji}</div>`;
+  html += `<div class="detail-venue-name">${escapeHtml(v.name)}</div>`;
+  if (v.nameZh) html += `<div class="detail-venue-name-zh">${escapeHtml(v.nameZh)}</div>`;
+  html += `<span class="detail-category-badge" style="background:${v.category.bg};color:${v.category.color}">
+    ${v.category.emoji} ${isZh ? v.category.zh : v.category.en}
+  </span>`;
+
+  // Info rows
+  if (v.address) {
+    html += `<div class="detail-info-row"><span class="detail-icon">📍</span><span>${escapeHtml(v.address)}</span></div>`;
+  }
+  if (v.openingHours) {
+    html += `<div class="detail-info-row"><span class="detail-icon">🕒</span><span>${escapeHtml(translateHours(v.openingHours))}</span></div>`;
+  }
+  if (v.phone) {
+    html += `<div class="detail-info-row"><span class="detail-icon">📞</span><a href="tel:${v.phone}">${escapeHtml(v.phone)}</a></div>`;
+  }
+
+  // Action buttons
+  html += '<div class="detail-actions">';
+  if (v.website) {
+    html += `<a class="detail-btn detail-btn-website" href="${v.website}" target="_blank" rel="noopener">
+      🔗 ${isZh ? '访问官方网站' : 'Visit Website'}
+    </a>`;
+  }
+  html += `<a class="detail-btn detail-btn-navigate" href="https://www.google.com/maps/dir/?api=1&destination=${v.lat},${v.lon}" target="_blank" rel="noopener">
+    🧭 ${isZh ? '导航前往' : 'Navigate'}
+  </a>`;
+  html += `<button class="detail-btn detail-btn-favorite ${isFav ? 'favorited' : ''}" id="detailFavBtn" onclick="toggleDetailFavorite('${v.id.replace(/'/g,"\\'")}')">
+    ${isFav ? '❤️' : '♡'} ${isFav ? (isZh ? '已收藏' : 'Favorited') : (isZh ? '收藏' : 'Add to Favorites')}
+  </button>`;
+  html += '</div>';
+
+  body.innerHTML = html;
+  panel.classList.add('open');
+}
+
+function closeDetailPanel() {
+  document.getElementById('venueDetailPanel').classList.remove('open');
+}
+
+function toggleDetailFavorite(venueId) {
+  toggleFavorite(venueId, null);
+  const btn = document.getElementById('detailFavBtn');
+  const isZh = LANG.current === 'zh';
+  const isFav = state.favorites.includes(venueId);
+  if (btn) {
+    btn.className = 'detail-btn detail-btn-favorite' + (isFav ? ' favorited' : '');
+    btn.innerHTML = `${isFav ? '❤️' : '♡'} ${isFav ? (isZh ? '已收藏' : 'Favorited') : (isZh ? '收藏' : 'Add to Favorites')}`;
+  }
+  // Also update the card fav button if visible
+  renderList();
+}
+
+// Patch selectVenue to also open detail panel
+const _origSelectVenue = selectVenue;
+window.selectVenue = function(id) {
+  _origSelectVenue(id);
+  openDetailPanel(id);
+};
+
+// Close detail panel on Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeDetailPanel();
+});
+
+// ── AGE SUITABILITY FILTER ──────────────────────
+const AGE_FILTER_RANGES = [
+  { id: 'all', en: 'All ages', zh: '所有年龄', emoji: '', categories: null },
+  { id: '0-3', en: '0-3', zh: '0-3', emoji: '👶', categories: ['children_farm','playground','indoor_playground','beach','chinese_restaurant','buffet'] },
+  { id: '3-6', en: '3-6', zh: '3-6', emoji: '🧒', categories: ['children_farm','playground','indoor_playground','beach','chinese_restaurant','buffet','zoo','aquarium','theme_park','nature','museum'] },
+  { id: '6-12', en: '6-12', zh: '6-12', emoji: '🧒', categories: null }, // null = everything
+];
+
+let activeAgeFilter = 'all';
+
+function setAgeFilter(ageId) {
+  activeAgeFilter = ageId;
+  // If an age filter narrows categories, reset category chip to "All"
+  if (ageId !== 'all') {
+    state.activeCategory = null;
+    state.showFavoritesOnly = false;
+  }
+  state.displayed = 0;
+  applyFilter();
+  buildFilterBar();
+  buildAgeFilterPills();
+}
+
+// Age filtering is integrated into the main applyFilter function
+
+function buildAgeFilterPills() {
+  // Remove existing age pills
+  const existing = document.getElementById('ageFilterGroup');
+  if (existing) existing.remove();
+
+  const bar = document.getElementById('filterBar');
+  const group = document.createElement('div');
+  group.className = 'age-filter-group';
+  group.id = 'ageFilterGroup';
+
+  AGE_FILTER_RANGES.forEach(age => {
+    const pill = document.createElement('button');
+    pill.className = 'age-pill' + (activeAgeFilter === age.id ? ' active' : '');
+    const label = LANG.current === 'zh' ? age.zh : age.en;
+    pill.innerHTML = age.emoji ? `${age.emoji} ${label}` : label;
+    pill.onclick = () => setAgeFilter(age.id);
+    group.appendChild(pill);
+  });
+
+  bar.appendChild(group);
+}
+
+// ── WEATHER-LINKED RECOMMENDATIONS ──────────────
+const INDOOR_CATEGORIES = ['indoor_playground','museum','aquarium','theatre','buffet','chinese_restaurant','sports'];
+let weatherBannerDismissed = false;
+
+async function fetchWeather() {
+  try {
+    const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=52.37&longitude=4.90&current=temperature_2m,rain,weather_code');
+    const data = await res.json();
+    if (!data.current) return;
+
+    const temp = Math.round(data.current.temperature_2m);
+    const rain = data.current.rain || 0;
+    const code = data.current.weather_code || 0;
+
+    // Weather code emoji
+    let emoji = '☀️';
+    if (code >= 61) emoji = '🌧️';
+    else if (code >= 51) emoji = '🌦️';
+    else if (code >= 45) emoji = '🌫️';
+    else if (code >= 3) emoji = '⛅';
+
+    // Show badge
+    const badge = document.getElementById('weatherBadge');
+    badge.innerHTML = `${emoji} ${temp}°C`;
+    badge.style.display = 'flex';
+
+    // Show rain banner if raining
+    const isRaining = rain > 0 || code >= 61;
+    if (isRaining && !weatherBannerDismissed) {
+      const banner = document.getElementById('weatherBanner');
+      const isZh = LANG.current === 'zh';
+      document.getElementById('weatherBannerText').textContent =
+        isZh ? '🌧️ 下雨天？试试室内活动！' : '🌧️ Rainy? Try indoor activities!';
+      document.getElementById('weatherBannerBtn').textContent =
+        isZh ? '查看室内场地' : 'Show indoor venues';
+      banner.style.display = 'flex';
+    }
+  } catch (e) {
+    // Weather fetch failed silently — not critical
+    console.log('Weather fetch failed:', e.message);
+  }
+}
+
+function filterIndoorWeather() {
+  // Reset age filter
+  activeAgeFilter = 'all';
+  state.showFavoritesOnly = false;
+  // Set category to null, but filter manually for indoor
+  state.activeCategory = null;
+  state.displayed = 0;
+  // Use a temporary override to show indoor only
+  let list = state.allVenues.filter(v => INDOOR_CATEGORIES.includes(v.category.id));
+  if (state.userLocation) {
+    list.forEach(v => {
+      v._userDist = haversine(state.userLocation[0], state.userLocation[1], v.lat, v.lon);
+    });
+    list.sort((a, b) => a._userDist - b._userDist);
+  }
+  state.filtered = list;
+  renderList();
+  renderMarkers();
+  buildFilterBar();
+  buildAgeFilterPills();
+  showToast(LANG.current === 'zh' ? '已筛选室内活动场地' : 'Showing indoor venues', 2000);
+  // Dismiss banner
+  dismissWeatherBanner();
+}
+
+function dismissWeatherBanner() {
+  weatherBannerDismissed = true;
+  document.getElementById('weatherBanner').style.display = 'none';
+}
+
+// ── TRANSLATION ADDITIONS ───────────────────────
+T.en.detailTitle = 'Venue Details';
+T.en.visitWebsite = 'Visit Website';
+T.en.navigateTo = 'Navigate';
+T.en.addFavorite = 'Add to Favorites';
+T.en.removeFavorite = 'Favorited';
+T.en.ageFilterLabel = 'Age:';
+T.en.weatherIndoorBanner = 'Rainy? Try indoor activities!';
+T.en.showIndoor = 'Show indoor venues';
+T.en.showingIndoor = 'Showing indoor venues';
+T.zh.detailTitle = '场地详情';
+T.zh.visitWebsite = '访问官方网站';
+T.zh.navigateTo = '导航前往';
+T.zh.addFavorite = '收藏';
+T.zh.removeFavorite = '已收藏';
+T.zh.ageFilterLabel = '年龄：';
+T.zh.weatherIndoorBanner = '下雨天？试试室内活动！';
+T.zh.showIndoor = '查看室内场地';
+T.zh.showingIndoor = '已筛选室内活动场地';
+
 // ── INIT ─────────────────────────────────────────
 buildFilterBar();
+buildAgeFilterPills();
 setLang('en');
 loadStaticVenues();
+fetchWeather();
 </script>
 </body>
 </html>
