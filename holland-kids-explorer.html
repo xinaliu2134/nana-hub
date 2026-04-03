@@ -1114,8 +1114,8 @@
   <a class="logo" href="#" onclick="event.preventDefault(); resetHome();">
     <div class="logo-icon">🧒</div>
     <div class="logo-text">
-      <span class="logo-text-en">Holland Kids Explorer</span>
-      <span class="logo-text-zh">荷兰亲子探索</span>
+      <span class="logo-text-en" id="logoTextMain">Holland Kids Explorer</span>
+      <span class="logo-text-zh" id="logoTextSub">荷兰亲子探索</span>
     </div>
   </a>
 
@@ -1125,7 +1125,7 @@
     <button class="clear-btn" id="clearBtn" onclick="clearSearch()">✕</button>
     <div class="autocomplete" id="autocomplete"></div>
   </div>
-  <button class="nearme-btn" id="nearmeBtn" onclick="activateNearMe()" title="Near Me 我附近">📍</button>
+  <button class="nearme-btn" id="nearmeBtn" onclick="activateNearMe()" title="Near Me">📍</button>
 
   <div class="weather-badge" id="weatherBadge" style="display:none;"></div>
 
@@ -1133,7 +1133,8 @@
 
   <div class="lang-toggle">
     <button class="lang-btn active" data-lang="en" onclick="setLang('en')">EN</button>
-    <button class="lang-btn" data-lang="zh" onclick="setLang('zh')">中</button>
+    <button class="lang-btn" data-lang="zh" onclick="setLang('zh')">中文</button>
+    <button class="lang-btn" data-lang="nl" onclick="setLang('nl')">NL</button>
   </div>
 </header>
 
@@ -1241,6 +1242,16 @@
 
 const LANG = { current: 'en' };
 
+// Helper: get category label in current language
+function catLabel(cat) { return cat[LANG.current] || cat.en; }
+
+// Helper: pick translation from {en, zh, nl} object
+function tl(en, zh, nl) {
+  if (LANG.current === 'zh') return zh;
+  if (LANG.current === 'nl') return nl;
+  return en;
+}
+
 const T = {
   en: {
     filterLabel: 'Category:',
@@ -1289,57 +1300,81 @@ const T = {
     nearMeSearching: '正在获取位置...',
     nearMePermDenied: '位置访问被拒绝，请在浏览器设置中允许以使用"我附近"功能。',
     nearMeError: '无法获取位置，请重试。',
+  },
+  nl: {
+    filterLabel: 'Categorie:',
+    allLabel: 'Alle',
+    searching: 'Zoeken… (kan 10–40s duren)',
+    loadingVenues: 'Locaties laden…',
+    loadingHint: 'OpenStreetMap bevragen, meestal 10–40s',
+    found: (n, region) => `<strong>${n}</strong> locaties in <strong>${region}</strong>`,
+    notFound: 'Geen locaties gevonden. Probeer een andere regio.',
+    emptyTitle: 'Ontdek Nederland',
+    emptyDesc: 'Zoek een provincie of stad hierboven om musea, speeltuinen, dierentuinen, pretparken en meer voor kinderen te vinden.',
+    noWebsite: 'Geen website',
+    website: '🔗 Officiële website',
+    navigate: '🧭 Navigeren',
+    flyTo: '📍 Toon op kaart',
+    loadMore: 'Meer laden',
+    regionNotFound: 'Regio niet gevonden. Probeer een Nederlandse stad of provincie.',
+    searchPlaceholder: 'Zoek locatie of regio... bijv. Efteling, Amsterdam',
+    resultLabel: 'Zoek een regio om kinderlocaties te ontdekken',
+    favoritesLabel: 'Favorieten',
+    nearMe: 'In de buurt',
+    nearMeSearching: 'Locatie ophalen...',
+    nearMePermDenied: 'Locatietoegang geweigerd. Schakel het in via de browserinstellingen.',
+    nearMeError: 'Locatie kon niet worden bepaald. Probeer het opnieuw.',
   }
 };
 
 const CATEGORIES = [
   { id: 'museum',     emoji: '🏛️', color: '#4ECDC4', bg: '#E8FAF8',
-    en: 'Museum',       zh: '博物馆',
+    en: 'Museum',       zh: '博物馆',       nl: 'Museum',
     tags: { tourism: ['museum', 'gallery'] } },
   { id: 'aquarium',   emoji: '🐠', color: '#0077B6', bg: '#E0F4FF',
-    en: 'Aquarium',     zh: '水族馆',
+    en: 'Aquarium',     zh: '水族馆',       nl: 'Aquarium',
     tags: { tourism: ['aquarium'] } },
   { id: 'zoo',        emoji: '🦁', color: '#82B74B', bg: '#EEF7E6',
-    en: 'Zoo',           zh: '动物园',
+    en: 'Zoo',           zh: '动物园',      nl: 'Dierentuin',
     tags: { tourism: ['zoo'] } },
   { id: 'children_farm', emoji: '🐑', color: '#A0C878', bg: '#F0F7E6',
-    en: "Children's Farm", zh: '儿童农场',
+    en: "Children's Farm", zh: '儿童农场',  nl: 'Kinderboerderij',
     tags: { tourism: ['children_farm'] } },
   { id: 'theme_park', emoji: '🎡', color: '#E05A1E', bg: '#FFF0E9',
-    en: 'Theme Park',   zh: '主题公园',
+    en: 'Theme Park',   zh: '主题公园',     nl: 'Pretpark',
     tags: { tourism: ['theme_park'], leisure: ['water_park', 'amusement_arcade'] } },
   { id: 'indoor_playground', emoji: '🏠', color: '#FF6B35', bg: '#FFF0E9',
-    en: 'Indoor Playground', zh: '室内游乐场',
+    en: 'Indoor Playground', zh: '室内游乐场', nl: 'Binnenspeeltuin',
     tags: { leisure: ['indoor_playground'] } },
   { id: 'playground', emoji: '🛝', color: '#F7DC6F', bg: '#FEFCE8',
-    en: 'Playground',   zh: '游乐场',
+    en: 'Playground',   zh: '游乐场',       nl: 'Speeltuin',
     tags: { leisure: ['playground'] } },
   { id: 'beach',      emoji: '🏖️', color: '#0EA5A0', bg: '#E0F7F6',
-    en: 'Beach',        zh: '海滩',
+    en: 'Beach',        zh: '海滩',         nl: 'Strand',
     tags: { natural: ['beach'] } },
   { id: 'nature',     emoji: '🌳', color: '#27AE60', bg: '#E8F8EE',
-    en: 'Nature & Park', zh: '自然公园',
+    en: 'Nature & Park', zh: '自然公园',    nl: 'Natuur & Park',
     tags: { leisure: ['nature_reserve', 'park', 'miniature_golf', 'marina'] } },
   { id: 'historic',   emoji: '🏰', color: '#8B6914', bg: '#F5EDD5',
-    en: 'Historic',     zh: '历史古迹',
+    en: 'Historic',     zh: '历史古迹',     nl: 'Historisch',
     tags: { historic: ['castle', 'monument', 'fort', 'ruins', 'windmill', 'ship'] } },
   { id: 'sports',     emoji: '⛸️', color: '#6C5CE7', bg: '#F0EEFF',
-    en: 'Sports',       zh: '运动场',
+    en: 'Sports',       zh: '运动场',       nl: 'Sport',
     tags: { leisure: ['ice_rink', 'swimming_pool', 'sports_centre'] } },
   { id: 'theatre',    emoji: '🎭', color: '#E84393', bg: '#FEE9F4',
-    en: 'Theatre & Cinema', zh: '剧院影院',
+    en: 'Theatre & Cinema', zh: '剧院影院', nl: 'Theater & Bioscoop',
     tags: { amenity: ['theatre', 'cinema', 'arts_centre'] } },
   { id: 'visitor',    emoji: '🔭', color: '#0369A1', bg: '#E0F2FE',
-    en: 'Visitor Centre', zh: '游客中心',
+    en: 'Visitor Centre', zh: '游客中心',   nl: 'Bezoekerscentrum',
     tags: { tourism: ['visitor_centre'] } },
   { id: 'attraction', emoji: '⭐', color: '#F39C12', bg: '#FEF5E7',
-    en: 'Attraction',   zh: '景点',
+    en: 'Attraction',   zh: '景点',         nl: 'Attractie',
     tags: { tourism: ['attraction'] } },
   { id: 'chinese_restaurant', emoji: '🥡', color: '#E74C3C', bg: '#FADBD8',
-    en: 'Chinese Restaurant', zh: '中餐厅',
+    en: 'Chinese Restaurant', zh: '中餐厅', nl: 'Chinees Restaurant',
     tags: { amenity: ['chinese_restaurant'] } },
   { id: 'buffet', emoji: '🍱', color: '#8E44AD', bg: '#F4ECF7',
-    en: 'Buffet / All-You-Can-Eat', zh: '自助餐',
+    en: 'Buffet / All-You-Can-Eat', zh: '自助餐', nl: 'Buffet',
     tags: { amenity: ['buffet_restaurant'] } },
 ];
 
@@ -1390,19 +1425,36 @@ const DUTCH_REGIONS = [
 
 // ── OPENING HOURS TRANSLATION ─────────────────────
 function translateHours(str) {
-  if (!str || LANG.current !== 'zh') return str;
-  return str
-    .replace(/\bMo\b/g,'周一').replace(/\bTu\b/g,'周二').replace(/\bWe\b/g,'周三')
-    .replace(/\bTh\b/g,'周四').replace(/\bFr\b/g,'周五').replace(/\bSa\b/g,'周六').replace(/\bSu\b/g,'周日')
-    .replace(/\bMar\b/g,'3月').replace(/\bApr\b/g,'4月').replace(/\bMay\b/g,'5月')
-    .replace(/\bJun\b/g,'6月').replace(/\bJul\b/g,'7月').replace(/\bAug\b/g,'8月')
-    .replace(/\bSep\b/g,'9月').replace(/\bOct\b/g,'10月').replace(/\bNov\b/g,'11月')
-    .replace(/\bDec\b/g,'12月').replace(/\bJan\b/g,'1月').replace(/\bFeb\b/g,'2月')
-    .replace(/\(seasonal\)/g,'(季节性开放)')
-    .replace(/\(last entry/g,'(最后入场')
-    .replace(/closed/gi,'休息')
-    .replace(/except holidays/gi,'节假日除外')
-    .replace(/daily/gi,'每天');
+  if (!str || LANG.current === 'en') return str;
+  if (LANG.current === 'zh') {
+    return str
+      .replace(/\bMo\b/g,'周一').replace(/\bTu\b/g,'周二').replace(/\bWe\b/g,'周三')
+      .replace(/\bTh\b/g,'周四').replace(/\bFr\b/g,'周五').replace(/\bSa\b/g,'周六').replace(/\bSu\b/g,'周日')
+      .replace(/\bMar\b/g,'3月').replace(/\bApr\b/g,'4月').replace(/\bMay\b/g,'5月')
+      .replace(/\bJun\b/g,'6月').replace(/\bJul\b/g,'7月').replace(/\bAug\b/g,'8月')
+      .replace(/\bSep\b/g,'9月').replace(/\bOct\b/g,'10月').replace(/\bNov\b/g,'11月')
+      .replace(/\bDec\b/g,'12月').replace(/\bJan\b/g,'1月').replace(/\bFeb\b/g,'2月')
+      .replace(/\(seasonal\)/g,'(季节性开放)')
+      .replace(/\(last entry/g,'(最后入场')
+      .replace(/closed/gi,'休息')
+      .replace(/except holidays/gi,'节假日除外')
+      .replace(/daily/gi,'每天');
+  }
+  if (LANG.current === 'nl') {
+    return str
+      .replace(/\bMo\b/g,'ma').replace(/\bTu\b/g,'di').replace(/\bWe\b/g,'wo')
+      .replace(/\bTh\b/g,'do').replace(/\bFr\b/g,'vr').replace(/\bSa\b/g,'za').replace(/\bSu\b/g,'zo')
+      .replace(/\bMar\b/g,'mrt').replace(/\bApr\b/g,'apr').replace(/\bMay\b/g,'mei')
+      .replace(/\bJun\b/g,'jun').replace(/\bJul\b/g,'jul').replace(/\bAug\b/g,'aug')
+      .replace(/\bSep\b/g,'sep').replace(/\bOct\b/g,'okt').replace(/\bNov\b/g,'nov')
+      .replace(/\bDec\b/g,'dec').replace(/\bJan\b/g,'jan').replace(/\bFeb\b/g,'feb')
+      .replace(/\(seasonal\)/g,'(seizoensgebonden)')
+      .replace(/\(last entry/g,'(laatste toegang')
+      .replace(/closed/gi,'gesloten')
+      .replace(/except holidays/gi,'behalve feestdagen')
+      .replace(/daily/gi,'dagelijks');
+  }
+  return str;
 }
 
 // ── CATEGORY TRANSLATION UTILS ────────────────────
@@ -1509,7 +1561,7 @@ function buildFilterBar() {
       chip.style.borderColor = cat.color;
     }
     const countBadge = totalCount > 0 ? ` <span class="filter-chip-count">${count}</span>` : '';
-    chip.innerHTML = `${cat.emoji} ${LANG.current === 'zh' ? cat.zh : cat.en}${countBadge}`;
+    chip.innerHTML = `${cat.emoji} ${catLabel(cat)}${countBadge}`;
     chip.onclick = () => setFilter(cat.id);
     bar.appendChild(chip);
   });
@@ -1526,14 +1578,14 @@ function setFilter(catId) {
     // No region loaded yet — highlight search bar and show a hint in empty state
     buildFilterBar();
     const cat = catId ? CATEGORIES.find(c => c.id === catId) : null;
-    const catName = cat ? (LANG.current === 'zh' ? cat.zh : cat.en) : '';
+    const catName = cat ? (catLabel(cat)) : '';
     if (catId && cat) {
       document.getElementById('emptyTitle').textContent =
-        LANG.current === 'zh' ? `搜索地区，查看全部${catName}` : `Search a region to browse ${catName}`;
+        tl(`Search a region to browse ${catName}`, `搜索地区，查看全部${catName}`, `Zoek een regio om ${catName} te bekijken`);
       document.getElementById('emptyDesc').textContent =
-        LANG.current === 'zh'
-          ? '在上方搜索框输入城市或省份，立即筛选该种类'
-          : 'Type a city or province above — results will be filtered to this category.';
+        tl('Type a city or province above — results will be filtered to this category.',
+           '在上方搜索框输入城市或省份，立即筛选该种类',
+           'Typ een stad of provincie hierboven — resultaten worden gefilterd op deze categorie.');
     } else {
       updateEmptyStateText();
     }
@@ -1592,7 +1644,7 @@ searchInput.addEventListener('input', () => {
       lat: v.lat,
       lon: v.lon,
       emoji: getCategoryForVenue(v.tags).emoji,
-      catLabel: LANG.current === 'zh' ? getCategoryForVenue(v.tags).zh : getCategoryForVenue(v.tags).en,
+      catLabel: catLabel(getCategoryForVenue(v.tags)),
       city: v.tags['addr:city'] || '',
       id: `${v.type}/${v.id}`,
     }));
@@ -1604,7 +1656,7 @@ searchInput.addEventListener('input', () => {
       lat: v.lat,
       lon: v.lon,
       emoji: v.category.emoji,
-      catLabel: LANG.current === 'zh' ? v.category.zh : v.category.en,
+      catLabel: catLabel(v.category),
       city: v.address ? v.address.split(',').pop().trim() : '',
       id: v.id,
     }));
@@ -1648,13 +1700,13 @@ function renderAutocomplete(regionMatches, q, venueMatches) {
   if ('near me'.includes(q) || '我附近'.includes(q) || 'nearme'.includes(q.replace(/\s/g,''))) {
     html += `<div class="autocomplete-item" onclick="activateNearMe()">
       <span class="venue-emoji">📍</span>
-      <span>Near Me ${LANG.current === 'zh' ? '我附近' : ''}</span>
-      <span class="region-type">${LANG.current === 'zh' ? '定位' : 'Location'}</span>
+      <span>${tl('Near Me', 'Near Me 我附近', 'In de buurt')}</span>
+      <span class="region-type">${tl('Location', '定位', 'Locatie')}</span>
     </div>`;
   }
   // Venue results
   if (venueMatches.length > 0) {
-    html += `<div class="autocomplete-section-label">${LANG.current === 'zh' ? '场地' : 'Venues'}</div>`;
+    html += `<div class="autocomplete-section-label">${tl('Venues', '场地', 'Locaties')}</div>`;
     html += venueMatches.map(v => {
       const safeName = escapeHtml(v.name);
       const highlighted = safeName.replace(
@@ -1670,7 +1722,7 @@ function renderAutocomplete(regionMatches, q, venueMatches) {
   }
   // Region results
   if (regionMatches.length > 0) {
-    html += `<div class="autocomplete-section-label">${LANG.current === 'zh' ? '地区' : 'Regions'}</div>`;
+    html += `<div class="autocomplete-section-label">${tl('Regions', '地区', 'Regio\'s')}</div>`;
     html += regionMatches.map(r => {
       const safeName = escapeHtml(r.name);
       const highlighted = safeName.replace(
@@ -1680,7 +1732,7 @@ function renderAutocomplete(regionMatches, q, venueMatches) {
       const escapedName = r.name.replace(/'/g, "\\'").replace(/[<>"]/g, '');
       return `<div class="autocomplete-item" onclick="searchRegion('${escapedName}')">
         <span>${highlighted}</span>
-        <span class="region-type">${r.type === 'province' ? 'Province 省' : 'City 城市'}</span>
+        <span class="region-type">${r.type === 'province' ? tl('Province', '省', 'Provincie') : tl('City', '城市', 'Stad')}</span>
       </div>`;
     }).join('');
   }
@@ -1850,9 +1902,10 @@ function buildCategoryQuery(catId, bbox) {
 // Search entire Netherlands — catId=null means all categories
 async function searchNL(catId) {
   const cat = catId ? CATEGORIES.find(c => c.id === catId) : null;
+  const nlAll = tl('All Netherlands', '荷兰全境', 'Heel Nederland');
   const regionLabel = cat
-    ? (LANG.current === 'zh' ? `${cat.zh} · 荷兰全境` : `${cat.en} · All Netherlands`)
-    : (LANG.current === 'zh' ? '荷兰全境' : 'All Netherlands');
+    ? `${catLabel(cat)} · ${nlAll}`
+    : nlAll;
 
   state.currentRegion = regionLabel;
   state.activeCategory = catId;
@@ -1981,11 +2034,12 @@ function renderList() {
     if (state.activeCategory) {
       const cat = CATEGORIES.find(c => c.id === state.activeCategory);
       document.getElementById('emptyTitle').textContent =
-        LANG.current === 'zh' ? '请先搜索地区' : 'Search a region first';
+        tl('Search a region first', '请先搜索地区', 'Zoek eerst een regio');
+      const catHint = cat ? catLabel(cat) : '';
       document.getElementById('emptyDesc').textContent =
-        LANG.current === 'zh'
-          ? `在上方搜索框输入城市或省份，再按「${cat?.zh || ''}」筛选`
-          : `Type a city or province in the search bar above, then filter by "${cat?.en || ''}"`;
+        tl(`Type a city or province in the search bar above, then filter by "${catHint}"`,
+           `在上方搜索框输入城市或省份，再按「${catHint}」筛选`,
+           `Typ een stad of provincie in de zoekbalk hierboven en filter op "${catHint}"`);
     }
     return;
   }
@@ -1994,11 +2048,15 @@ function renderList() {
     empty.style.display = 'flex';
     list.style.display = 'none';
     const cat = CATEGORIES.find(c => c.id === state.activeCategory);
-    const catName = cat ? (LANG.current === 'zh' ? cat.zh : cat.en) : '';
+    const catName = cat ? (catLabel(cat)) : '';
     document.getElementById('emptyTitle').textContent =
-      LANG.current === 'zh' ? `${state.currentRegion} 暂无${catName}` : `No ${catName} in ${state.currentRegion}`;
+      tl(`No ${catName} in ${state.currentRegion}`,
+         `${state.currentRegion} 暂无${catName}`,
+         `Geen ${catName} in ${state.currentRegion}`);
     document.getElementById('emptyDesc').textContent =
-      LANG.current === 'zh' ? '试试其他分类，或搜索其他地区。' : 'Try a different category or search another region.';
+      tl('Try a different category or search another region.',
+         '试试其他分类，或搜索其他地区。',
+         'Probeer een andere categorie of zoek in een andere regio.');
     return;
   }
   empty.style.display = 'none';
@@ -2016,7 +2074,7 @@ function renderList() {
     const isFav = state.favorites.includes(v.id);
     const distHtml = v._userDist != null ? `<span class="venue-distance">📍 ${v._userDist.toFixed(1)} km</span>` : '';
     card.innerHTML = `
-      <button class="venue-fav-btn ${isFav ? 'favorited' : ''}" onclick="event.stopPropagation(); toggleFavorite('${v.id.replace(/'/g,"\\'")}', this)" title="${isFav ? 'Remove favorite' : 'Add favorite'}">${isFav ? '❤️' : '♡'}</button>
+      <button class="venue-fav-btn ${isFav ? 'favorited' : ''}" onclick="event.stopPropagation(); toggleFavorite('${v.id.replace(/'/g,"\\'")}', this)" title="${isFav ? T[LANG.current].removeFavorite : T[LANG.current].addFavorite}">${isFav ? '❤️' : '♡'}</button>
       <div class="venue-card-top">
         <div class="venue-icon" style="background:${v.category.bg}">${v.category.emoji}</div>
         <div class="venue-info">
@@ -2024,7 +2082,7 @@ function renderList() {
           ${v.nameZh ? `<div class="venue-name-zh">${v.nameZh}</div>` : ''}
           <div class="venue-meta">
             <span class="venue-tag" style="background:${v.category.bg};color:${v.category.color}">
-              ${LANG.current === 'zh' ? v.category.zh : v.category.en}
+              ${catLabel(v.category)}
             </span>
             ${distHtml}
             ${v.address ? `<span class="venue-address">
@@ -2181,11 +2239,29 @@ function setLang(lang) {
   // Update weather banner text if visible
   const wb = document.getElementById('weatherBanner');
   if (wb && wb.style.display !== 'none') {
-    document.getElementById('weatherBannerText').textContent =
-      lang === 'zh' ? '🌧️ 下雨天？试试室内活动！' : '🌧️ Rainy? Try indoor activities!';
-    document.getElementById('weatherBannerBtn').textContent =
-      lang === 'zh' ? '查看室内场地' : 'Show indoor venues';
+    document.getElementById('weatherBannerText').textContent = T[lang].weatherIndoorBanner;
+    document.getElementById('weatherBannerBtn').textContent = T[lang].showIndoor;
   }
+  // Update logo text
+  document.getElementById('logoTextMain').textContent =
+    tl('Holland Kids Explorer', '荷兰亲子探索', 'Holland Kinderen Explorer');
+  document.getElementById('logoTextSub').textContent =
+    tl('Family-friendly venues', '家庭亲子活动', 'Gezinsvriendelijke locaties');
+  // Update chat subtitle and input placeholder
+  const chatSub = document.getElementById('chatSubtitle');
+  if (chatSub) {
+    chatSub.textContent = tl('Smart family outing assistant', '智能亲子出行助手', 'Slimme gezinsuitje-assistent');
+  }
+  const chatIn = document.getElementById('chatInput');
+  if (chatIn) {
+    chatIn.placeholder = tl(
+      'Describe your needs... e.g. Amsterdam, 3 year old, indoor',
+      '描述你的需求… e.g. 我在Amsterdam，孩子3岁，想去室内玩',
+      'Beschrijf je wensen... bijv. Amsterdam, 3 jaar, binnen'
+    );
+  }
+  // Update age filter pills if they exist
+  if (typeof buildAgeFilterPills === 'function') buildAgeFilterPills();
 }
 
 // ── SKELETON LOADING ─────────────────────────────
@@ -2936,7 +3012,7 @@ const STATIC_NL_VENUES = [
 ];
 
 function loadStaticVenues() {
-  state.currentRegion = LANG.current === 'zh' ? '荷兰精选场地' : 'Featured Netherlands Venues';
+  state.currentRegion = tl('Featured Netherlands Venues', '荷兰精选场地', 'Uitgelichte locaties in Nederland');
   processOSMData(STATIC_NL_VENUES);
 }
 
@@ -3128,8 +3204,8 @@ function buildChatResponse(parsed, venues) {
   // Venue list
   venues.forEach((v, i) => {
     const dist = v._dist ? ` (${v._dist.toFixed(1)}km)` : '';
-    const catLabel = isZh ? v._cat.zh : v._cat.en;
-    parts.push(`\n${v._cat.emoji} <strong>${v._name}</strong>${dist}\n<span style="color:var(--text-muted);font-size:11px">${catLabel} · ${v._city}</span>`);
+    const catLbl = v._cat[LANG.current] || v._cat.en;
+    parts.push(`\n${v._cat.emoji} <strong>${v._name}</strong>${dist}\n<span style="color:var(--text-muted);font-size:11px">${catLbl} · ${v._city}</span>`);
   });
 
   // Tips
@@ -3159,22 +3235,32 @@ function toggleChat(open) {
 }
 
 function initChat() {
-  const isZh = LANG.current === 'zh';
-  addBotMessage(isZh
+  const lang = LANG.current;
+  const greeting = lang === 'zh'
     ? '👋 你好！我是亲子出行助手。\n\n告诉我你的情况，比如：\n• 你在哪个城市？\n• 孩子多大？\n• 想要室内还是室外？\n• 对什么感兴趣？\n\n我会根据你的需求推荐最合适的去处！'
-    : "👋 Hi! I'm your family outing assistant.\n\nTell me about your situation:\n• Which city are you in?\n• How old are your kids?\n• Indoor or outdoor?\n• Any interests?\n\nI'll recommend the best places for your family!"
-  );
-  showQuickActions(isZh);
+    : lang === 'nl'
+    ? '👋 Hallo! Ik ben je gezinsuitje-assistent.\n\nVertel me over je situatie:\n• In welke stad ben je?\n• Hoe oud zijn je kinderen?\n• Binnen of buiten?\n• Interesses?\n\nIk raad de beste plekken aan voor je gezin!'
+    : "👋 Hi! I'm your family outing assistant.\n\nTell me about your situation:\n• Which city are you in?\n• How old are your kids?\n• Indoor or outdoor?\n• Any interests?\n\nI'll recommend the best places for your family!";
+  addBotMessage(greeting);
+  showQuickActions();
 }
 
-function showQuickActions(isZh) {
+function showQuickActions() {
   const el = document.getElementById('chatQuickActions');
-  const actions = isZh
+  const lang = LANG.current;
+  const actions = lang === 'zh'
     ? [
         ['🏠 Amsterdam室内玩', '我在Amsterdam，下雨天想找室内游乐场'],
         ['🦁 带3岁宝宝看动物', '我孩子3岁，想去看动物，在Rotterdam附近'],
         ['🏖️ 周末海滩推荐', '周末想带孩子去海滩，从Den Haag出发'],
         ['🏛️ 博物馆推荐', '想带8岁孩子去博物馆，在Utrecht'],
+      ]
+    : lang === 'nl'
+    ? [
+        ['🏠 Binnen Amsterdam', 'Binnenactiviteiten in Amsterdam voor een regendag'],
+        ['🦁 Dierentuin Rotterdam', 'Dierentuin of boerderij bij Rotterdam voor 3-jarige'],
+        ['🏖️ Strand Den Haag', 'Strand bij Den Haag voor kinderen'],
+        ['🏛️ Museum Utrecht', 'Museum voor 8-jarige bij Utrecht'],
       ]
     : [
         ['🏠 Indoor Amsterdam', 'Indoor activities in Amsterdam for rainy day'],
@@ -3346,12 +3432,12 @@ function activateNearMe() {
       state.userLocationMarker = L.circleMarker([lat, lon], {
         radius: 10, color: '#4285F4', fillColor: '#4285F4',
         fillOpacity: 0.5, weight: 3, opacity: 0.8,
-      }).addTo(map).bindPopup(LANG.current === 'zh' ? '📍 你的位置' : '📍 Your location');
+      }).addTo(map).bindPopup(tl('📍 Your location', '📍 你的位置', '📍 Jouw locatie'));
       state.displayed = 0;
       applyFilter();
       buildFilterBar();
       map.flyTo([lat, lon], 11, { duration: 1 });
-      showToast(LANG.current === 'zh' ? '已按距离排序' : 'Sorted by distance', 2000);
+      showToast(tl('Sorted by distance', '已按距离排序', 'Gesorteerd op afstand'), 2000);
     },
     (err) => {
       btn.classList.remove('active');
@@ -3442,8 +3528,7 @@ function openDetailPanel(venueId) {
   const panel = document.getElementById('venueDetailPanel');
   const body = document.getElementById('detailPanelBody');
   const titleEl = document.getElementById('detailPanelTitle');
-  const isZh = LANG.current === 'zh';
-  titleEl.textContent = isZh ? '场地详情' : 'Venue Details';
+  titleEl.textContent = T[LANG.current].detailTitle;
   const isFav = state.favorites.includes(v.id);
 
   let html = '';
@@ -3451,7 +3536,7 @@ function openDetailPanel(venueId) {
   html += `<div class="detail-venue-name">${escapeHtml(v.name)}</div>`;
   if (v.nameZh) html += `<div class="detail-venue-name-zh">${escapeHtml(v.nameZh)}</div>`;
   html += `<span class="detail-category-badge" style="background:${v.category.bg};color:${v.category.color}">
-    ${v.category.emoji} ${isZh ? v.category.zh : v.category.en}
+    ${v.category.emoji} ${catLabel(v.category)}
   </span>`;
 
   // Info rows
@@ -3469,14 +3554,14 @@ function openDetailPanel(venueId) {
   html += '<div class="detail-actions">';
   if (v.website) {
     html += `<a class="detail-btn detail-btn-website" href="${v.website}" target="_blank" rel="noopener">
-      🔗 ${isZh ? '访问官方网站' : 'Visit Website'}
+      🔗 ${T[LANG.current].visitWebsite}
     </a>`;
   }
   html += `<a class="detail-btn detail-btn-navigate" href="https://www.google.com/maps/dir/?api=1&destination=${v.lat},${v.lon}" target="_blank" rel="noopener">
-    🧭 ${isZh ? '导航前往' : 'Navigate'}
+    🧭 ${T[LANG.current].navigateTo}
   </a>`;
   html += `<button class="detail-btn detail-btn-favorite ${isFav ? 'favorited' : ''}" id="detailFavBtn" onclick="toggleDetailFavorite('${v.id.replace(/'/g,"\\'")}')">
-    ${isFav ? '❤️' : '♡'} ${isFav ? (isZh ? '已收藏' : 'Favorited') : (isZh ? '收藏' : 'Add to Favorites')}
+    ${isFav ? '❤️' : '♡'} ${isFav ? T[LANG.current].removeFavorite : T[LANG.current].addFavorite}
   </button>`;
   html += '</div>';
 
@@ -3491,11 +3576,10 @@ function closeDetailPanel() {
 function toggleDetailFavorite(venueId) {
   toggleFavorite(venueId, null);
   const btn = document.getElementById('detailFavBtn');
-  const isZh = LANG.current === 'zh';
   const isFav = state.favorites.includes(venueId);
   if (btn) {
     btn.className = 'detail-btn detail-btn-favorite' + (isFav ? ' favorited' : '');
-    btn.innerHTML = `${isFav ? '❤️' : '♡'} ${isFav ? (isZh ? '已收藏' : 'Favorited') : (isZh ? '收藏' : 'Add to Favorites')}`;
+    btn.innerHTML = `${isFav ? '❤️' : '♡'} ${isFav ? T[LANG.current].removeFavorite : T[LANG.current].addFavorite}`;
   }
   // Also update the card fav button if visible
   renderList();
@@ -3515,10 +3599,10 @@ document.addEventListener('keydown', (e) => {
 
 // ── AGE SUITABILITY FILTER ──────────────────────
 const AGE_FILTER_RANGES = [
-  { id: 'all', en: 'All ages', zh: '所有年龄', emoji: '', categories: null },
-  { id: '0-3', en: '0-3', zh: '0-3', emoji: '👶', categories: ['children_farm','playground','indoor_playground','beach','chinese_restaurant','buffet'] },
-  { id: '3-6', en: '3-6', zh: '3-6', emoji: '🧒', categories: ['children_farm','playground','indoor_playground','beach','chinese_restaurant','buffet','zoo','aquarium','theme_park','nature','museum'] },
-  { id: '6-12', en: '6-12', zh: '6-12', emoji: '🧒', categories: null }, // null = everything
+  { id: 'all', en: 'All ages', zh: '所有年龄', nl: 'Alle leeftijden', emoji: '', categories: null },
+  { id: '0-3', en: '0-3', zh: '0-3', nl: '0-3 jaar', emoji: '👶', categories: ['children_farm','playground','indoor_playground','beach','chinese_restaurant','buffet'] },
+  { id: '3-6', en: '3-6', zh: '3-6', nl: '3-6 jaar', emoji: '🧒', categories: ['children_farm','playground','indoor_playground','beach','chinese_restaurant','buffet','zoo','aquarium','theme_park','nature','museum'] },
+  { id: '6-12', en: '6-12', zh: '6-12', nl: '6-12 jaar', emoji: '🧒', categories: null }, // null = everything
 ];
 
 let activeAgeFilter = 'all';
@@ -3551,7 +3635,7 @@ function buildAgeFilterPills() {
   AGE_FILTER_RANGES.forEach(age => {
     const pill = document.createElement('button');
     pill.className = 'age-pill' + (activeAgeFilter === age.id ? ' active' : '');
-    const label = LANG.current === 'zh' ? age.zh : age.en;
+    const label = age[LANG.current] || age.en;
     pill.innerHTML = age.emoji ? `${age.emoji} ${label}` : label;
     pill.onclick = () => setAgeFilter(age.id);
     group.appendChild(pill);
@@ -3590,11 +3674,8 @@ async function fetchWeather() {
     const isRaining = rain > 0 || code >= 61;
     if (isRaining && !weatherBannerDismissed) {
       const banner = document.getElementById('weatherBanner');
-      const isZh = LANG.current === 'zh';
-      document.getElementById('weatherBannerText').textContent =
-        isZh ? '🌧️ 下雨天？试试室内活动！' : '🌧️ Rainy? Try indoor activities!';
-      document.getElementById('weatherBannerBtn').textContent =
-        isZh ? '查看室内场地' : 'Show indoor venues';
+      document.getElementById('weatherBannerText').textContent = T[LANG.current].weatherIndoorBanner;
+      document.getElementById('weatherBannerBtn').textContent = T[LANG.current].showIndoor;
       banner.style.display = 'flex';
     }
   } catch (e) {
@@ -3623,7 +3704,7 @@ function filterIndoorWeather() {
   renderMarkers();
   buildFilterBar();
   buildAgeFilterPills();
-  showToast(LANG.current === 'zh' ? '已筛选室内活动场地' : 'Showing indoor venues', 2000);
+  showToast(T[LANG.current].showingIndoor, 2000);
   // Dismiss banner
   dismissWeatherBanner();
 }
@@ -3640,7 +3721,7 @@ T.en.navigateTo = 'Navigate';
 T.en.addFavorite = 'Add to Favorites';
 T.en.removeFavorite = 'Favorited';
 T.en.ageFilterLabel = 'Age:';
-T.en.weatherIndoorBanner = 'Rainy? Try indoor activities!';
+T.en.weatherIndoorBanner = '🌧️ Rainy? Try indoor activities!';
 T.en.showIndoor = 'Show indoor venues';
 T.en.showingIndoor = 'Showing indoor venues';
 T.zh.detailTitle = '场地详情';
@@ -3649,9 +3730,18 @@ T.zh.navigateTo = '导航前往';
 T.zh.addFavorite = '收藏';
 T.zh.removeFavorite = '已收藏';
 T.zh.ageFilterLabel = '年龄：';
-T.zh.weatherIndoorBanner = '下雨天？试试室内活动！';
+T.zh.weatherIndoorBanner = '🌧️ 下雨天？试试室内活动！';
 T.zh.showIndoor = '查看室内场地';
 T.zh.showingIndoor = '已筛选室内活动场地';
+T.nl.detailTitle = 'Locatiedetails';
+T.nl.visitWebsite = 'Bezoek website';
+T.nl.navigateTo = 'Navigeren';
+T.nl.addFavorite = 'Toevoegen aan favorieten';
+T.nl.removeFavorite = 'Favoriet';
+T.nl.ageFilterLabel = 'Leeftijd:';
+T.nl.weatherIndoorBanner = '🌧️ Regent het? Probeer binnenactiviteiten!';
+T.nl.showIndoor = 'Toon binnenlocaties';
+T.nl.showingIndoor = 'Binnenlocaties worden getoond';
 
 // ── INIT ─────────────────────────────────────────
 buildFilterBar();
