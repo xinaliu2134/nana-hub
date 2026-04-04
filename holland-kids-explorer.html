@@ -1072,6 +1072,18 @@
     .detail-btn-favorite.favorited {
       background: #FEE2E2; color: #DC2626; border-color: #FECACA;
     }
+    .detail-btn-share {
+      background: var(--teal); color: #fff;
+    }
+    .detail-btn-share:hover { background: #0C8C88; }
+    .detail-panel-share {
+      background: none; border: none; cursor: pointer;
+      font-size: 18px; color: var(--text-secondary);
+      padding: 4px 8px; border-radius: 8px;
+      transition: background .15s;
+      margin-right: 4px;
+    }
+    .detail-panel-share:hover { background: var(--bg); }
 
     @media (max-width: 768px) {
       .venue-detail-panel {
@@ -1263,7 +1275,10 @@
 <div class="venue-detail-panel" id="venueDetailPanel">
   <div class="detail-panel-header">
     <span style="font-weight:700;font-size:15px;" id="detailPanelTitle">Venue Details</span>
-    <button class="detail-panel-close" onclick="closeDetailPanel()">&times;</button>
+    <div style="display:flex;align-items:center;">
+      <button class="detail-panel-share" onclick="shareCurrentVenue()" title="Share">&#x1F4E4;</button>
+      <button class="detail-panel-close" onclick="closeDetailPanel()">&times;</button>
+    </div>
   </div>
   <div class="detail-panel-body" id="detailPanelBody"></div>
 </div>
@@ -1640,6 +1655,7 @@ function setFilter(catId) {
   state.activeCategory = catId;
   state.showFavoritesOnly = false;
   state.displayed = 0;
+  pushHashState(catId ? { category: catId } : {});
   if (state.allVenues.length === 0) {
     // No region loaded yet — highlight search bar and show a hint in empty state
     buildFilterBar();
@@ -1826,6 +1842,7 @@ function resetHome() {
   map.setView([52.35, 5.3], 8);
   showOverlay(false);
   if (typeof closeDetailPanel === 'function') closeDetailPanel();
+  pushHashState({});
   loadStaticVenues();
 }
 
@@ -1851,6 +1868,7 @@ function fullReset() {
   document.getElementById('venueList').innerHTML = '';
   document.getElementById('categorySummary').innerHTML = '';
   closeDetailPanel();
+  pushHashState({});
   updateEmptyStateText();
   buildFilterBar();
 }
@@ -1878,6 +1896,7 @@ async function searchRegion(name) {
   searchInput.value = name;
   autocompleteEl.classList.remove('open');
   state.currentRegion = name;
+  pushHashState({ region: name });
 
   showOverlay(true);
   document.getElementById('resultCountText').innerHTML = T[LANG.current].searching;
@@ -3645,6 +3664,9 @@ function toggleFavoritesFilter() {
   state.showFavoritesOnly = !state.showFavoritesOnly;
   if (state.showFavoritesOnly) {
     state.activeCategory = null;
+    pushHashState({ favorites: 'true' });
+  } else {
+    pushHashState({});
   }
   state.displayed = 0;
   applyFilter();
@@ -3820,6 +3842,9 @@ function openDetailPanel(venueId) {
   html += `<button class="detail-btn detail-btn-favorite ${isFav ? 'favorited' : ''}" id="detailFavBtn" onclick="toggleDetailFavorite('${v.id.replace(/'/g,"\\'")}')">
     ${isFav ? '❤️' : '♡'} ${isFav ? T[LANG.current].removeFavorite : T[LANG.current].addFavorite}
   </button>`;
+  html += `<button class="detail-btn detail-btn-share" onclick="shareCurrentVenue()">
+    📤 ${tl('Share', '分享', 'Delen')}
+  </button>`;
   html += '</div>';
 
   body.innerHTML = html;
@@ -3828,6 +3853,19 @@ function openDetailPanel(venueId) {
 
 function closeDetailPanel() {
   document.getElementById('venueDetailPanel').classList.remove('open');
+  // If hash is pointing at a venue, clear it back to the current filter state
+  const params = parseHash();
+  if (params.venue) {
+    if (state.showFavoritesOnly) {
+      pushHashState({ favorites: 'true' });
+    } else if (state.activeCategory) {
+      pushHashState({ category: state.activeCategory });
+    } else if (state.currentRegion && state.allVenues.length > 0) {
+      pushHashState({ region: state.currentRegion });
+    } else {
+      pushHashState({});
+    }
+  }
 }
 
 function toggleDetailFavorite(venueId) {
@@ -3842,11 +3880,12 @@ function toggleDetailFavorite(venueId) {
   renderList();
 }
 
-// Patch selectVenue to also open detail panel
+// Patch selectVenue to also open detail panel and update hash
 const _origSelectVenue = selectVenue;
 window.selectVenue = function(id) {
   _origSelectVenue(id);
   openDetailPanel(id);
+  pushHashState({ venue: id });
 };
 
 // Close detail panel on Escape
@@ -3981,6 +4020,8 @@ T.en.ageFilterLabel = 'Age:';
 T.en.weatherIndoorBanner = '🌧️ Rainy? Try indoor activities!';
 T.en.showIndoor = 'Show indoor venues';
 T.en.showingIndoor = 'Showing indoor venues';
+T.en.linkCopied = 'Link copied!';
+T.en.shareTitle = 'Check out this venue on Holland Kids Explorer';
 T.zh.detailTitle = '场地详情';
 T.zh.visitWebsite = '访问官方网站';
 T.zh.navigateTo = '导航前往';
@@ -3990,6 +4031,8 @@ T.zh.ageFilterLabel = '年龄：';
 T.zh.weatherIndoorBanner = '🌧️ 下雨天？试试室内活动！';
 T.zh.showIndoor = '查看室内场地';
 T.zh.showingIndoor = '已筛选室内活动场地';
+T.zh.linkCopied = '链接已复制！';
+T.zh.shareTitle = '来看看这个荷兰亲子场地';
 T.nl.detailTitle = 'Locatiedetails';
 T.nl.visitWebsite = 'Bezoek website';
 T.nl.navigateTo = 'Navigeren';
@@ -3999,12 +4042,130 @@ T.nl.ageFilterLabel = 'Leeftijd:';
 T.nl.weatherIndoorBanner = '🌧️ Regent het? Probeer binnenactiviteiten!';
 T.nl.showIndoor = 'Toon binnenlocaties';
 T.nl.showingIndoor = 'Binnenlocaties worden getoond';
+T.nl.linkCopied = 'Link gekopieerd!';
+T.nl.shareTitle = 'Bekijk deze locatie op Holland Kids Explorer';
+
+// ── DEEP LINKING & BROWSER HISTORY ──────────────
+let _suppressHashPush = false;
+
+function buildHash(params) {
+  return Object.entries(params)
+    .filter(([, v]) => v !== undefined && v !== null && v !== '')
+    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+    .join('&');
+}
+
+function parseHash() {
+  const hash = location.hash.slice(1);
+  if (!hash) return {};
+  const params = {};
+  hash.split('&').forEach(p => {
+    const eqIdx = p.indexOf('=');
+    if (eqIdx === -1) { if (p) params[p] = 'true'; return; }
+    const k = p.slice(0, eqIdx);
+    const v = decodeURIComponent(p.slice(eqIdx + 1));
+    if (k) params[k] = v;
+  });
+  return params;
+}
+
+function pushHashState(params) {
+  if (_suppressHashPush) return;
+  const hash = buildHash(params);
+  history.pushState(params, '', hash ? '#' + hash : location.pathname + location.search);
+}
+
+function applyState(params) {
+  _suppressHashPush = true;
+  try {
+    if (!params || Object.keys(params).length === 0) {
+      resetHome();
+      return;
+    }
+    if (params.venue) {
+      const v = state.allVenues.find(x => x.id === params.venue);
+      if (v) {
+        map.flyTo([v.lat, v.lon], 16, { duration: 0.5 });
+        selectVenue(v.id);
+      } else {
+        showToast(tl('Venue not found', '未找到场地', 'Locatie niet gevonden'));
+      }
+      return;
+    }
+    if (params.favorites === 'true') {
+      state.showFavoritesOnly = true;
+      state.activeCategory = null;
+      state.displayed = 0;
+      applyFilter();
+      buildFilterBar();
+      return;
+    }
+    if (params.category) {
+      setFilter(params.category);
+      return;
+    }
+    if (params.region) {
+      searchRegion(params.region);
+      return;
+    }
+  } finally {
+    _suppressHashPush = false;
+  }
+}
+
+function applyHashState() {
+  const params = parseHash();
+  if (Object.keys(params).length > 0) {
+    applyState(params);
+  }
+}
+
+window.addEventListener('popstate', function(e) {
+  if (e.state) {
+    applyState(e.state);
+  } else {
+    applyState(parseHash());
+  }
+});
+
+// ── SHARE BUTTON ────────────────────────────────
+function shareCurrentVenue() {
+  const venueId = state.activeCardId;
+  if (!venueId) return;
+  const v = state.allVenues.find(x => x.id === venueId);
+  const title = v ? v.name : 'Holland Kids Explorer';
+  const url = location.origin + location.pathname + '#venue=' + encodeURIComponent(venueId);
+
+  if (navigator.share) {
+    navigator.share({
+      title: T[LANG.current].shareTitle,
+      text: title,
+      url: url
+    }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(url).then(() => {
+      showToast(T[LANG.current].linkCopied);
+    }).catch(() => {
+      // Fallback for older browsers
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast(T[LANG.current].linkCopied);
+    });
+  }
+}
 
 // ── INIT ─────────────────────────────────────────
 buildFilterBar();
 buildAgeFilterPills();
 setLang('en');
 loadStaticVenues();
+applyHashState();
 fetchWeather();
 </script>
 </body>
