@@ -187,16 +187,84 @@
     .filter-bar {
       background: var(--surface);
       border-bottom: 2px solid var(--border);
-      padding: 0 20px;
-      height: 48px;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .filter-row {
       display: flex;
       align-items: center;
       gap: 8px;
+      padding: 6px 20px;
       overflow-x: auto;
-      flex-shrink: 0;
       scrollbar-width: none;
+      position: relative;
     }
-    .filter-bar::-webkit-scrollbar { display: none; }
+    .filter-row::-webkit-scrollbar { display: none; }
+
+    .filter-row-secondary {
+      border-top: 1px solid var(--border-light);
+      padding-top: 4px;
+      padding-bottom: 6px;
+      display: none;
+    }
+    .filter-row-secondary.open { display: flex; }
+
+    .filter-row-age {
+      border-top: 1px solid var(--border-light);
+      padding-top: 4px;
+      padding-bottom: 6px;
+    }
+
+    /* Scroll fade indicators for mobile */
+    .filter-row-wrap {
+      position: relative;
+      overflow: hidden;
+    }
+    .filter-row-wrap::after {
+      content: '';
+      position: absolute;
+      top: 0; right: 0; bottom: 0;
+      width: 40px;
+      background: linear-gradient(to right, transparent, var(--surface));
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .2s;
+      z-index: 2;
+    }
+    .filter-row-wrap.show-fade::after { opacity: 1; }
+    .filter-row-wrap::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: 40px;
+      background: linear-gradient(to left, transparent, var(--surface));
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .2s;
+      z-index: 2;
+    }
+    .filter-row-wrap.show-fade-left::before { opacity: 1; }
+
+    .more-toggle-chip {
+      display: flex; align-items: center; gap: 3px;
+      padding: 5px 10px;
+      border-radius: 20px;
+      border: 2px solid var(--border);
+      background: var(--bg);
+      cursor: pointer;
+      font-size: 11px; font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: all .15s;
+      user-select: none;
+    }
+    .more-toggle-chip:hover { border-color: var(--primary); color: var(--primary); }
+    .more-toggle-chip.open { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
 
     .filter-label {
       font-size: 12px; font-weight: 600;
@@ -1099,9 +1167,6 @@
     .age-filter-group {
       display: flex; align-items: center; gap: 4px;
       flex-shrink: 0;
-      margin-left: 4px;
-      padding-left: 8px;
-      border-left: 2px solid var(--border-light);
     }
     .age-pill {
       display: flex; align-items: center; gap: 3px;
@@ -1166,6 +1231,7 @@
   </style>
 </head>
 <body>
+<a href="#map" class="skip-link" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;z-index:9999;padding:8px 16px;background:var(--primary);color:#fff;font-weight:700;text-decoration:none;border-radius:0 0 8px 0;" onfocus="this.style.position='fixed';this.style.left='0';this.style.top='0';this.style.width='auto';this.style.height='auto';this.style.overflow='visible';" onblur="this.style.position='absolute';this.style.left='-9999px';this.style.width='1px';this.style.height='1px';this.style.overflow='hidden';">Skip to map</a>
 
 <!-- ── CROSS-NAV ──────────────────────────────────── -->
 <div style="display:flex;justify-content:center;gap:16px;padding:6px 16px;background:#1A2B4A;font-size:12px;">
@@ -1192,19 +1258,19 @@
   <div class="header-search">
     <span class="search-icon">🔍</span>
     <input type="text" id="searchInput" placeholder="Search venue or region... 搜索场地或地区..." autocomplete="off">
-    <button class="clear-btn" id="clearBtn" onclick="clearSearch()">✕</button>
+    <button class="clear-btn" id="clearBtn" onclick="clearSearch()" aria-label="Clear search">✕</button>
     <div class="autocomplete" id="autocomplete"></div>
   </div>
-  <button class="nearme-btn" id="nearmeBtn" onclick="activateNearMe()" title="Near Me">📍</button>
+  <button class="nearme-btn" id="nearmeBtn" onclick="activateNearMe()" title="Near Me" aria-label="Find venues near me">📍</button>
 
   <div class="weather-badge" id="weatherBadge" style="display:none;"></div>
 
   <div class="header-spacer"></div>
 
-  <div class="lang-toggle">
-    <button class="lang-btn active" data-lang="en" onclick="setLang('en')">EN</button>
-    <button class="lang-btn" data-lang="zh" onclick="setLang('zh')">中文</button>
-    <button class="lang-btn" data-lang="nl" onclick="setLang('nl')">NL</button>
+  <div class="lang-toggle" role="group" aria-label="Language selection">
+    <button class="lang-btn active" data-lang="en" onclick="setLang('en')" aria-label="Switch to English">EN</button>
+    <button class="lang-btn" data-lang="zh" onclick="setLang('zh')" aria-label="Switch to Chinese">中文</button>
+    <button class="lang-btn" data-lang="nl" onclick="setLang('nl')" aria-label="Switch to Dutch">NL</button>
   </div>
 </header>
 
@@ -1217,7 +1283,17 @@
 
 <!-- ── FILTER BAR ─────────────────────────────────── -->
 <div class="filter-bar" id="filterBar">
-  <span class="filter-label" id="filterLabel">Filter:</span>
+  <div class="filter-row-wrap" id="filterRowWrap1">
+    <div class="filter-row" id="filterRow1">
+      <span class="filter-label" id="filterLabel">Filter:</span>
+    </div>
+  </div>
+  <div class="filter-row-wrap" id="filterRowWrap2">
+    <div class="filter-row filter-row-secondary" id="filterRow2"></div>
+  </div>
+  <div class="filter-row-wrap" id="filterRowWrapAge">
+    <div class="filter-row filter-row-age" id="filterRowAge"></div>
+  </div>
 </div>
 
 <!-- ── MAIN ───────────────────────────────────────── -->
@@ -1262,7 +1338,7 @@
 
   <!-- Map -->
   <div class="map-wrapper">
-    <div id="map"></div>
+    <div id="map" role="application" aria-label="Interactive map of family-friendly venues"></div>
     <div class="map-overlay hidden" id="mapOverlay">
       <div class="spinner"></div>
       <p id="loadingText">Loading venues…</p>
@@ -1285,7 +1361,7 @@
 </div>
 
 <!-- ── AI CHAT WIDGET ────────────────────────────── -->
-<button class="chat-fab" id="chatFab" onclick="toggleChat(true)" title="AI Assistant">🧸</button>
+<button class="chat-fab" id="chatFab" onclick="toggleChat(true)" title="AI Assistant" aria-label="Open AI chat assistant">🧸</button>
 <div class="chat-panel" id="chatPanel">
   <div class="chat-header">
     <div class="chat-header-icon">🧸</div>
@@ -1596,11 +1672,20 @@ const markersLayer = L.markerClusterGroup({
 }).addTo(map);
 
 // ── FILTER BAR INIT ──────────────────────────────
+// Row 1 (always visible): Favorites, All, top categories
+const PRIMARY_CAT_IDS = ['theme_park','zoo','museum','playground','chinese_restaurant','buffet'];
+// Row 2 (expandable): remaining categories
+let filterRow2Open = false;
+
 function buildFilterBar() {
-  const bar = document.getElementById('filterBar');
+  const row1 = document.getElementById('filterRow1');
+  const row2 = document.getElementById('filterRow2');
   const label = document.getElementById('filterLabel');
-  bar.innerHTML = '';
-  bar.appendChild(label);
+
+  // Clear rows
+  row1.innerHTML = '';
+  row2.innerHTML = '';
+  row1.appendChild(label);
   label.textContent = T[LANG.current].filterLabel;
 
   // Count venues per category
@@ -1620,7 +1705,7 @@ function buildFilterBar() {
   }
   favChip.innerHTML = `❤️ ${T[LANG.current].favoritesLabel}${favCount > 0 ? ` <span class="filter-chip-count">${favCount}</span>` : ''}`;
   favChip.onclick = () => toggleFavoritesFilter();
-  bar.appendChild(favChip);
+  row1.appendChild(favChip);
 
   // All button
   const allChip = document.createElement('button');
@@ -1631,9 +1716,16 @@ function buildFilterBar() {
     ? `${T[LANG.current].allLabel} <span class="filter-chip-count">${totalCount}</span>`
     : T[LANG.current].allLabel;
   allChip.onclick = () => setFilter(null);
-  bar.appendChild(allChip);
+  row1.appendChild(allChip);
 
-  CATEGORIES.forEach(cat => {
+  // Split categories into primary (row1) and secondary (row2)
+  const primaryCats = CATEGORIES.filter(c => PRIMARY_CAT_IDS.includes(c.id));
+  const secondaryCats = CATEGORIES.filter(c => !PRIMARY_CAT_IDS.includes(c.id));
+
+  // Check if active category is in secondary row
+  const activeInSecondary = secondaryCats.some(c => c.id === state.activeCategory);
+
+  function makeChip(cat, parent) {
     const count = catCounts[cat.id] || 0;
     const chip = document.createElement('button');
     const isActive = !state.showFavoritesOnly && state.activeCategory === cat.id;
@@ -1645,11 +1737,58 @@ function buildFilterBar() {
     const countBadge = totalCount > 0 ? ` <span class="filter-chip-count">${count}</span>` : '';
     chip.innerHTML = `${cat.emoji} ${catLabel(cat)}${countBadge}`;
     chip.onclick = () => setFilter(cat.id);
-    bar.appendChild(chip);
-  });
+    parent.appendChild(chip);
+  }
+
+  primaryCats.forEach(cat => makeChip(cat, row1));
+
+  // "More" toggle button at end of row 1
+  const moreBtn = document.createElement('button');
+  moreBtn.className = 'more-toggle-chip' + (filterRow2Open || activeInSecondary ? ' open' : '');
+  const moreLabel = filterRow2Open
+    ? tl('Less \u25B2', '\u6536\u8D77 \u25B2', 'Minder \u25B2')
+    : tl('More \u25BC', '\u66F4\u591A \u25BC', 'Meer \u25BC');
+  moreBtn.textContent = moreLabel;
+  moreBtn.onclick = () => {
+    filterRow2Open = !filterRow2Open;
+    row2.classList.toggle('open', filterRow2Open);
+    moreBtn.classList.toggle('open', filterRow2Open);
+    moreBtn.textContent = filterRow2Open
+      ? tl('Less \u25B2', '\u6536\u8D77 \u25B2', 'Minder \u25B2')
+      : tl('More \u25BC', '\u66F4\u591A \u25BC', 'Meer \u25BC');
+  };
+  row1.appendChild(moreBtn);
+
+  // Row 2 categories
+  secondaryCats.forEach(cat => makeChip(cat, row2));
+
+  // Auto-open row 2 if active category is there
+  if (activeInSecondary) {
+    filterRow2Open = true;
+  }
+  row2.classList.toggle('open', filterRow2Open);
+
+  // Scroll fade indicators
+  initScrollFade('filterRowWrap1', 'filterRow1');
+  initScrollFade('filterRowWrap2', 'filterRow2');
 
   // Rebuild age pills if the function exists (defined later in script)
   if (typeof buildAgeFilterPills === 'function') buildAgeFilterPills();
+}
+
+function initScrollFade(wrapId, rowId) {
+  const wrap = document.getElementById(wrapId);
+  const row = document.getElementById(rowId);
+  if (!wrap || !row) return;
+  function update() {
+    const hasRight = row.scrollWidth > row.clientWidth + row.scrollLeft + 2;
+    const hasLeft = row.scrollLeft > 2;
+    wrap.classList.toggle('show-fade', hasRight);
+    wrap.classList.toggle('show-fade-left', hasLeft);
+  }
+  row.addEventListener('scroll', update, { passive: true });
+  // Check after a tick to let layout settle
+  requestAnimationFrame(update);
 }
 
 function setFilter(catId) {
@@ -1762,7 +1901,7 @@ searchInput.addEventListener('keydown', e => {
     if (focusedIdx >= 0 && items[focusedIdx]) {
       items[focusedIdx].click();
     } else if (searchInput.value.trim()) {
-      searchRegion(searchInput.value.trim());
+      smartSearch(searchInput.value.trim());
     }
   } else if (e.key === 'Escape') {
     autocompleteEl.classList.remove('open');
@@ -1772,6 +1911,52 @@ searchInput.addEventListener('keydown', e => {
 document.addEventListener('click', e => {
   if (!e.target.closest('.header-search')) autocompleteEl.classList.remove('open');
 });
+
+// Smart search: if query matches static venue names, show them directly.
+// Only fall through to Nominatim/Overpass if no venue matches AND query looks like a region/city.
+function smartSearch(query) {
+  autocompleteEl.classList.remove('open');
+  const q = query.toLowerCase();
+
+  // Check for static venue name matches
+  const venueMatches = STATIC_NL_VENUES.filter(v =>
+    v.tags.name && v.tags.name.toLowerCase().includes(q)
+  );
+
+  // Check for region matches
+  const regionMatch = DUTCH_REGIONS.some(r => r.name.toLowerCase().includes(q));
+
+  if (venueMatches.length > 0) {
+    // Venue matches found — show them directly without calling Nominatim/Overpass
+    const firstMatch = venueMatches[0];
+    searchVenueFromAutocomplete(
+      firstMatch.lat, firstMatch.lon,
+      `${firstMatch.type}/${firstMatch.id}`,
+      firstMatch.tags.name
+    );
+    if (venueMatches.length > 1) {
+      showToast(tl(
+        `Found ${venueMatches.length} venues matching "${query}"`,
+        `\u627E\u5230 ${venueMatches.length} \u4E2A\u5339\u914D "${query}" \u7684\u573A\u5730`,
+        `${venueMatches.length} locaties gevonden voor "${query}"`
+      ), 3000);
+    }
+    return;
+  }
+
+  if (regionMatch) {
+    // Looks like a region — use normal Nominatim/Overpass flow
+    searchRegion(query);
+    return;
+  }
+
+  // No matches at all — show friendly message, do NOT call Nominatim
+  showToast(tl(
+    `No venues found for "${query}". Try a city or province name.`,
+    `\u672A\u627E\u5230 "${query}" \u7684\u573A\u5730\u3002\u8BF7\u5C1D\u8BD5\u8F93\u5165\u57CE\u5E02\u6216\u7701\u4EFD\u540D\u79F0\u3002`,
+    `Geen locaties gevonden voor "${query}". Probeer een stad of provincie.`
+  ), 4000);
+}
 
 function renderAutocomplete(regionMatches, q, venueMatches) {
   focusedIdx = -1;
@@ -2224,10 +2409,13 @@ function renderList() {
     const card = document.createElement('div');
     card.className = 'venue-card' + (v.id === state.activeCardId ? ' active' : '');
     card.id = 'card-' + v.id.replace(/[^a-z0-9]/gi, '-');
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', (v.name || '') + (v.nameZh ? ' ' + v.nameZh : ''));
     const isFav = state.favorites.includes(v.id);
     const distHtml = v._userDist != null ? `<span class="venue-distance">📍 ${v._userDist.toFixed(1)} km</span>` : '';
     card.innerHTML = `
-      <button class="venue-fav-btn ${isFav ? 'favorited' : ''}" onclick="event.stopPropagation(); toggleFavorite('${v.id.replace(/'/g,"\\'")}', this)" title="${isFav ? T[LANG.current].removeFavorite : T[LANG.current].addFavorite}">${isFav ? '❤️' : '♡'}</button>
+      <button class="venue-fav-btn ${isFav ? 'favorited' : ''}" onclick="event.stopPropagation(); toggleFavorite('${v.id.replace(/'/g,"\\'")}', this)" title="${isFav ? T[LANG.current].removeFavorite : T[LANG.current].addFavorite}" aria-label="${isFav ? T[LANG.current].removeFavorite : T[LANG.current].addFavorite}">${isFav ? '❤️' : '♡'}</button>
       <div class="venue-card-top">
         <div class="venue-icon" style="background:${v.category.bg}">${v.category.emoji}</div>
         <div class="venue-info">
@@ -2260,6 +2448,12 @@ function renderList() {
     card.addEventListener('click', e => {
       if (e.target.closest('a,button')) return;
       selectVenue(v.id);
+    });
+    card.addEventListener('keydown', e => {
+      if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('a,button')) {
+        e.preventDefault();
+        selectVenue(v.id);
+      }
     });
     frag.appendChild(card);
   });
@@ -3040,7 +3234,7 @@ const STATIC_NL_VENUES = [
   { type:'node',id:1216,lat:51.4980,lon:3.6140, tags:{name:'Golden Dragon Middelburg',nameZh:'金龙',amenity:'chinese_restaurant','addr:city':'Middelburg','addr:street':'Lange Delft','addr:housenumber':'54',opening_hours:'Tu-Su 12:00-22:00'}},
   { type:'node',id:1217,lat:51.8100,lon:4.6690, tags:{name:'New China Dordrecht',nameZh:'新中华',amenity:'chinese_restaurant','addr:city':'Dordrecht','addr:street':'Voorstraat','addr:housenumber':'268',opening_hours:'Tu-Su 12:00-22:00'}},
   { type:'node',id:1218,lat:52.0175,lon:4.7100, tags:{name:'Hao Hao Gouda',nameZh:'好好',amenity:'chinese_restaurant','addr:city':'Gouda','addr:street':'Willem en Marialaan','addr:housenumber':'2',opening_hours:'Tu-Su 16:00-22:00'}},
-  { type:'node',id:1219,lat:52.0170,lon:4.7080, tags:{name:'Rose Garden Gouda',nameZh:'玫瑰园',amenity:'chinese_restaurant',website:'https://www.rosegardengouda.nl','addr:city':'Gouda','addr:street':'Van Hogendorpplein','addr:housenumber':'5',opening_hours:'Tu-Su 16:00-22:00'}},
+  // [REMOVED] Rose Garden Gouda duplicate — kept id:903 with more complete data
   { type:'node',id:1220,lat:52.2200,lon:6.8960, tags:{name:'China Garden Enschede',nameZh:'中国花园',amenity:'chinese_restaurant','addr:city':'Enschede','addr:street':'Langestraat','addr:housenumber':'44',opening_hours:'Tu-Su 12:00-22:00'}},
   { type:'node',id:1221,lat:50.8830,lon:5.9780, tags:{name:'Golden Peacock Heerlen',nameZh:'金孔雀',amenity:'chinese_restaurant',website:'http://www.goldenpeacock.nl','addr:city':'Heerlen','addr:street':'Raadhuisplein','addr:housenumber':'7',opening_hours:'Tu-Su 12:00-22:00'}},
 
@@ -3073,7 +3267,7 @@ const STATIC_NL_VENUES = [
 
   // ── Outdoor Playgrounds (Speeltuinen) ─────────────────────────
   // Noord-Holland
-  { type:'node',id:1000,lat:52.2272,lon:4.5740, tags:{nameZh:'林内斯霍夫 - 欧洲最大游乐场',name:'Linnaeushof',leisure:'playground',website:'https://www.linnaeushof.nl','addr:city':'Bennebroek','addr:street':'Rijksstraatweg','addr:housenumber':'4',opening_hours:'Mo-Su 10:00-18:00 (Apr-Oct)'}},
+  // [REMOVED] Linnaeushof duplicate — kept id:200 with rating+reviews
   { type:'node',id:1001,lat:52.3086,lon:5.1672, tags:{nameZh:'莱姆坑游乐场',name:'Speeltuin De Leemkuil',leisure:'playground',website:'https://www.speeltuindeleemkuil.nl','addr:city':'Hilversum','addr:street':'Lijsterweg','addr:housenumber':'25',opening_hours:'Mo-Su 10:00-18:00 (seasonal)'}},
   { type:'node',id:1002,lat:52.3750,lon:4.8900, tags:{nameZh:'冯德尔公园游乐场',name:'Vondelpark Speeltuin',leisure:'playground','addr:city':'Amsterdam','addr:street':'Vondelpark',opening_hours:'Mo-Su 09:00-sunset'}},
   { type:'node',id:1003,lat:52.3590,lon:4.9410, tags:{nameZh:'阿提斯广场游乐场',name:'Speeltuin Artisplein',leisure:'playground','addr:city':'Amsterdam','addr:street':'Plantage Kerklaan',opening_hours:'Mo-Su 09:00-18:00'}},
@@ -3920,14 +4114,14 @@ function setAgeFilter(ageId) {
 // Age filtering is integrated into the main applyFilter function
 
 function buildAgeFilterPills() {
-  // Remove existing age pills
-  const existing = document.getElementById('ageFilterGroup');
-  if (existing) existing.remove();
+  const ageRow = document.getElementById('filterRowAge');
+  if (!ageRow) return;
+  ageRow.innerHTML = '';
 
-  const bar = document.getElementById('filterBar');
-  const group = document.createElement('div');
-  group.className = 'age-filter-group';
-  group.id = 'ageFilterGroup';
+  const ageLabel = document.createElement('span');
+  ageLabel.className = 'filter-label';
+  ageLabel.textContent = tl('Age:', '\u5E74\u9F84:', 'Leeftijd:');
+  ageRow.appendChild(ageLabel);
 
   AGE_FILTER_RANGES.forEach(age => {
     const pill = document.createElement('button');
@@ -3935,10 +4129,8 @@ function buildAgeFilterPills() {
     const label = age[LANG.current] || age.en;
     pill.innerHTML = age.emoji ? `${age.emoji} ${label}` : label;
     pill.onclick = () => setAgeFilter(age.id);
-    group.appendChild(pill);
+    ageRow.appendChild(pill);
   });
-
-  bar.appendChild(group);
 }
 
 // ── WEATHER-LINKED RECOMMENDATIONS ──────────────
