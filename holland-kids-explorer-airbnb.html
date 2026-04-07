@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Holland Kids Explorer · Airbnb-style Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff;
+  --bg-soft:#f7f7f7;
+  --border:#ebebeb;
+  --border-strong:#dddddd;
+  --text:#222222;
+  --text-soft:#717171;
+  --rausch:#ff385c;
+  --rausch-dark:#e31c5f;
+  --shadow-card:0 6px 16px rgba(0,0,0,.12);
+  --shadow-hover:0 10px 28px rgba(0,0,0,.16);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,sans-serif;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+
+/* ===== Top Nav ===== */
+.topnav{position:sticky;top:0;z-index:100;background:#fff;border-bottom:1px solid var(--border);padding:14px 0}
+.topnav-inner{max-width:1280px;margin:0 auto;padding:0 40px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.brand{display:flex;align-items:center;gap:8px;font-size:22px;font-weight:800;color:var(--rausch);letter-spacing:-.5px}
+.brand-icon{font-size:26px}
+.search-bar{flex:1;max-width:520px;display:flex;align-items:center;gap:0;border:1px solid var(--border-strong);border-radius:999px;padding:6px 6px 6px 20px;box-shadow:0 1px 2px rgba(0,0,0,.08);transition:box-shadow .2s}
+.search-bar:hover{box-shadow:0 4px 14px rgba(0,0,0,.12)}
+.search-segment{padding:8px 16px;font-size:14px;font-weight:600;color:var(--text);border-right:1px solid var(--border);cursor:pointer;flex:1}
+.search-segment:last-of-type{border-right:none;color:var(--text-soft);font-weight:400}
+.search-btn{margin-left:auto;width:36px;height:36px;border-radius:50%;background:var(--rausch);color:#fff;border:none;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;transition:background .15s}
+.search-btn:hover{background:var(--rausch-dark)}
+.nav-right{display:flex;align-items:center;gap:8px}
+.nav-link{padding:10px 14px;font-size:14px;font-weight:600;border-radius:999px;color:var(--text)}
+.nav-link:hover{background:var(--bg-soft)}
+
+/* ===== Filter Bar ===== */
+.filter-bar{border-bottom:1px solid var(--border);background:#fff;position:sticky;top:69px;z-index:50}
+.filter-inner{max-width:1280px;margin:0 auto;padding:18px 40px;display:flex;align-items:center;gap:32px;overflow-x:auto;scrollbar-width:none}
+.filter-inner::-webkit-scrollbar{display:none}
+.cat-pill{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;cursor:pointer;color:var(--text-soft);border-bottom:2px solid transparent;transition:all .15s;flex-shrink:0;min-width:64px}
+.cat-pill:hover{color:var(--text);border-bottom-color:var(--border-strong)}
+.cat-pill.active{color:var(--text);border-bottom-color:var(--text)}
+.cat-icon{font-size:24px;line-height:1;opacity:.85}
+.cat-label{font-size:12px;font-weight:600;letter-spacing:.02em;white-space:nowrap}
+
+/* ===== Card Grid ===== */
+.container{max-width:1280px;margin:0 auto;padding:32px 40px 80px}
+.section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:24px}
+.section-head h1{font-size:26px;font-weight:700;letter-spacing:-.5px}
+.section-head .count{font-size:14px;color:var(--text-soft);font-weight:500}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:32px 24px}
+.card{cursor:pointer;display:block}
+.card-img-wrap{position:relative;width:100%;aspect-ratio:1/1;border-radius:14px;overflow:hidden;background:var(--bg-soft);margin-bottom:12px}
+.card-img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .35s ease}
+.card:hover .card-img-wrap img{transform:scale(1.04)}
+.card-fav{position:absolute;top:14px;right:14px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(255,255,255,.95);text-shadow:0 1px 4px rgba(0,0,0,.3);cursor:pointer;transition:transform .15s}
+.card-fav:hover{transform:scale(1.15)}
+.card-badge{position:absolute;top:12px;left:12px;background:rgba(255,255,255,.95);padding:5px 10px;border-radius:999px;font-size:11px;font-weight:600;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.card-row1{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.card-name{font-size:15px;font-weight:600;color:var(--text);line-height:1.3;letter-spacing:-.1px}
+.card-rating{display:flex;align-items:center;gap:4px;font-size:14px;color:var(--text);font-weight:500;flex-shrink:0;white-space:nowrap}
+.card-name-zh{font-size:13px;color:var(--text-soft);margin-top:2px}
+.card-city{font-size:14px;color:var(--text-soft);margin-top:2px}
+.card-meta{font-size:14px;color:var(--text-soft);margin-top:6px}
+.card-price{margin-top:6px;font-size:14px;color:var(--text)}
+.card-price b{font-weight:600}
+
+/* ===== Footer ===== */
+footer{border-top:1px solid var(--border);background:var(--bg-soft);padding:40px;text-align:center;font-size:13px;color:var(--text-soft)}
+footer a{color:var(--rausch);font-weight:600}
+
+@media (max-width:768px){
+  .topnav-inner{padding:0 20px;flex-wrap:wrap;gap:12px}
+  .search-bar{order:3;width:100%;max-width:none;flex:1 0 100%}
+  .container{padding:24px 20px 60px}
+  .filter-inner{padding:14px 20px;gap:20px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:24px 16px}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== Top Nav ===== -->
+<nav class="topnav">
+  <div class="topnav-inner">
+    <a href="./holland-kids-explorer.html" class="brand"><span class="brand-icon">🌷</span>Holland Kids</a>
+    <div class="search-bar">
+      <div class="search-segment">Where</div>
+      <div class="search-segment">When</div>
+      <div class="search-segment">Who's coming</div>
+      <button class="search-btn">🔍</button>
+    </div>
+    <div class="nav-right">
+      <a class="nav-link" href="#">EN</a>
+      <a class="nav-link" href="#">中文</a>
+      <a class="nav-link" href="./holland-kids-explorer.html" style="background:var(--text);color:#fff">Current site</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== Filter Bar ===== -->
+<div class="filter-bar">
+  <div class="filter-inner">
+    <div class="cat-pill active"><div class="cat-icon">✨</div><div class="cat-label">All</div></div>
+    <div class="cat-pill"><div class="cat-icon">🎢</div><div class="cat-label">Theme parks</div></div>
+    <div class="cat-pill"><div class="cat-icon">🦒</div><div class="cat-label">Zoos</div></div>
+    <div class="cat-pill"><div class="cat-icon">🏛️</div><div class="cat-label">Museums</div></div>
+    <div class="cat-pill"><div class="cat-icon">🏖️</div><div class="cat-label">Beaches</div></div>
+    <div class="cat-pill"><div class="cat-icon">🎨</div><div class="cat-label">Art</div></div>
+    <div class="cat-pill"><div class="cat-icon">🌳</div><div class="cat-label">Nature</div></div>
+    <div class="cat-pill"><div class="cat-icon">🏊</div><div class="cat-label">Swimming</div></div>
+    <div class="cat-pill"><div class="cat-icon">🚂</div><div class="cat-label">Trains</div></div>
+    <div class="cat-pill"><div class="cat-icon">🍦</div><div class="cat-label">Treats</div></div>
+    <div class="cat-pill"><div class="cat-icon">🎭</div><div class="cat-label">Shows</div></div>
+  </div>
+</div>
+
+<!-- ===== Card Grid ===== -->
+<main class="container">
+  <div class="section-head">
+    <h1>Family-friendly places across the Netherlands</h1>
+    <div class="count">500+ venues · sorted by rating</div>
+  </div>
+  <div class="grid" id="grid">
+    <!-- cards injected by JS -->
+  </div>
+</main>
+
+<footer>
+  This is a design preview only — Airbnb-style. The current site remains at <a href="./holland-kids-explorer.html">holland-kids-explorer.html</a>.
+</footer>
+
+<script>
+const VENUES = [
+  {name:'Efteling',zh:'艾夫特琳',cat:'theme_park',badge:'🎢 Theme park',city:'Kaatsheuvel',rating:4.5,reviews:68247,img:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Efteling_Symbolica.jpg/640px-Efteling_Symbolica.jpg'},
+  {name:'Burgers\' Zoo',zh:'布尔格斯动物园',cat:'zoo',badge:'🦒 Zoo',city:'Arnhem',rating:4.6,reviews:24019,img:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Burgers_Zoo_Mangrove.jpg/640px-Burgers_Zoo_Mangrove.jpg'},
+  {name:'Artis',zh:'阿提斯动物园',cat:'zoo',badge:'🦒 Zoo',city:'Amsterdam',rating:4.5,reviews:27834,img:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Artis_Zoo_entrance.jpg/640px-Artis_Zoo_entrance.jpg'},
+  {name:'Apenheul',zh:'猿猴乐园',cat:'zoo',badge:'🦒 Zoo',city:'Apeldoorn',rating:4.5,reviews:16789,img:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Apenheul_primate_park.jpg/640px-Apenheul_primate_park.jpg'},
+  {name:'Toverland',zh:'魔法乐园',cat:'theme_park',badge:'🎢 Theme park',city:'Sevenum',rating:4.5,reviews:24103,img:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Toverland_-_Fenix.jpg/640px-Toverland_-_Fenix.jpg'},
+  {name:'GaiaZOO',zh:'盖亚动物园',cat:'zoo',badge:'🦒 Zoo',city:'Kerkrade',rating:4.5,reviews:9823,img:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/GaiaZOO_Kerkrade.jpg/640px-GaiaZOO_Kerkrade.jpg'},
+  {name:'Beekse Bergen',zh:'贝克赛贝亨野生动物园',cat:'zoo',badge:'🦒 Safari',city:'Hilvarenbeek',rating:4.4,reviews:19305,img:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Safaripark_Beekse_Bergen.jpg/640px-Safaripark_Beekse_Bergen.jpg'},
+  {name:'Dierenpark Amersfoort',zh:'阿默斯福特动物园',cat:'zoo',badge:'🦒 Zoo',city:'Amersfoort',rating:4.4,reviews:14567,img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/DierenparkAmersfoort_Dino.jpg/640px-DierenparkAmersfoort_Dino.jpg'},
+  {name:'Duinrell',zh:'杜因勒尔',cat:'theme_park',badge:'🎢 Theme park',city:'Wassenaar',rating:4.3,reviews:18762,img:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Duinrell_Tikibad.jpg/640px-Duinrell_Tikibad.jpg'},
+  {name:'Julianatoren',zh:'朱莉安娜塔乐园',cat:'theme_park',badge:'🎢 Theme park',city:'Apeldoorn',rating:4.3,reviews:7821,img:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Julianatoren_Apeldoorn.jpg/640px-Julianatoren_Apeldoorn.jpg'},
+  {name:'Plaswijckpark',zh:'普拉斯维克公园',cat:'theme_park',badge:'🎢 Theme park',city:'Rotterdam',rating:4.2,reviews:6543,img:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Plaswijckpark_Rotterdam.jpg/640px-Plaswijckpark_Rotterdam.jpg'},
+  {name:'Walibi Holland',zh:'瓦利比',cat:'theme_park',badge:'🎢 Theme park',city:'Biddinghuizen',rating:4.1,reviews:21534,img:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Walibi_Holland_-_Lost_Gravity_-_panoramio.jpg/640px-Walibi_Holland_-_Lost_Gravity_-_panoramio.jpg'},
+  {name:'Avonturenpark Hellendoorn',zh:'海伦多恩冒险乐园',cat:'theme_park',badge:'🎢 Theme park',city:'Hellendoorn',rating:4.1,reviews:9247,img:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Avonturenpark_Hellendoorn.jpg/640px-Avonturenpark_Hellendoorn.jpg'},
+  {name:'Drievliet',zh:'三叶草乐园',cat:'theme_park',badge:'🎢 Theme park',city:'Den Haag',rating:4.1,reviews:8934,img:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Familiepark_Drievliet_Entree.jpg/640px-Familiepark_Drievliet_Entree.jpg'},
+  {name:'Dolfinarium',zh:'海豚馆',cat:'zoo',badge:'🐬 Marine',city:'Harderwijk',rating:4.0,reviews:13245,img:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Dolfinarium_Harderwijk.jpg/640px-Dolfinarium_Harderwijk.jpg'},
+  {name:'Slagharen',zh:'斯拉格哈伦游乐园',cat:'theme_park',badge:'🎢 Theme park',city:'Slagharen',rating:4.0,reviews:12891,img:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Attractiepark_Slagharen.jpg/640px-Attractiepark_Slagharen.jpg'},
+];
+const grid=document.getElementById('grid');
+VENUES.forEach(v=>{
+  const a=document.createElement('a');
+  a.className='card';
+  a.href='#';
+  a.innerHTML=`
+    <div class="card-img-wrap">
+      <span class="card-badge">${v.badge}</span>
+      <span class="card-fav">♡</span>
+      <img src="${v.img}" alt="${v.name}" loading="lazy" onerror="this.style.display='none'">
+    </div>
+    <div class="card-row1">
+      <div>
+        <div class="card-name">${v.name}</div>
+        <div class="card-name-zh">${v.zh}</div>
+      </div>
+      <div class="card-rating">★ ${v.rating.toFixed(2)}</div>
+    </div>
+    <div class="card-city">${v.city}, Netherlands</div>
+    <div class="card-meta">${v.reviews.toLocaleString()} reviews</div>
+    <div class="card-price"><b>Family-friendly</b> · all ages</div>
+  `;
+  grid.appendChild(a);
+});
+document.querySelectorAll('.cat-pill').forEach(p=>p.addEventListener('click',()=>{
+  document.querySelectorAll('.cat-pill').forEach(x=>x.classList.remove('active'));
+  p.classList.add('active');
+}));
+</script>
+</body>
+</html>
