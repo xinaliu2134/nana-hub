@@ -37,11 +37,13 @@ def haversine_m(a1,o1,a2,o2):
     dp=math.radians(a2-a1); dl=math.radians(o2-o1)
     return 2*R*math.asin(math.sqrt(math.sin(dp/2)**2+math.cos(p1)*math.cos(p2)*math.sin(dl/2)**2))
 
-UA = {'User-Agent':'HollandKidsExplorer-DataAudit/1.0'}
+UA = {'User-Agent':'KidsExplorer-DataAudit/1.0'}
+COUNTRY_CODE = None  # Set via --country flag; filters Nominatim results
 
 def nominatim(query):
     url = 'https://nominatim.openstreetmap.org/search?' + urllib.parse.urlencode({
-        'q': query, 'format':'json', 'limit':1, 'countrycodes':'nl'
+        'q': query, 'format':'json', 'limit':1,
+        **({'countrycodes': COUNTRY_CODE} if COUNTRY_CODE else {})
     })
     try:
         req = urllib.request.Request(url, headers=UA)
@@ -54,7 +56,7 @@ def nominatim(query):
     return None
 
 def photon(query, bias_lat=None, bias_lon=None):
-    params = {'q':query, 'limit':1, 'lang':'en'}
+    params = {'q':query, 'limit':3, 'lang':'en'}
     if bias_lat is not None:
         params['lat']=bias_lat; params['lon']=bias_lon
     url = 'https://photon.komoot.io/api/?' + urllib.parse.urlencode(params)
@@ -63,7 +65,8 @@ def photon(query, bias_lat=None, bias_lon=None):
         with urllib.request.urlopen(req, timeout=15) as r:
             data = json.loads(r.read())
             for f in data.get('features',[]):
-                if f['properties'].get('countrycode') == 'NL':
+                cc = f['properties'].get('countrycode')
+                if COUNTRY_CODE is None or cc == COUNTRY_CODE.upper():
                     c = f['geometry']['coordinates']  # [lon,lat]
                     return float(c[1]), float(c[0]), f['properties'].get('name','')
     except Exception as e:
@@ -71,7 +74,7 @@ def photon(query, bias_lat=None, bias_lon=None):
     return None
 
 ENTRY_RE = re.compile(
-    r"\{\s*type:'node',id:(\d+),lat:([\d.]+),lon:([\d.]+),\s*tags:\{([^}]*)\}\s*\}",
+    r"\{\s*type:'node',id:(\d+),lat:(-?[\d.]+),lon:(-?[\d.]+),\s*tags:\{([^}]*)\}\s*\}",
     re.DOTALL
 )
 
@@ -84,7 +87,7 @@ def get_tag(tags, key):
     return mm.group(1) if mm else None
 
 def extract_entries(html, categories):
-    m = re.search(r'const STATIC_NL_VENUES = \[(.*?)^\];', html, re.DOTALL|re.MULTILINE)
+    m = re.search(r'const STATIC_[A-Z]{2,3}_VENUES\s*=\s*\[(.*?)\n\s*\];', html, re.DOTALL)
     if not m:
         print('ERROR: STATIC_NL_VENUES array not found', file=sys.stderr)
         return []
@@ -115,23 +118,25 @@ def extract_entries(html, categories):
                 break
     return entries
 
-def build_query(e):
+def build_query(e, country_name):
     if e['name'] and e['city']:
-        return f"{e['name']}, {e['city']}, Netherlands"
+        return f"{e['name']}, {e['city']}, {country_name}"
     if e['street'] and e['housenumber'] and e['city']:
-        return f"{e['street']} {e['housenumber']}, {e['city']}, Netherlands"
+        return f"{e['street']} {e['housenumber']}, {e['city']}, {country_name}"
     if e['name']:
-        return f"{e['name']}, Netherlands"
+        return f"{e['name']}, {country_name}"
     return None
 
-def audit(html_path, categories, out_path):
+def audit(html_path, categories, out_path, country_name, country_code):
+    global COUNTRY_CODE
+    COUNTRY_CODE = country_code
     html = open(html_path).read()
     entries = extract_entries(html, categories)
-    print(f'Extracted {len(entries)} venues across {len(categories)} categories', file=sys.stderr)
+    print(f'Extracted {len(entries)} venues across {len(categories)} categories [{country_name}/{country_code}]', file=sys.stderr)
 
     results = []
     for i, e in enumerate(entries):
-        q = build_query(e)
+        q = build_query(e, country_name)
         if not q:
             results.append({**e, 'new_lat':None, 'new_lon':None, 'source':None})
             continue
@@ -175,5 +180,7 @@ if __name__ == '__main__':
     p.add_argument('--categories', nargs='+', required=True,
                    help='OSM tag values to audit (e.g. indoor_playground theme_park)')
     p.add_argument('--out', default='/tmp/audit_plan.json')
+    p.add_argument('--country', required=True, help='Country name (e.g. Netherlands)')
+    p.add_argument('--cc', required=True, help='ISO country code lowercase (e.g. nl)')
     args = p.parse_args()
-    audit(args.html_file, args.categories, args.out)
+    audit(args.html_file, args.categories, args.out, args.country, args.cc)

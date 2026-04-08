@@ -32,7 +32,7 @@ def apply(html_path, plan_path, min_dist, max_dist, dry_run):
             skipped_too_far += 1
             print(f"  REJECT id:{e['id']} {e['name']} — dist {d:.0f}m > max", file=sys.stderr)
             continue
-        pat = re.compile(rf"(\{{\s*type:'node',id:{e['id']},lat:)([\d.]+)(,lon:)([\d.]+)")
+        pat = re.compile(rf"(\{{\s*type:'node',id:{e['id']},lat:)(-?[\d.]+)(,lon:)(-?[\d.]+)")
         new_html, n = pat.subn(rf"\g<1>{e['new_lat']:.6f}\g<3>{e['new_lon']:.6f}", html)
         if n == 1:
             html = new_html
