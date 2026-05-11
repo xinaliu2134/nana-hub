@@ -373,6 +373,35 @@
         .reg-card:hover .reg-card-cta { color: var(--gold); }
         .reg-card:hover .reg-card-cta::after { transform: translateX(5px); }
 
+        /* Stretched-link pattern: makes the entire flagship card clickable via the CTA,
+           while still allowing nested links (e.g. FDA source) to sit on top. */
+        .reg-card-stretch::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
+        .reg-card-source {
+            position: relative;
+            z-index: 2;
+            font-size: 12px;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.55);
+            margin: -14px 0 26px;
+            letter-spacing: 0.01em;
+        }
+        .reg-card-source a {
+            color: rgba(255, 255, 255, 0.78);
+            text-decoration: underline;
+            text-decoration-color: rgba(255, 255, 255, 0.22);
+            text-underline-offset: 2px;
+            transition: color 0.2s, text-decoration-color 0.2s;
+        }
+        .reg-card-source a:hover {
+            color: var(--gold-soft);
+            text-decoration-color: var(--gold-soft);
+        }
+
         /* ── Clinical Toolkit ─────────────────────────────── */
         .toolkit-section { background: var(--bg-warm); }
         .toolkit-grid {
@@ -892,7 +921,7 @@
 
             <div class="reg-suite-grid">
                 <!-- Flagship: TobaccoEpi CSUR -->
-                <a href="https://xinaliu2134.github.io/tobaccoepi-csur/" target="_blank" rel="noopener" class="reg-card flagship reveal">
+                <div class="reg-card flagship reveal">
                     <div class="reg-card-header">
                         <span class="reg-card-tag">Flagship Platform</span>
                         <span class="reg-card-badge">EpiDataKit · Gated Access</span>
@@ -915,8 +944,12 @@
                         <span class="reg-module">PMTA Roadmap</span>
                         <span class="reg-module">MGO Feasibility</span>
                     </div>
-                    <span class="reg-card-cta">Access Platform</span>
-                </a>
+                    <p class="reg-card-source">
+                        Adverse events data:
+                        <a href="https://www.fda.gov/tobacco-products/tobacco-science-research/tobacco-product-problem-reports" target="_blank" rel="noopener">FDA Tobacco Product Problem Reports →</a>
+                    </p>
+                    <a href="https://xinaliu2134.github.io/tobaccoepi-csur/" target="_blank" rel="noopener" class="reg-card-cta reg-card-stretch">Access Platform</a>
+                </div>
 
                 <!-- TPL Dashboard -->
                 <a href="https://xinaliu2134.github.io/tpl-dashboard/" target="_blank" rel="noopener" class="reg-card reveal reveal-d1">
