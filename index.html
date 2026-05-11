@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Nana Liu, PhD — NGP Regulatory Scientist | CSUR Research and Consultancy</title>
+    <title>Nana Liu, PhD — NGP Regulatory Scientist &amp; Tool Builder</title>
     <meta name="description" content="Dr. Xiaona (Nana) Liu — regulatory epidemiologist and former Head of Clinical Sciences at SMOORE International. Builder of TobaccoEpi, TPL Dashboard, TobaccoDB, Sample Size Calculator. FDA PMTA · EU TPD3 · HPHC compliance.">
     <link rel="canonical" href="https://xinaliu2134.github.io/nana-hub/">
     <meta property="og:title" content="Nana Liu, PhD — NGP Regulatory Scientist">
@@ -523,6 +523,138 @@
         }
         .expertise-card p { font-size: 14.5px; line-height: 1.65; color: var(--text-muted); }
 
+        /* ── AI Strip ─────────────────────────────── */
+        .ai-strip {
+            background: var(--navy-deep);
+            color: var(--surface);
+            padding: 68px 0;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        .ai-strip::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            left: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(201, 168, 76, 0.1) 0%, transparent 65%);
+            pointer-events: none;
+        }
+        .ai-strip-inner {
+            position: relative;
+            z-index: 2;
+            max-width: 880px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .ai-strip .label {
+            color: var(--gold-soft);
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+        .ai-strip h3 {
+            color: var(--surface);
+            font-size: 26px;
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: -0.01em;
+            margin-bottom: 14px;
+        }
+        .ai-strip p {
+            font-size: 15.5px;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.72);
+            font-weight: 300;
+            margin-bottom: 28px;
+        }
+        .ai-strip-tags {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .ai-strip-tag {
+            font-size: 12.5px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.85);
+            padding: 7px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(201, 168, 76, 0.25);
+            border-radius: 999px;
+        }
+        .ai-strip-tag strong {
+            color: var(--gold-soft);
+            font-weight: 600;
+            margin-right: 6px;
+        }
+
+        /* ── Work & Collaboration ─────────────────────────────── */
+        .work-section { background: var(--bg); }
+        .work-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+        .work-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 36px 32px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .work-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--gold);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+        .work-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--gold-pale);
+        }
+        .work-card:hover::before { transform: scaleX(1); }
+        .work-card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--navy);
+            margin-bottom: 22px;
+            transition: all 0.3s ease;
+        }
+        .work-card-icon svg { width: 22px; height: 22px; stroke-width: 1.6; }
+        .work-card:hover .work-card-icon { background: var(--navy); color: var(--gold); }
+        .work-card h3 {
+            font-size: 20px; font-weight: 600;
+            margin-bottom: 14px; color: var(--navy);
+        }
+        .work-card p {
+            font-size: 15px; line-height: 1.7;
+            color: var(--text-soft);
+        }
+
+        /* Nav text-only Connect link (replaces gold button) */
+        .nav-connect {
+            color: var(--navy) !important;
+            font-weight: 600 !important;
+        }
+        .nav-connect:hover { color: var(--gold) !important; }
+
         /* ── Services ─────────────────────────────── */
         .services-section { background: var(--bg); }
         .services-intro {
@@ -779,6 +911,7 @@
             .reg-card.flagship { grid-row: auto; }
             .toolkit-grid { grid-template-columns: repeat(2, 1fr); }
             .expertise-grid { grid-template-columns: repeat(2, 1fr); }
+            .work-grid { grid-template-columns: 1fr; }
             .services-grid { grid-template-columns: 1fr; }
             .about-grid { grid-template-columns: 1fr; gap: 40px; }
             .credentials-card { position: static; }
@@ -831,6 +964,9 @@
             .expertise-grid { grid-template-columns: 1fr; }
             .expertise-card { padding: 28px 24px; }
 
+            .ai-strip { padding: 48px 0; }
+            .ai-strip h3 { font-size: 22px; }
+            .work-card { padding: 28px 24px; }
             .service-card { padding: 28px 24px; }
             .services-cta { padding: 28px 20px; }
             .services-cta .btn { width: 100%; justify-content: center; }
@@ -862,14 +998,11 @@
                 <span></span><span></span><span></span>
             </button>
             <ul class="nav-links" id="navLinks">
-                <li><a href="#suite">Regulatory Suite</a></li>
-                <li><a href="#toolkit">Clinical Toolkit</a></li>
                 <li><a href="#expertise">Expertise</a></li>
-                <li><a href="#services">Services</a></li>
+                <li><a href="#suite">Tools</a></li>
+                <li><a href="#work">Work</a></li>
                 <li><a href="#about">About</a></li>
-                <li><a href="#contact" class="btn btn-dark">Book a Consultation
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-                </a></li>
+                <li><a href="#contact" class="nav-connect">Connect →</a></li>
             </ul>
         </div>
     </nav>
@@ -886,17 +1019,12 @@
                     Building the scientific infrastructure for <span class="highlight">next-generation product regulation.</span>
                 </h1>
                 <p class="hero-sub reveal reveal-d2">
-                    Dr. Nana Liu is a regulatory epidemiologist and former <strong>Head of Clinical Sciences at SMOORE International</strong> —
-                    the world's largest NGP manufacturer. She now builds open <strong>regulatory intelligence tools</strong>
-                    and advises companies navigating <strong>FDA PMTA</strong>, <strong>EU TPD3</strong>, and
-                    <strong>HPHC compliance</strong>.
+                    Regulatory epidemiologist. NGP scientist. Tool builder. Former
+                    <strong>Head of Clinical Sciences at SMOORE International</strong> — the world's
+                    largest NGP manufacturer.
                 </p>
                 <div class="hero-cta-row reveal reveal-d3">
-                    <a href="#suite" class="btn btn-primary">
-                        Explore the Regulatory Suite
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-                    </a>
-                    <a href="#contact" class="btn btn-ghost">Request a Proposal</a>
+                    <a href="#suite" class="btn btn-ghost">View my work ↓</a>
                     <a href="#about" class="hero-scroll-link">More about Nana</a>
                 </div>
             </div>
@@ -934,9 +1062,9 @@
                 <span class="suite-meta">Regulatory Intelligence Suite</span>
                 <h2 class="h2" style="margin-top: 18px;">Three tools. One regulatory operating system.</h2>
                 <p class="lead">
-                    A purpose-built suite for NGP manufacturers, regulatory teams, and litigation counsel —
-                    combining FDA CTP weighted surveillance, PMTA decision intelligence, and a global
-                    compliance database. Independent. Transparent. Used in production.
+                    Built for the NGP regulatory community — independent, open, and evidence-based.
+                    FDA CTP weighted surveillance, PMTA decision intelligence, and a searchable
+                    global compliance database.
                 </p>
             </div>
 
@@ -950,11 +1078,10 @@
                     <h3>Tobacco<span class="em">Epi</span></h3>
                     <p class="reg-card-tagline">Youth Tobacco Surveillance &amp; Regulatory Intelligence</p>
                     <p class="reg-card-desc">
-                        The only independent regulatory intelligence platform combining
+                        An independent regulatory intelligence platform combining
                         <strong style="color: rgba(255,255,255,0.95)">NYTS 2025 FDA CTP PUF weighted surveillance</strong>,
-                        PMTA benchmark analysis, and a population harm-reduction simulator. Built for NGP
-                        manufacturers preparing FDA PMTA and MRTP submissions, and for the regulatory teams
-                        that have to defend them.
+                        PMTA benchmark analysis, and a population harm-reduction simulator —
+                        with the methods, sources, and code paths surfaced for inspection.
                     </p>
                     <div class="reg-card-modules">
                         <span class="reg-module gold">Brand Surveillance</span>
@@ -1071,15 +1198,36 @@
                     <span class="toolkit-card-cta">Open PharmaEpi</span>
                 </a>
 
-                <a href="#contact" class="toolkit-card reveal reveal-d2" style="background: var(--navy); color: var(--surface); border-color: var(--navy);">
+                <a href="https://github.com/xinaliu2134" target="_blank" rel="noopener" class="toolkit-card reveal reveal-d2" style="background: var(--navy); color: var(--surface); border-color: var(--navy);">
                     <div class="toolkit-card-icon" style="background: rgba(201, 168, 76, 0.15); color: var(--gold-soft);">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
                     </div>
-                    <span class="toolkit-tag" style="color: var(--gold-soft);">Custom Tooling</span>
-                    <h3 style="color: var(--surface);">Need something custom?</h3>
-                    <p style="color: rgba(255,255,255,0.7);">If your team needs a bespoke regulatory or epidemiology tool — internal dashboards, study calculators, evidence pipelines — CSUR builds and operates them under retainer.</p>
-                    <span class="toolkit-card-cta" style="color: var(--gold-soft);">Discuss a Build</span>
+                    <span class="toolkit-tag" style="color: var(--gold-soft);">Applied AI</span>
+                    <h3 style="color: var(--surface);">Built with AI</h3>
+                    <p style="color: rgba(255,255,255,0.7);">These tools were designed and developed using applied AI — from automated data pipelines (GitHub Actions, Python scripting) to LLM-assisted analysis and interface generation. Practical AI application is central to how this work gets done.</p>
+                    <span class="toolkit-card-cta" style="color: var(--gold-soft);">View on GitHub</span>
                 </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Applied AI Strip ────────────────────────────── -->
+    <section class="ai-strip" aria-label="Applied AI in Practice">
+        <div class="container">
+            <div class="ai-strip-inner reveal">
+                <span class="label">AI · Automation · Tooling</span>
+                <h3>Applied AI in Practice</h3>
+                <p>
+                    The tools on this site are built with applied AI — LLM-assisted development,
+                    automated regulatory data pipelines, and AI-powered analysis workflows.
+                    This isn't theoretical: every tool here is a working product built and
+                    maintained using practical AI techniques.
+                </p>
+                <div class="ai-strip-tags">
+                    <span class="ai-strip-tag"><strong>GitHub Actions</strong>Automated FDA data updates</span>
+                    <span class="ai-strip-tag"><strong>LLM-assisted</strong>Tool design &amp; development</span>
+                    <span class="ai-strip-tag"><strong>Python + AI</strong>Regulatory data pipelines</span>
+                </div>
             </div>
         </div>
     </section>
@@ -1139,48 +1287,40 @@
         </div>
     </section>
 
-    <!-- ── Services ────────────────────────────── -->
-    <section class="services-section" id="services">
+    <!-- ── Work & Collaboration ────────────────────────────── -->
+    <section class="work-section" id="work">
         <div class="container">
             <div class="section-head reveal">
-                <span class="label">Consulting Services</span>
-                <h2 class="h2">From evidence gap to regulatory submission.</h2>
-                <p class="services-intro">
-                    I work with NGP manufacturers, startups entering the US/EU market, and law firms requiring
-                    expert scientific support. Engagements range from a single expert call to full dossier
-                    development — always senior-led, never handed off to a junior team you've never met.
+                <span class="label">Work &amp; Collaboration</span>
+                <h2 class="h2">How the work gets done.</h2>
+                <p class="lead">
+                    I work across research, regulatory science, and digital tool-building —
+                    independently and in collaboration with scientists, regulators, and product teams.
                 </p>
             </div>
 
-            <div class="services-grid">
-                <div class="service-card reveal">
-                    <h3>Regulatory Strategy &amp; Gap Analysis</h3>
-                    <p>Pre-submission FDA / EU audit. Identify the critical evidence gaps that would otherwise become filing delays, deficiencies, or marketing-denial orders.</p>
-                    <p class="service-meta">Typical engagement: 2–4 weeks · Fixed-fee scoping available</p>
+            <div class="work-grid">
+                <div class="work-card reveal">
+                    <div class="work-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v6.5L4 18a2 2 0 001.7 3h12.6a2 2 0 001.7-3L14 8.5V2"/><path d="M8 2h8M7 14h10"/></svg>
+                    </div>
+                    <h3>Independent Research</h3>
+                    <p>Epidemiological analysis, RWE methodology, and regulatory evidence synthesis — conducted independently using open data sources, FDA CTP databases, and primary research frameworks.</p>
                 </div>
-                <div class="service-card reveal reveal-d1">
-                    <h3>PMTA / MRTP Dossier Support</h3>
-                    <p>Scientific narrative development, HPHC framework design, and reviewer-ready data packages — built around your product, your timeline, and your commercial plan.</p>
-                    <p class="service-meta">Typical engagement: 3–6 months · Senior-led, embedded in your team</p>
+                <div class="work-card reveal reveal-d1">
+                    <div class="work-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="13" y1="3" x2="11" y2="21"/></svg>
+                    </div>
+                    <h3>Tool Development</h3>
+                    <p>Building open regulatory intelligence tools — from automated FDA data pipelines and statistical calculators to bilingual surveillance dashboards. Designed for scientists, by a scientist.</p>
                 </div>
-                <div class="service-card reveal reveal-d2">
-                    <h3>Expert Witness &amp; Advisory</h3>
-                    <p>Qualified as a regulatory science expert for litigation, investor due diligence, and board-level scientific advisory — independent, defensible, and unconflicted.</p>
-                    <p class="service-meta">Available via GLG, AlphaSights, or directly · Hourly &amp; retainer</p>
+                <div class="work-card reveal reveal-d2">
+                    <div class="work-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="3.5"/><circle cx="17" cy="7" r="3"/><path d="M2 21v-1.5A4.5 4.5 0 016.5 15h5A4.5 4.5 0 0116 19.5V21"/><path d="M16 14a3.5 3.5 0 013.5 3.5V19"/></svg>
+                    </div>
+                    <h3>Scientific Advisory</h3>
+                    <p>Expert scientific perspective on NGP regulatory strategy, PMTA/MRTP evidence design, and harm-reduction research — grounded in operational fluency from inside the industry, not generic consultancy.</p>
                 </div>
-                <div class="service-card reveal reveal-d3">
-                    <h3>Real-World Evidence Study Design</h3>
-                    <p>Full protocol design for post-market surveillance, harm-reduction cohort studies, and comparative-effectiveness research — methodologically rigorous, regulator-aware.</p>
-                    <p class="service-meta">Typical engagement: 4–8 weeks · CRO oversight included</p>
-                </div>
-            </div>
-
-            <div class="services-cta reveal">
-                <p>Not sure what you need? Start with a 30-minute scoping call — no commitment required.</p>
-                <a href="#contact" class="btn btn-dark">
-                    Schedule a Free Scoping Call
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-                </a>
             </div>
         </div>
     </section>
@@ -1306,37 +1446,36 @@
     <section class="contact-section" id="contact">
         <div class="container">
             <div class="contact-inner">
-                <span class="label">Engagements &amp; Inquiries</span>
-                <h2>Ready to strengthen your regulatory position?</h2>
+                <span class="label">Contact</span>
+                <h2>Get in Touch</h2>
                 <p class="contact-sub">
-                    Whether you're preparing a PMTA filing, navigating EU TPD3, evaluating an expert witness,
-                    or commissioning a custom regulatory tool — let's talk. Most engagements begin with a
-                    straightforward scoping conversation.
+                    I'm open to research collaborations, scientific discussions, and connecting with
+                    others working at the intersection of regulatory science and public health.
                 </p>
 
                 <div class="contact-options">
                     <a href="mailto:xinaliu@gmail.com" class="contact-option">
-                        <span class="contact-option-label">Direct Email</span>
+                        <span class="contact-option-label">Email</span>
                         <span class="contact-option-value">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg>
                             xinaliu@gmail.com
                         </span>
                     </a>
                     <a href="https://www.linkedin.com/in/xiaona-nana-liu/" target="_blank" rel="noopener" class="contact-option">
-                        <span class="contact-option-label">Expert Networks</span>
+                        <span class="contact-option-label">LinkedIn</span>
                         <span class="contact-option-value">
                             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.063 2.063 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452z"/></svg>
-                            Available on GLG &amp; AlphaSights
+                            Xiaona (Nana) Liu, PhD
                         </span>
                     </a>
                 </div>
 
-                <a href="mailto:xinaliu@gmail.com?subject=Proposal%20Inquiry%20%E2%80%94%20CSUR%20Research%20%26%20Consultancy&body=Hi%20Nana%2C%0A%0AI%27d%20like%20to%20discuss%20a%20potential%20engagement%3A%0A%0A-%20Company%2FOrganization%3A%0A-%20Product%20category%20(ENDS%2FHTP%2Fmodern%20oral%2Fother)%3A%0A-%20Target%20market(s)%3A%0A-%20Specific%20regulatory%20challenge%3A%0A-%20Desired%20engagement%20timing%3A%0A%0AThanks%2C" class="btn btn-primary" style="font-size: 16px; padding: 18px 36px;">
-                    Request a Proposal
+                <a href="mailto:xinaliu@gmail.com" class="btn btn-primary" style="font-size: 16px; padding: 18px 36px;">
+                    Say Hello
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
                 </a>
                 <p class="contact-fineprint">
-                    Response within 1 business day <span>·</span> Confidentiality guaranteed <span>·</span> Global clients welcome
+                    Based in Shenzhen <span>·</span> Working globally
                 </p>
             </div>
         </div>
@@ -1349,15 +1488,14 @@
                 <div>
                     <div class="footer-brand-name">Nana Liu, PhD</div>
                     <p class="footer-tagline">
-                        NGP Regulatory Scientist<br>
-                        Principal Scientist, CSUR Research and Consultancy
+                        Regulatory Scientist · Tool Builder · NGP · Epidemiology
                     </p>
                 </div>
                 <ul class="footer-links">
-                    <li><a href="#suite">Regulatory Suite</a></li>
-                    <li><a href="#toolkit">Clinical Toolkit</a></li>
                     <li><a href="#expertise">Expertise</a></li>
-                    <li><a href="#services">Services</a></li>
+                    <li><a href="#suite">Tools</a></li>
+                    <li><a href="#toolkit">Clinical Toolkit</a></li>
+                    <li><a href="#work">Work</a></li>
                     <li><a href="#about">About</a></li>
                     <li><a href="#public-health">Public Health</a></li>
                     <li><a href="#contact">Contact</a></li>
@@ -1375,7 +1513,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <span>&copy; 2026 CSUR Research and Consultancy · All rights reserved.</span>
+                <span>&copy; 2026 Nana Liu</span>
                 <span class="footer-bottom-right">Built with precision. Like the science.</span>
             </div>
         </div>
@@ -1413,16 +1551,18 @@
             link.addEventListener('click', () => navLinks.classList.remove('open'));
         });
 
-        // Active nav highlight
-        const sectionIds = ['suite', 'toolkit', 'expertise', 'services', 'about', 'contact'];
+        // Active nav highlight — only swap active state when a matching nav link exists
+        const sectionIds = ['expertise', 'suite', 'toolkit', 'work', 'about', 'contact'];
         const sections = sectionIds.map(id => document.getElementById(id)).filter(Boolean);
-        const navAnchors = document.querySelectorAll('.nav-links a:not(.btn)');
+        const navAnchors = document.querySelectorAll('.nav-links a');
         const sectionObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    navAnchors.forEach(a => a.classList.remove('active'));
                     const match = document.querySelector(`.nav-links a[href="#${entry.target.id}"]`);
-                    if (match) match.classList.add('active');
+                    if (match) {
+                        navAnchors.forEach(a => a.classList.remove('active'));
+                        match.classList.add('active');
+                    }
                 }
             });
         }, { rootMargin: '-40% 0px -55% 0px' });
