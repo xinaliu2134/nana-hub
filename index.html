@@ -259,13 +259,9 @@
         .reg-suite-grid {
             display: grid;
             grid-template-columns: 1.4fr 1fr;
+            grid-auto-rows: 1fr;
             gap: 24px;
-        }
-        .reg-suite-row-2 {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 24px;
-            margin-top: 24px;
+            align-items: stretch;
         }
         .reg-card {
             background: rgba(255, 255, 255, 0.04);
@@ -314,6 +310,29 @@
             background: var(--gold);
             color: var(--navy);
             border-color: var(--gold);
+        }
+        /* Clickable tag-link pill — escapes the stretched-link overlay on the flagship */
+        a.reg-card-tag {
+            text-decoration: none;
+            position: relative;
+            z-index: 2;
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+        a.reg-card-tag:hover {
+            background: var(--gold-soft);
+            border-color: var(--gold-soft);
+            box-shadow: 0 6px 16px rgba(201, 168, 76, 0.4);
+            transform: translateY(-1px);
+        }
+        .reg-card-tag-link {
+            text-transform: none;
+            letter-spacing: 0.01em;
+            font-size: 12.5px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
         .reg-card-badge {
             font-size: 11px; font-weight: 500;
@@ -753,9 +772,8 @@
         /* ── Responsive ─────────────────────────────── */
         @media (max-width: 1024px) {
             .credibility-grid { grid-template-columns: repeat(2, 1fr); gap: 28px 24px; }
-            .reg-suite-grid { grid-template-columns: 1fr; }
+            .reg-suite-grid { grid-template-columns: 1fr; grid-auto-rows: auto; }
             .reg-card.flagship { grid-row: auto; }
-            .reg-suite-row-2 { grid-template-columns: 1fr; }
             .toolkit-grid { grid-template-columns: repeat(2, 1fr); }
             .expertise-grid { grid-template-columns: repeat(2, 1fr); }
             .services-grid { grid-template-columns: 1fr; }
@@ -911,7 +929,7 @@
         <div class="container">
             <div class="section-head reveal">
                 <span class="suite-meta">Regulatory Intelligence Suite</span>
-                <h2 class="h2" style="margin-top: 18px;">Four tools. One regulatory operating system.</h2>
+                <h2 class="h2" style="margin-top: 18px;">Three tools. One regulatory operating system.</h2>
                 <p class="lead">
                     A purpose-built suite for NGP manufacturers, regulatory teams, and litigation counsel —
                     combining FDA CTP weighted surveillance, PMTA decision intelligence, and a global
@@ -920,10 +938,10 @@
             </div>
 
             <div class="reg-suite-grid">
-                <!-- Flagship: TobaccoEpi -->
+                <!-- Flagship: TobaccoEpi (spans both rows in column 1) -->
                 <div class="reg-card flagship reveal">
                     <div class="reg-card-header">
-                        <span class="reg-card-tag">Flagship Platform</span>
+                        <a href="https://xinaliu2134.github.io/tobaccoepi/" target="_blank" rel="noopener" class="reg-card-tag reg-card-tag-link" aria-label="Open the open-access TobaccoEpi platform in a new tab">TobaccoEpi →</a>
                         <span class="reg-card-badge">EpiDataKit · Gated Access</span>
                     </div>
                     <h3>Tobacco<span class="em">Epi</span></h3>
@@ -951,7 +969,7 @@
                     <a href="https://xinaliu2134.github.io/tobaccoepi-csur/" target="_blank" rel="noopener" class="reg-card-cta reg-card-stretch">Access Platform</a>
                 </div>
 
-                <!-- TPL Dashboard -->
+                <!-- TPL Dashboard (column 2, row 1) -->
                 <a href="https://xinaliu2134.github.io/tpl-dashboard/" target="_blank" rel="noopener" class="reg-card reveal reveal-d1">
                     <div class="reg-card-header">
                         <span class="reg-card-tag">FDA Reviews</span>
@@ -966,11 +984,9 @@
                     </p>
                     <span class="reg-card-cta">Open Dashboard</span>
                 </a>
-            </div>
 
-            <div class="reg-suite-row-2">
-                <!-- TobaccoDB -->
-                <a href="https://xinaliu2134.github.io/tobaccodb/" target="_blank" rel="noopener" class="reg-card reveal">
+                <!-- TobaccoDB (column 2, row 2) -->
+                <a href="https://xinaliu2134.github.io/tobaccodb/" target="_blank" rel="noopener" class="reg-card reveal reveal-d2">
                     <div class="reg-card-header">
                         <span class="reg-card-tag">Compliance DB</span>
                     </div>
@@ -982,21 +998,6 @@
                         submission history, and compliance requirements across the US market.
                     </p>
                     <span class="reg-card-cta">Search Database</span>
-                </a>
-
-                <!-- TobaccoEpi (legacy/companion) -->
-                <a href="https://xinaliu2134.github.io/tobaccoepi/" target="_blank" rel="noopener" class="reg-card reveal reveal-d1">
-                    <div class="reg-card-header">
-                        <span class="reg-card-tag">Open Access</span>
-                    </div>
-                    <h3>Tobacco<span class="em">Epi</span></h3>
-                    <p class="reg-card-tagline">Tobacco epidemiology analysis platform</p>
-                    <p class="reg-card-desc">
-                        A tobacco epidemiology workbench focused on regulatory evidence synthesis,
-                        harmonized HPHC datasets, and meta-analytic templates pre-validated against
-                        published systematic reviews.
-                    </p>
-                    <span class="reg-card-cta">Launch Platform</span>
                 </a>
             </div>
         </div>
